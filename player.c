@@ -12,15 +12,17 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    if (argc > 1 && strcmp(argv[1], "-n") && strcmp(argv[1], "-p")) {
-        printf("Error while processing first argument.\nUsage: ./player [-n GSIP] [-p GSport]\n");
+    if (argc == 3 && strcmp(argv[1], "-n") && strcmp(argv[1], "-p")) {
+        printf("Error while reading arguments.\nUsage: ./player [-n GSIP] [-p GSport]\n");
         return 0;
     }
 
-    if (argc > 3 && strcmp(argv[3], "-p")) {
-        printf("Error while processing second argument.\nUsage: ./player [-n GSIP] [-p GSport]\n");
+    if (argc == 5 && (strcmp(argv[1], "-n") || strcmp(argv[3], "-p"))) {
+        printf("Error while reading arguments.\nUsage: ./player [-n GSIP] [-p GSport]\n");
         return 0;
     }
+
+    // TODO: Check if arguments are integers
 
     if (argc == 3) {
         if (!strcmp(argv[1], "-n")) {
