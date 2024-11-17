@@ -26,12 +26,13 @@ int handle_TCP_messages(int client_fd)
     return 1;
 }
 
-int gameLogic()
+int gameLogic(char *message)
 {
 
     while (TRUE)
     {
         printf("Handling Client\n");
+        printf("Message: %s\n", message);
         sleep(1);
         // RECEIVE COMANDS LOGIC
     }
@@ -40,7 +41,7 @@ int gameLogic()
 }
 
 
-int handleServer(int GSport, int is_verbose)
+int handleServer(char *GSport, int is_verbose)
 {
     int tcp_fd, udp_fd, client_fd, maxfd;
     struct sockaddr_in tcp_addr, udp_addr, client_addr;
@@ -56,7 +57,7 @@ int handleServer(int GSport, int is_verbose)
     }
     tcp_addr.sin_family = AF_INET;
     tcp_addr.sin_addr.s_addr = INADDR_ANY;
-    tcp_addr.sin_port = htons(GSport);
+    tcp_addr.sin_port = htons(atoi(GSport));
     if (bind(tcp_fd, (struct sockaddr *)&tcp_addr, sizeof(tcp_addr)) < 0) {
         perror("Error binding TCP socket");
         exit(1);
@@ -71,7 +72,7 @@ int handleServer(int GSport, int is_verbose)
     }
     udp_addr.sin_family = AF_INET;
     udp_addr.sin_addr.s_addr = INADDR_ANY;
-    udp_addr.sin_port = htons(GSport);
+    udp_addr.sin_port = htons(atoi(GSport));
     if (bind(udp_fd, (struct sockaddr *)&udp_addr, sizeof(udp_addr)) < 0) {
         perror("Erro ao associar socket UDP");
         exit(1);
@@ -125,7 +126,7 @@ int handleServer(int GSport, int is_verbose)
                     sendto(udp_fd, "Mensagem recebida\n", 18, 0, (struct sockaddr *)&client_addr, client_len);
                 }
 
-                gameLogic();
+                gameLogic(buffer);
             }
         }
     }
@@ -135,7 +136,7 @@ int handleServer(int GSport, int is_verbose)
 }
 int main(int argc, char* argv[]) {
 
-    int GSport = GSPORT;
+    char *GSport = GSPORT;
     int is_verbose = FALSE;
 
     if (!(argc == 1 || 
@@ -151,11 +152,11 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc == 3 || argc == 4) {
-        GSport = atoi(argv[2]);
+        GSport = argv[2];
     }
 
     handleServer(GSport, is_verbose);
 
-    printf("[Arguments]\nGSport: %d\nIs verbose: %d\n", GSport, is_verbose);
+    printf("[Arguments]\nGSport: %s\nIs verbose: %d\n", GSport, is_verbose);
     return 0;
 }
