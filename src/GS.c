@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "constants.H"
+#include "constants.h"
 #include "utils.h"
 
 int main(int argc, char* argv[]) {
@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
         (argc == 2 && strcmp(argv[1], "-v") == 0) || 
         (argc == 3 && strcmp(argv[1], "-p") == 0 && is_integer(argv[2])) || 
         (argc == 4 && strcmp(argv[1], "-p") == 0 && is_integer(argv[2]) && strcmp(argv[3], "-v") == 0))) {
-        printf("Error while reading arguments.\nUsage: ./GS [-p GSport] [-v]\n");
+        fprintf(stderr, "Error while reading arguments.\nUsage: ./GS [-p GSport] [-v]\n");
         return 0;
     }
 
