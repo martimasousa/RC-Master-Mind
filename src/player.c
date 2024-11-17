@@ -4,12 +4,17 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 #include "constants.h"
 #include "utils.h"
 
-int start_function(char cmd[MAX_PLAYER_COMMAND]) {
-    char PLID_arg[6];
-    char max_playtime_arg[3];
+
+int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
+    char PLID_arg[7];
+    char max_playtime_arg[4];
     char extra[100];
 
     // Read arguments and check for errors
@@ -25,25 +30,48 @@ int start_function(char cmd[MAX_PLAYER_COMMAND]) {
         return 1;
     }
 
-    // Convert arguments into integers
+    // Convert arguments into integers to check if are valid
     int PLID = atoi(PLID_arg);
-    int max_playtime = atoi(max_playtime_arg);
+    if (PLID < 100000 || PLID > 999999) {
+        fprintf(stderr, "Error: Command format should be 'start PLID max_playtime'.\nHint: PLID has only 6 digits.\n");
+        return 1;
+    }
 
+    int max_playtime = atoi(max_playtime_arg);
     if (max_playtime > 600) {
         fprintf(stderr, "Error: Command format should be 'start PLID max_playtime'.\nHint: max_playtime cannot exceed 600s.\n");
         return 1;
     }
 
-    printf("%d %d\n", PLID, max_playtime);
+
+    // Create message to send
+    char msg[15];
+    snprintf(msg, sizeof(msg), "SNG %s %s", PLID_arg, max_playtime_arg);
+
+    printf("Message: %s\n", msg);
 
 
-    // TODO: Send message to server
-    
+    // Send message to server
+    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
+    if (n == -1) {
+        fprintf(stderr, "Error while sending message.\n");
+        return 1;
+    }
+
+    // Receive
+    struct sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    char buffer[128];
+    n = recvfrom(udp_fd, buffer, 128, 0, (struct sockaddr*)&addr, &addrlen);
+    if (n == -1) {
+        exit(1);   
+    }
+    printf("Received: %s\n", buffer);
 
     return 0;
 }
 
-int try_function(char cmd[MAX_PLAYER_COMMAND]) {
+int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
     char C1, C2, C3, C4;
     char extra[100];
 
@@ -67,7 +95,7 @@ int try_function(char cmd[MAX_PLAYER_COMMAND]) {
     return 0;
 }
 
-int show_trials_function(char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
+int show_trials_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -90,7 +118,7 @@ int show_trials_function(char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMM
     return 0;
 }
 
-int scoreboard_function(char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
+int scoreboard_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -113,7 +141,7 @@ int scoreboard_function(char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMA
     return 0;
 }
 
-int quit_function(char cmd[MAX_PLAYER_COMMAND]) {
+int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -131,7 +159,7 @@ int quit_function(char cmd[MAX_PLAYER_COMMAND]) {
     return 0;
 }
 
-int exit_function(char cmd[MAX_PLAYER_COMMAND]) {
+int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -149,7 +177,7 @@ int exit_function(char cmd[MAX_PLAYER_COMMAND]) {
     return 0;
 }
 
-int debug_function(char cmd[MAX_PLAYER_COMMAND]) {
+int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
     char PLID_arg[6];
     char max_playtime_arg[3];
     char C1, C2, C3, C4;
@@ -188,9 +216,8 @@ int debug_function(char cmd[MAX_PLAYER_COMMAND]) {
 
 
 int main(int argc, char* argv[]) {
-
     char *GSIP = localhost;
-    int GSport = GSPORT;
+    char *GSport = GSPORT;
 
     if (!((argc == 1) || 
         (argc == 3 && ((strcmp(argv[1], "-n") == 0 && is_valid_ip(argv[2])) || 
@@ -205,16 +232,41 @@ int main(int argc, char* argv[]) {
         if (strcmp(argv[1], "-n") == 0) {
             GSIP = argv[2];
         } else {
-            GSport = atoi(argv[2]);
+            GSport = argv[2];
         }
     } else if (argc == 5) {
         GSIP = argv[2];
-        GSport = atoi(argv[4]);
+        GSport = argv[4];
+    }
+    printf("[Arguments]\nGSIP: %s\nGSport: %s\n", GSIP, GSport);
+
+
+    // Create UDP socket
+    int udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (udp_fd == -1) {
+        fprintf(stderr, "Error while creating UDP socket.");
+        exit(1);
     }
 
-    printf("[Arguments]\nGSIP: %s\nGSport: %d\n", GSIP, GSport);
+    // Find Game Server address (UDP) -> Will be stored in res
+    struct addrinfo hints, *udp_res;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET; //IPv4
+    hints.ai_socktype = SOCK_DGRAM; //UDP socket
+
+    if (getaddrinfo(GSIP, GSPORT, &hints, &udp_res) != 0) {
+        exit(1);   
+    }
 
 
+
+    // TODO: Create TCP socket and res
+    int tcp_fd;
+    struct addrinfo *tcp_res;
+
+
+    // Process commands
     while (TRUE) {
         // Read command
         char cmd[MAX_PLAYER_COMMAND];
@@ -229,37 +281,40 @@ int main(int argc, char* argv[]) {
 
         // Execute respective function
         if (!strcmp(type, "start")) {
-            if (start_function(cmd)) {
+            if (start_function(udp_fd, udp_res, cmd)) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "try")) {
-            if (try_function(cmd)) {
+            if (try_function(udp_fd, udp_res, cmd)) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
-            if (show_trials_function(cmd, type)) {
+            if (show_trials_function(tcp_fd, tcp_res, cmd, type)) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
-            if (scoreboard_function(cmd, type)) {
+            if (scoreboard_function(tcp_fd, tcp_res, cmd, type)) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "quit")) {
-            if (quit_function(cmd)) {
+            if (quit_function(udp_fd, udp_res, cmd)) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "exit")) {
-            if (exit_function(cmd)) {
+            if (exit_function(udp_fd, udp_res, cmd)) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "debug")) {
-            if (debug_function(cmd)) {
+            if (debug_function(udp_fd, udp_res, cmd)) {
                 printf("Error\n");
             }
         } else {
             fprintf(stderr, "Error: Please provide a valid command.\n");
         }
     }
+
+    freeaddrinfo(udp_res);
+    close(udp_fd);
 
     return 0;
 }
