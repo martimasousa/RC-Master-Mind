@@ -8,9 +8,9 @@
 #include "utils.h"
 
 int main(int argc, char* argv[]) {
-    // TODO: Set default values
-    int GSIP = 192;
-    int GSport = 58000;
+
+    char *GSIP = localhost;
+    int GSport = GSPORT;
 
     if (!((argc == 1) || 
         (argc == 3 && ((strcmp(argv[1], "-n") == 0 && is_valid_ip(argv[2])) || 
@@ -21,20 +21,17 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-
-    // TODO: Check if arguments are integers
-
     if (argc == 3) {
-        if (!strcmp(argv[1], "-n")) {
-            GSIP = atoi(argv[2]);
-        } else { // == "-p"
+        if (strcmp(argv[1], "-n") == 0) {
+            GSIP = argv[2];
+        } else {
             GSport = atoi(argv[2]);
         }
     } else if (argc == 5) {
-        GSIP = atoi(argv[2]);
+        GSIP = argv[2];
         GSport = atoi(argv[4]);
     }
 
-    printf("[Arguments]\nGSIP: %d\nGSport: %d\n", GSIP, GSport);
+    printf("[Arguments]\nGSIP: %s\nGSport: %d\n", GSIP, GSport);
     return 0;
 }
