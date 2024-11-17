@@ -11,7 +11,34 @@
 #include "constants.h"
 #include "utils.h"
 
+#define max(A,B) ((A)>=(B)?(A):(B))
 #define BUFFER_SIZE 1024
+
+int handle_TCP_messages(int client_fd) 
+{ 
+
+    char command[3];
+    read(client_fd, command, 3);
+    printf("Comando a executar: %s\n", command);
+
+    // TODO: Add commands logic
+
+    return 1;
+}
+
+int gameLogic()
+{
+
+    while (TRUE)
+    {
+        printf("Handling Client\n");
+        sleep(1);
+        // RECEIVE COMANDS LOGIC
+    }
+    
+    return 1;
+}
+
 
 int handleServer(int GSport, int is_verbose)
 {
@@ -72,10 +99,9 @@ int handleServer(int GSport, int is_verbose)
             struct sockaddr_in client_addr;
             socklen_t client_len = sizeof(client_addr);
             client_fd = accept(tcp_fd, (struct sockaddr *)&client_addr, &client_len);
+
             if (client_fd >= 0) {
-                printf("Nova conexão TCP de %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-                // FD_SET(client_fd, &allfds); TODO: Verify if this line is necessary (not necessary if TCP requests are not used for real-time game commands) 
-                //if (client_fd > maxfd) maxfd = client_fd; // Same as above
+                handle_TCP_messages(client_fd);
             }
         }
 
@@ -99,12 +125,7 @@ int handleServer(int GSport, int is_verbose)
                     sendto(udp_fd, "Mensagem recebida\n", 18, 0, (struct sockaddr *)&client_addr, client_len);
                 }
 
-                while (1) {
-                    
-                    // TODO: Add Game Logic in a function that has a loop like this one
-                    printf("Handling Client\n");
-                    sleep(1);
-                }
+                gameLogic();
             }
         }
     }
