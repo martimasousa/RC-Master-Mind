@@ -12,6 +12,48 @@
 #include "utils.h"
 
 
+// Reads ' ' or '\0' separated word from the file descriptor.
+int read_word_from_fd(int fd, char* word, size_t initial_capacity) {
+    char c;
+    size_t i = 0;  // Keep track of the current position in the word
+    size_t capacity = initial_capacity;  // Initialize word capacity
+
+    while (1) {
+        ssize_t n = read(fd, &c, 1);  // Read one byte at a time
+        if (n == -1) {
+            fprintf(stderr, "Error while reading from TCP socket.\n");
+            return 1;
+        }
+
+        if (n == 0) {  // End of stream (connection closed)
+            fprintf(stderr, "Unexpected end of stream while reading word.\n");
+            return 1;
+        }
+
+        // If the buffer is full, reallocate more memory
+        if (i >= capacity - 1) {  // We reserve the last byte for the null-terminator
+            capacity *= 2;  // Double the capacity
+            word = realloc(word, capacity * sizeof(char));  // Reallocate memory
+            if (word == NULL) {
+                fprintf(stderr, "Memory reallocation failed");
+                return 1;
+            }
+        }
+
+        // If we encounter a space or null character, stop reading
+        if (c == ' ' || c == '\0') {
+            break;
+        }
+
+        // Add the character to the word
+        word[i++] = c;
+    }
+
+    word[i] = '\0';  // Null-terminate the word
+    return 0;
+}
+
+
 int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
     char PLID_arg[7];
     char max_playtime_arg[4];
@@ -48,7 +90,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     char msg[15];
     snprintf(msg, sizeof(msg), "SNG %s %s", PLID_arg, max_playtime_arg);
 
-    printf("Message: %s\n", msg);
+    printf("[TEST] Message: %s\n", msg);
 
 
     // Send message to server
@@ -108,7 +150,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     char msg[21];
     snprintf(msg, 21, "TRY %d %c %c %c %c %d", PLID, C1, C2, C3, C4, nT);
 
-    printf("Message: %s\n", msg);
+    printf("[TEST] Message: %s\n", msg);
 
 
     // Send message to server
@@ -182,7 +224,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     }
 }
 
-int show_trials_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
+int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -203,16 +245,155 @@ int show_trials_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAY
     char msg[11];
     snprintf(msg, 11, "STR %d", PLID);
 
-    printf("Message: %s\n", msg);
+    printf("[TEST] Message: %s\n", msg);
 
 
-    // TODO: Send message to server
+
+    // Create TCP socket
+    int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_fd == -1) {
+        fprintf(stderr, "Error while creating TCP socket.");
+        exit(1);
+    }
+
+    // Open a TCP connection with the server
+    ssize_t n = connect(tcp_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
+    if (n == -1) {
+        fprintf(stderr, "Error while trying to establish a connection with GS.\n");
+        return 1;
+    }
+
+    // Send message to server
+    n = write(tcp_fd, msg, sizeof(msg));
+    if (n == -1) {
+        fprintf(stderr, "Error while writing to TCP socket.\n");
+        close(tcp_fd);
+        return 1;
+    }
     
+    // Receive response from server
+    char response[8];
+    n = read(tcp_fd, response, 8);
+    if (n == -1) {
+        fprintf(stderr, "Error while reading from TCP socket.\n");
+        close(tcp_fd);
+        return 1;
+    }
 
-    return 0;
+    // Deal with response
+    char response_status[4];
+    sscanf(response, "RST %s", response_status);
+    if (!strcmp(response_status, "ACT")) {
+        // Read Fname
+        size_t initial_capacity = 10;
+        char *Fname = malloc(initial_capacity * sizeof(char));
+        if (Fname == NULL) {
+            perror("Memory allocation failed");
+            close(tcp_fd);
+            return 1;
+        }
+        if (read_word_from_fd(tcp_fd, Fname, initial_capacity)) {
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+
+        // Read Fsize
+        char *Fsize_char = malloc(initial_capacity * sizeof(char));
+        if (Fsize_char == NULL) {
+            perror("Memory allocation failed");
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+        if (read_word_from_fd(tcp_fd, Fsize_char, initial_capacity)) {
+            free(Fname);
+            free(Fsize_char);
+            close(tcp_fd);
+            return 1;
+        }
+        int Fsize = atoi(Fsize_char);
+        free(Fsize_char);
+
+        // Read file content
+        char Fdata[Fsize + 1];
+        n = read(tcp_fd, Fdata, Fsize);
+        if (n == -1) {
+            fprintf(stderr, "Error while reading from TCP socket.\n");
+            return 1;
+        }
+        Fdata[Fsize] = '\0';
+
+        // Show file
+        printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
+
+
+        // Close TCP connection and frees allocated memory
+        free(Fname);
+        close(tcp_fd);
+        return 0;
+    } else if (!strcmp(response_status, "FIN")) {
+        // Read Fname
+        size_t initial_capacity = 10;
+        char *Fname = malloc(initial_capacity * sizeof(char));
+        if (Fname == NULL) {
+            perror("Memory allocation failed");
+            close(tcp_fd);
+            return 1;
+        }
+        if (read_word_from_fd(tcp_fd, Fname, initial_capacity)) {
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+
+        // Read Fsize
+        char *Fsize_char = malloc(initial_capacity * sizeof(char));
+        if (Fsize_char == NULL) {
+            perror("Memory allocation failed");
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+        if (read_word_from_fd(tcp_fd, Fsize_char, initial_capacity)) {
+            free(Fname);
+            free(Fsize_char);
+            close(tcp_fd);
+            return 1;
+        }
+        int Fsize = atoi(Fsize_char);
+        free(Fsize_char);
+
+        // Read file content
+        char Fdata[Fsize + 1];
+        n = read(tcp_fd, Fdata, Fsize);
+        if (n == -1) {
+            fprintf(stderr, "Error while reading from TCP socket.\n");
+            return 1;
+        }
+        Fdata[Fsize] = '\0';
+
+        // Show file
+        printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
+
+        // TODO: Terminate game???
+        
+        // Close TCP connection and frees allocated memory
+        free(Fname);
+        close(tcp_fd);
+        return 0;
+    } else if (!strcmp(response_status, "NOK")) {
+        fprintf(stderr, "Error: No active/finished games found.\n");
+        close(tcp_fd);
+        return 1;
+    } else {
+        fprintf(stderr, "Error: Response format/status not known.\n");
+        close(tcp_fd);
+        return 1;
+    }
 }
 
-int scoreboard_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
+int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -233,13 +414,111 @@ int scoreboard_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAYE
     char msg[4];
     snprintf(msg, 4, "SSB");
 
-    printf("Message: %s\n", msg);
+    printf("[TEST] Message: %s\n", msg);
 
 
-    // TODO: Send message to server
+
+    // Create TCP socket
+    int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_fd == -1) {
+        fprintf(stderr, "Error while creating TCP socket.");
+        exit(1);
+    }
+
+    // Open a TCP connection with the server
+    ssize_t n = connect(tcp_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
+    if (n == -1) {
+        fprintf(stderr, "Error while trying to establish a connection with GS.\n");
+        return 1;
+    }
+
+    // Send message to server
+    n = write(tcp_fd, msg, sizeof(msg));
+    if (n == -1) {
+        fprintf(stderr, "Error while writing to TCP socket.\n");
+        close(tcp_fd);
+        return 1;
+    }
     
+    // Receive response from server
+    char response[4];
+    n = read(tcp_fd, response, 4);
+    if (n == -1) {
+        fprintf(stderr, "Error while reading from TCP socket.\n");
+        close(tcp_fd);
+        return 1;
+    }
 
-    return 0;
+    // Deal with response
+    size_t initial_capacity = 5;
+    char *response_status = malloc(initial_capacity * sizeof(char));
+    if (response_status == NULL) {
+        perror("Memory allocation failed");
+        close(tcp_fd);
+        return 1;
+    }
+    if (read_word_from_fd(tcp_fd, response_status, initial_capacity)) {
+        free(response_status);
+        close(tcp_fd);
+        return 1;
+    }
+
+    if (!strcmp(response_status, "OK")) {
+        size_t initial_capacity = 10;
+
+        // Read Fname
+        char *Fname = malloc(initial_capacity * sizeof(char));
+        if (Fname == NULL) {
+            perror("Memory allocation failed");
+            close(tcp_fd);
+            return 1;
+        }
+        if (read_word_from_fd(tcp_fd, Fname, initial_capacity)) {
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+
+        // Read Fsize
+        char *Fsize_char = malloc(initial_capacity * sizeof(char));
+        if (Fsize_char == NULL) {
+            perror("Memory allocation failed");
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+        if (read_word_from_fd(tcp_fd, Fsize_char, initial_capacity)) {
+            free(Fname);
+            free(Fsize_char);
+            close(tcp_fd);
+            return 1;
+        }
+        int Fsize = atoi(Fsize_char);
+        free(Fsize_char);
+
+        // Read file content
+        char Fdata[Fsize + 1];
+        n = read(tcp_fd, Fdata, Fsize);
+        if (n == -1) {
+            fprintf(stderr, "Error while reading from TCP socket.\n");
+            return 1;
+        }
+        Fdata[Fsize] = '\0';
+
+        // Show file
+        printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
+
+        close(tcp_fd);
+        return 0;
+    } else if (!strcmp(response_status, "EMPTY")) {
+        printf("The scoreboard is still empty.\n");
+        close(tcp_fd);
+        return 0;
+    } else {
+        fprintf(stderr, "Error: Response format/status not known.\n");
+        close(tcp_fd);
+        return 1;
+    }
 }
 
 int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
@@ -258,7 +537,7 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     char msg[11];
     snprintf(msg, 11, "QUT %d", PLID);
 
-    printf("Message: %s\n", msg);
+    printf("[TEST] Message: %s\n", msg);
 
 
     // Send message to server
@@ -317,7 +596,7 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     char msg[11];
     snprintf(msg, 11, "QUT %d", PLID);
 
-    printf("Message: %s\n", msg);
+    printf("[TEST] Message: %s\n", msg);
 
 
     // Send message to server
@@ -392,7 +671,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     char msg[23];
     snprintf(msg, 23, "DBG %d %d %c %c %c %c", PLID, max_playtime, C1, C2, C3, C4);
 
-    printf("Message: %s\n", msg);
+    printf("[TEST] Message: %s\n", msg);
 
 
     // Send message to server
@@ -457,6 +736,7 @@ int main(int argc, char* argv[]) {
     printf("[Arguments]\nGSIP: %s\nGSport: %s\n", GSIP, GSport);
 
 
+    // ######################################## UDP ############################################### //
     // Create UDP socket
     int udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd == -1) {
@@ -465,21 +745,32 @@ int main(int argc, char* argv[]) {
     }
 
     // Find Game Server address (UDP) -> Will be stored in res
-    struct addrinfo hints, *udp_res;
+    struct addrinfo udp_hints, *udp_res;
 
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET; //IPv4
-    hints.ai_socktype = SOCK_DGRAM; //UDP socket
+    memset(&udp_hints, 0, sizeof udp_hints);
+    udp_hints.ai_family = AF_INET; //IPv4
+    udp_hints.ai_socktype = SOCK_DGRAM; //UDP socket
 
-    if (getaddrinfo(GSIP, GSPORT, &hints, &udp_res) != 0) {
+    if (getaddrinfo(GSIP, GSPORT, &udp_hints, &udp_res) != 0) {
+        fprintf(stderr, "Error while getting UDP Game Server address.");
         exit(1);   
     }
+    // ######################################################################################### //
 
 
+    // ######################################## TCP ############################################ //
+    // Find Game Server address (TCP) -> Will be stored in res
+    struct addrinfo tcp_hints, *tcp_res;
 
-    // TODO: Create TCP socket and res
-    int tcp_fd;
-    struct addrinfo *tcp_res;
+    memset(&tcp_hints, 0, sizeof tcp_hints);
+    tcp_hints.ai_family = AF_INET; //IPv4
+    tcp_hints.ai_socktype = SOCK_STREAM; //TCP socket
+
+    if (getaddrinfo(GSIP, GSPORT, &tcp_hints, &tcp_res) != 0) {
+        fprintf(stderr, "Error while getting TCP Game Server address.");
+        exit(1);   
+    }
+    // ######################################################################################### //
 
 
     int PLID = -1;
@@ -513,12 +804,12 @@ int main(int argc, char* argv[]) {
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
             if (PLID < 0) {
-                fprintf(stderr, "Error: Please start a game before making a try.\n");
-            } else if (show_trials_function(tcp_fd, tcp_res, cmd, type, PLID)) {
+                fprintf(stderr, "Error: Please start a game before showing trials.\n");
+            } else if (show_trials_function(tcp_res, cmd, type, PLID)) {
                 //printf("Error\n");
             }
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
-            if (scoreboard_function(tcp_fd, tcp_res, cmd, type)) {
+            if (scoreboard_function(tcp_res, cmd, type)) {
                 //printf("Error\n");
             }
         } else if (!strcmp(type, "quit")) {
