@@ -10,31 +10,140 @@
 #include <arpa/inet.h>
 #include "constants.h"
 #include "utils.h"
+#include "udp_io.h"
 
 #define max(A,B) ((A)>=(B)?(A):(B))
 #define BUFFER_SIZE 1024
 
+
+void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char* command) {
+    char *PLID, *time;
+    char *response = "RSG OK";
+
+    PLID = malloc(sizeof(char) * PLID_DIGITS);
+    time = malloc(sizeof(char) * TIME_DIGITS);
+
+
+    sscanf(command, "SNG %s %s", PLID, time);
+
+    send_udp_response(udp_fd, response, client_addr);
+
+    printf("PLID: %s\n", PLID);
+    printf("time: %s\n", time);
+
+    free(PLID);
+    free(time);
+
+    // TODO: Add Game Logic!
+}
+
+void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
+    char *PLID, C1, C2, C3, C4, nt;
+    char *response = "RTR OK 1 1 1";
+
+    PLID = malloc(sizeof(char) * PLID_DIGITS);
+
+    sscanf(command, "TRY %s %c %c %c %c %c", PLID, &C1, &C2, &C3, &C4, &nt);
+    
+    send_udp_response(udp_fd, response, client_addr);
+
+    printf("PLID: %s\n", PLID);
+    printf("Colors: %c %c %c %c\n", C1, C2, C3, C4);
+    printf("nt: %c\n", nt);
+
+    free(PLID);
+
+    // TODO: Add Game Logic!
+}
+
+void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
+    char *PLID;
+    char *response = "RQT OK";
+
+    PLID = malloc(sizeof(char) * PLID_DIGITS);
+
+    sscanf(command, "QUT %s", PLID);
+    
+    send_udp_response(udp_fd, response, client_addr);
+
+    printf("PLID: %s\n", PLID);
+
+    free(PLID);
+
+    // TODO: Add Game Logic!
+}
+
+void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
+    char *PLID, *time, C1, C2, C3, C4;
+    char *response = "RDB OK";
+
+    PLID = malloc(sizeof(char) * PLID_DIGITS);
+    time = malloc(sizeof(char) * TIME_DIGITS);
+    
+    printf("%s\n", command);
+    sscanf(command, "DBG  %s %s %c %c %c %c", PLID, time, &C1, &C2, &C3, &C4);
+    
+    send_udp_response(udp_fd, response, client_addr);
+
+    printf("PLID: %s\n", PLID);
+    printf("time: %s\n", time);
+    printf("Colors: %c %c %c %c\n", C1, C2, C3, C4);
+
+    free(PLID);
+    free(time);
+
+    // TODO: Add Game Logic!
+}
+
+void process_command(int udp_fd, struct sockaddr_in *client_addr, const char *type, const char *command) {
+
+    if (strcmp(SNG_CMD, type) == 0) {
+        process_sng_command(udp_fd, client_addr, command);
+        return;
+
+    } else if (strcmp(TRY_CMD, type) == 0) {
+        process_try_command(udp_fd, client_addr, command);
+        return;
+
+    } else if (strcmp(QUT_CMD, type) == 0) {
+        process_qut_command(udp_fd, client_addr, command);
+        printf("QUT!\n");
+        return;
+
+    } else if (strcmp(DBG_CMD, type) == 0) {
+        process_dbg_command(udp_fd, client_addr, command);
+        printf("QUT!\n");
+        return;
+    }
+}
+
 int handle_TCP_messages(int client_fd) 
 { 
-
-    char command[3];
-    read(client_fd, command, 3);
-    printf("Comando a executar: %s\n", command);
 
     // TODO: Add commands logic
 
     return 1;
 }
 
-int gameLogic(char *message)
+int gameLogic(int udp_fd)
 {
+    int playing = TRUE;
+    char *command, *type;
 
-    while (TRUE)
+    while (playing)
     {
-        printf("Handling Client\n");
-        printf("Message: %s\n", message);
+
+        struct sockaddr_in *client_addr;
+        command = malloc(sizeof(char) * BUFFER_SIZE);
+        type = malloc(sizeof(char) * 3);
+
+        int read = recv_udp_message(udp_fd, command, BUFFER_SIZE, client_addr);
+        sscanf(command, "%s", type);
+        process_command(udp_fd, client_addr, type, command);
+        
+        
         sleep(1);
-        // RECEIVE COMANDS LOGIC
+        free(command);
     }
     
     return 1;
@@ -115,18 +224,7 @@ int handleServer(char *GSport, int is_verbose)
             }
             else if(pid==0){
 
-                // TODO: Eliminar o que está aqui: isto é apenas para testes
-                // Nesta parte só vai estar a função do gameLogic()
-                socklen_t client_len = sizeof(client_addr);
-                int n = recvfrom(udp_fd, buffer, BUFFER_SIZE - 1, 0, (struct sockaddr *)&client_addr, &client_len);
-                if (n > 0) {
-                    buffer[n] = '\0';
-                    printf("Mensagem UDP de %s:%d - %s\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), buffer);
-                    // sendto NOT WORKING!! TODO: Verify why (sending messages do client will be needed!)
-                    sendto(udp_fd, "Mensagem recebida\n", 18, 0, (struct sockaddr *)&client_addr, client_len);
-                }
-
-                gameLogic(buffer);
+                gameLogic(udp_fd);
             }
         }
     }

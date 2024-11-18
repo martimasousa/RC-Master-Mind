@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -Iinclude -Wall
+CFLAGS = -Iinclude -Iio -Wall
 LDFLAGS = -lm
 
 SRCS_SERVER = src/GS.c
 SRCS_CLIENT = src/player.c
-SRCS_GENERAL = include/utils.c
+SRCS_GENERAL = include/utils.c io/udp_io.c
 
 EXEC_SERVER = server.o
 EXEC_CLIENT = player.o
