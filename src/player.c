@@ -22,25 +22,25 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 
     if (result != 2) {
         fprintf(stderr, "Error: Command format should be 'start PLID max_playtime'.\n");
-        return 1;
+        return -1;
     }
 
     if (!is_integer(PLID_arg) || !is_integer(max_playtime_arg)) {
         fprintf(stderr, "Error: Command format should be 'start PLID max_playtime'.\nHint: Make sure PLID and max_playtime are integers.\n");
-        return 1;
+        return -1;
     }
 
     // Convert arguments into integers to check if are valid
     int PLID = atoi(PLID_arg);
     if (PLID < 100000 || PLID > 999999) {
         fprintf(stderr, "Error: Command format should be 'start PLID max_playtime'.\nHint: PLID has only 6 digits.\n");
-        return 1;
+        return -1;
     }
 
     int max_playtime = atoi(max_playtime_arg);
     if (max_playtime > 600) {
         fprintf(stderr, "Error: Command format should be 'start PLID max_playtime'.\nHint: max_playtime cannot exceed 600s.\n");
-        return 1;
+        return -1;
     }
 
 
@@ -55,23 +55,24 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
     if (n == -1) {
         fprintf(stderr, "Error while sending message.\n");
-        return 1;
+        return -1;
     }
 
-    // Receive
+    // Receive response from server
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
     char buffer[128];
     n = recvfrom(udp_fd, buffer, 128, 0, (struct sockaddr*)&addr, &addrlen);
     if (n == -1) {
-        exit(1);   
+        fprintf(stderr, "Error while receiving message.\n");
+        return -1;
     }
     printf("Received: %s\n", buffer);
 
-    return 0;
+    return PLID;
 }
 
-int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
+int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID, int nT) {
     char C1, C2, C3, C4;
     char extra[100];
 
@@ -89,13 +90,20 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     }
 
 
+    // Create message to send
+    char msg[21];
+    snprintf(msg, 21, "TRY %d %c %c %c %c %d", PLID, C1, C2, C3, C4, nT);
+
+    printf("Message: %s\n", msg);
+
+
     // TODO: Send message to server
     
 
     return 0;
 }
 
-int show_trials_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
+int show_trials_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -110,6 +118,13 @@ int show_trials_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAY
         fprintf(stderr, "Error: Command format should be 'show_trials' or 'st'.\n");
         return 1;
     }
+
+
+    // Create message to send
+    char msg[11];
+    snprintf(msg, 11, "STR %d", PLID);
+
+    printf("Message: %s\n", msg);
 
 
     // TODO: Send message to server
@@ -135,13 +150,20 @@ int scoreboard_function(int tcp_fd, struct addrinfo *tcp_res, char cmd[MAX_PLAYE
     }
 
 
+    // Create message to send
+    char msg[4];
+    snprintf(msg, 4, "SSB");
+
+    printf("Message: %s\n", msg);
+
+
     // TODO: Send message to server
     
 
     return 0;
 }
 
-int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
+int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -153,13 +175,20 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     }
 
 
+    // Create message to send
+    char msg[11];
+    snprintf(msg, 11, "QUT %d", PLID);
+
+    printf("Message: %s\n", msg);
+
+
     // TODO: Send message to server
     
 
     return 0;
 }
 
-int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
+int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
     char extra[100];
 
     // Read arguments and check for errors
@@ -171,6 +200,13 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     }
 
 
+    // Create message to send
+    char msg[11];
+    snprintf(msg, 11, "QUT %d", PLID);
+
+    printf("Message: %s\n", msg);
+
+
     // TODO: Send message to server
     
 
@@ -178,8 +214,8 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
 }
 
 int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
-    char PLID_arg[6];
-    char max_playtime_arg[3];
+    char PLID_arg[7];
+    char max_playtime_arg[4];
     char C1, C2, C3, C4;
     char extra[100];
 
@@ -188,30 +224,34 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 
     if (result != 6) {
         fprintf(stderr, "Error: Command format should be 'debug PLID max_playtime C1 C2 C3 C4'.\n");
-        return 1;
+        return -1;
     }
 
     if (!is_integer(PLID_arg) || !is_integer(max_playtime_arg)) {
         fprintf(stderr, "Error: Command format should be 'debug PLID max_playtime C1 C2 C3 C4'.\nHint: Make sure PLID and max_playtime are integers.\n");
-        return 1;
+        return -1;
     }
 
     if (!is_valid_color(C1) || !is_valid_color(C2) || !is_valid_color(C3) || !is_valid_color(C4)) {
         fprintf(stderr, "Error: Command format should be 'debug PLID max_playtime C1 C2 C3 C4'.\nHint: The valid colours are: {red (R), green (G), blue (B), yellow (Y), orange (O) and purple (P)}.\n");
-        return 1;
+        return -1;
     }
 
     // Convert arguments into integers
     int PLID = atoi(PLID_arg);
     int max_playtime = atoi(max_playtime_arg);
 
-    printf("%d %d\n", PLID, max_playtime);
+    // Create message to send
+    char msg[23];
+    snprintf(msg, 23, "DBG %d %d %c %c %c %c", PLID, max_playtime, C1, C2, C3, C4);
+
+    printf("Message: %s\n", msg);
 
 
     // TODO: Send message to server
     
 
-    return 0;
+    return PLID;
 }
 
 
@@ -266,6 +306,9 @@ int main(int argc, char* argv[]) {
     struct addrinfo *tcp_res;
 
 
+    int PLID = -1;
+    int nT = 1;
+
     // Process commands
     while (TRUE) {
         // Read command
@@ -281,15 +324,22 @@ int main(int argc, char* argv[]) {
 
         // Execute respective function
         if (!strcmp(type, "start")) {
-            if (start_function(udp_fd, udp_res, cmd)) {
+            PLID = start_function(udp_fd, udp_res, cmd);
+            if (PLID == -1) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "try")) {
-            if (try_function(udp_fd, udp_res, cmd)) {
+            if (PLID == -1) {
+                fprintf(stderr, "Please start a game before making a try.\n");
+            } else if (try_function(udp_fd, udp_res, cmd, PLID, nT)) {
                 printf("Error\n");
+            } else {
+                nT += 1;
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
-            if (show_trials_function(tcp_fd, tcp_res, cmd, type)) {
+            if (PLID == -1) {
+                fprintf(stderr, "Please start a game before making a try.\n");
+            } else if (show_trials_function(tcp_fd, tcp_res, cmd, type, PLID)) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
@@ -297,15 +347,19 @@ int main(int argc, char* argv[]) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "quit")) {
-            if (quit_function(udp_fd, udp_res, cmd)) {
+            if (PLID == -1) {
+                fprintf(stderr, "There is no active game.\n");
+            } else if (quit_function(udp_fd, udp_res, cmd, PLID)) {
                 printf("Error\n");
             }
         } else if (!strcmp(type, "exit")) {
-            if (exit_function(udp_fd, udp_res, cmd)) {
+            if (exit_function(udp_fd, udp_res, cmd, PLID)) {
                 printf("Error\n");
             }
+            break;
         } else if (!strcmp(type, "debug")) {
-            if (debug_function(udp_fd, udp_res, cmd)) {
+            PLID = debug_function(udp_fd, udp_res, cmd);
+            if (PLID == -1) {
                 printf("Error\n");
             }
         } else {
