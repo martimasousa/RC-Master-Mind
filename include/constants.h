@@ -16,6 +16,9 @@
 #define PLID_DIGITS         6
 #define TIME_DIGITS         3
 
+#define max(A,B) ((A)>=(B)?(A):(B))
+#define BUFFER_SIZE 1024
+
 #define MAX_PLAYER_COMMAND  100             // TODO: Verify
 
 #endif

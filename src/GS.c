@@ -12,9 +12,6 @@
 #include "utils.h"
 #include "udp_io.h"
 
-#define max(A,B) ((A)>=(B)?(A):(B))
-#define BUFFER_SIZE 1024
-
 
 void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char* command) {
     char *PLID, *time;
