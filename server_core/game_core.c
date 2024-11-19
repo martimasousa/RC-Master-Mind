@@ -4,6 +4,29 @@
 #include <string.h>
 #include <unistd.h>
 
+// res[0] = colour and position correct
+// res[1] = guesses that belong to the secret key but are incorrectly positioned
+void check_try(GameTry game_solution, GameTry player_try, int* res) {
+    char colours[4];
+    int i = 0, j = 0;
+
+    while (i < 4) {
+        colours[i] = game_solution.colours[i];
+        if (game_solution.colours[i] == player_try.colours[i]) {
+            res[0]++;
+        } else {
+            while (j < i) {
+                if (player_try.colours[i] == colours[j]) {
+                    res[1]++;
+                }
+                j++;
+            }
+            j = 0;
+        }
+        i++;
+    }
+}
+
 void process_sng_command(GameInfo *gameInfo, const char* command) {
     char time[TIME_DIGITS];
 
@@ -20,15 +43,30 @@ void process_sng_command(GameInfo *gameInfo, const char* command) {
 }
 
 void process_try_command(GameInfo *gameInfo, const char *command) {
-    char PLID[PLID_DIGITS], C1, C2, C3, C4, nt;
+
+    GameTry player_try;
+    char PLID[PLID_DIGITS], nt;
+
+    int *check_try_counter = malloc(2 * sizeof(int));
+    check_try_counter[0] = 0;
+    check_try_counter[1] = 0;
+
     char *response = "RTR OK 1 1 1";
 
-    sscanf(command, "TRY %s %c %c %c %c %c", PLID, &C1, &C2, &C3, &C4, &nt);
+    sscanf(command, "TRY %s %c %c %c %c %c", PLID, &player_try.colours[0], &player_try.colours[1], 
+                                                   &player_try.colours[2], &player_try.colours[3], &nt);
+
+    check_try(gameInfo->game_solution, player_try, check_try_counter);
+
+    snprintf(response, sizeof(response), "RTR OK %d %d %c", check_try_counter[0], check_try_counter[1], nt);
     
     send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
 
+
+
     printf("PLID: %s\n", PLID);
-    printf("Colors: %c %c %c %c\n", C1, C2, C3, C4);
+    printf("Colors: %c %c %c %c\n", player_try.colours[0], player_try.colours[1], 
+                                    player_try.colours[2], player_try.colours[3]);
     printf("nt: %c\n", nt);
 
     // TODO: Add Game Logic!
@@ -50,25 +88,25 @@ void process_qut_command(GameInfo *gameInfo, const char *command) {
 
 void process_dbg_command(GameInfo *gameInfo, const char *command) {
 
-    GameSolution *game_solution = &gameInfo->game_solution;
+    GameTry *game_solution = &gameInfo->game_solution;
     char time[TIME_DIGITS];
     char *response = "RDB OK";
 
     printf("%s\n", command);
     sscanf(command, "DBG  %s %s %c %c %c %c", gameInfo->PLID, time, 
-                                              &game_solution->C1,
-                                              &game_solution->C2,
-                                              &game_solution->C3,
-                                              &game_solution->C4);
+                                              &game_solution->colours[0],
+                                              &game_solution->colours[1],
+                                              &game_solution->colours[2],
+                                              &game_solution->colours[3]);
     
     send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
 
     printf("PLID: %s\n", gameInfo->PLID);
     printf("time: %s\n", time);
-    printf("Colors: %c %c %c %c\n", game_solution->C1,
-                                    game_solution->C2,
-                                    game_solution->C3,
-                                    game_solution->C4);
+    printf("Colors: %c %c %c %c\n", &game_solution->colours[0],
+                                    &game_solution->colours[1],
+                                    &game_solution->colours[2],
+                                    &game_solution->colours[3]);
 
 
     // TODO: Add Game Logic!

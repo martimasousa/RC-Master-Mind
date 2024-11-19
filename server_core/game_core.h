@@ -5,12 +5,9 @@
 #include"constants.h"
 #include "udp_io.h"
 
-typedef struct GameSolution {
-    char C1;
-    char C2;
-    char C3;
-    char C4;
-} GameSolution;
+typedef struct GameTry {
+    char colours[4];
+} GameTry;
 
 typedef struct GameInfo {
     int udp_fd;
@@ -18,10 +15,11 @@ typedef struct GameInfo {
     char PLID[PLID_DIGITS];
     struct sockaddr_in *client_addr;
     int playing;
-    GameSolution game_solution;
+    GameTry game_solution;
 
 } GameInfo;
 
+void check_try(GameTry game_solution, GameTry player_try, int* res);
 void process_sng_command(GameInfo *gameInfo, const char* command);
 void process_try_command(GameInfo *gameInfo, const char* command);
 void process_qut_command(GameInfo *gameInfo, const char* command);
