@@ -13,8 +13,8 @@
 #define GSPORT              "58000"
 #define GROUP_NUMBER        0               // TODO: Put the right value once we know our GROUP_NUMBER
 
-#define PLID_DIGITS         6
-#define TIME_DIGITS         3
+#define PLID_DIGITS         6 + 1           // '\0'
+#define TIME_DIGITS         3 + 1           // '\0'
 
 #define max(A,B) ((A)>=(B)?(A):(B))
 #define BUFFER_SIZE 1024
