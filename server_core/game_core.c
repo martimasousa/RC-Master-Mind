@@ -4,26 +4,34 @@
 #include <string.h>
 #include <unistd.h>
 
-// res[0] = colour and position correct
-// res[1] = guesses that belong to the secret key but are incorrectly positioned
 void check_try(GameTry game_solution, GameTry player_try, int* res) {
-    char colours[4];
-    int i = 0, j = 0;
+    int i, j;
+    int matched_solution[4] = {0}; // Tracks which solution colors are matched
+    int matched_guess[4] = {0};    // Tracks which guess colors are matched
 
-    while (i < 4) {
-        colours[i] = game_solution.colours[i];
+    res[0] = 0; // Correct position and color
+    res[1] = 0; // Correct color but wrong position
+
+    // First pass: Check for exact matches (correct color and position)
+    for (i = 0; i < 4; i++) {
         if (game_solution.colours[i] == player_try.colours[i]) {
+            printf("i: %d\n", i);
             res[0]++;
-        } else {
-            while (j < i) {
-                if (player_try.colours[i] == colours[j]) {
-                    res[1]++;
-                }
-                j++;
-            }
-            j = 0;
+            matched_solution[i] = 1; // Mark this solution character as matched
+            matched_guess[i] = 1;    // Mark this guess character as matched
         }
-        i++;
+    }
+
+    // Second pass: Check for misplaced matches (correct color, wrong position)
+    for (i = 0; i < 4; i++) {
+        if (matched_guess[i]) continue; // Skip already matched guesses
+        for (j = 0; j < 4; j++) {
+            if (!matched_solution[j] && player_try.colours[i] == game_solution.colours[j]) {
+                res[1]++;
+                matched_solution[j] = 1; // Mark this solution character as matched
+                break; // Stop searching for this guess
+            }
+        }
     }
 }
 
@@ -51,7 +59,7 @@ void process_try_command(GameInfo *gameInfo, const char *command) {
     check_try_counter[0] = 0;
     check_try_counter[1] = 0;
 
-    char *response = "RTR OK 1 1 1";
+    char response[MAX_PLAYER_COMMAND];
 
     sscanf(command, "TRY %s %c %c %c %c %c", PLID, &player_try.colours[0], &player_try.colours[1], 
                                                    &player_try.colours[2], &player_try.colours[3], &nt);
@@ -93,6 +101,8 @@ void process_dbg_command(GameInfo *gameInfo, const char *command) {
     char *response = "RDB OK";
 
     printf("%s\n", command);
+
+    // Informação não está a ser bem guardada na estrutura
     sscanf(command, "DBG  %s %s %c %c %c %c", gameInfo->PLID, time, 
                                               &game_solution->colours[0],
                                               &game_solution->colours[1],
@@ -103,10 +113,10 @@ void process_dbg_command(GameInfo *gameInfo, const char *command) {
 
     printf("PLID: %s\n", gameInfo->PLID);
     printf("time: %s\n", time);
-    printf("Colors: %c %c %c %c\n", &game_solution->colours[0],
-                                    &game_solution->colours[1],
-                                    &game_solution->colours[2],
-                                    &game_solution->colours[3]);
+    printf("Colors: %c %c %c %c\n", game_solution->colours[0],
+                                    game_solution->colours[1],
+                                    game_solution->colours[2],
+                                    game_solution->colours[3]);
 
 
     // TODO: Add Game Logic!
