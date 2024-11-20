@@ -20,10 +20,10 @@ typedef struct GameInfo {
 } GameInfo;
 
 void check_try(GameTry game_solution, GameTry player_try, int* res);
-void process_sng_command(GameInfo **gameInfo, const char* command);
-void process_try_command(GameInfo **gameInfo, const char* command);
-void process_qut_command(GameInfo **gameInfo, const char* command);
-void process_dbg_command(GameInfo **gameInfo, const char* command);
+void process_sng_command(GameInfo *gameInfo, const char* command);
+void process_try_command(GameInfo *gameInfo, const char* command);
+void process_qut_command(GameInfo *gameInfo, const char* command);
+void process_dbg_command(GameInfo *gameInfo, const char* command);
 void process_command(GameInfo *gameInfo, const char *command);
 int handle_TCP_messages(int client_fd);
 //int gameLogic(GameInfo **gameInfo);
