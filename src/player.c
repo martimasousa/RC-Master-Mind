@@ -13,11 +13,17 @@
 
 
 // Reads ' ' or '\0' separated word from the file descriptor.
-int read_word_from_fd(int fd, char* word, size_t initial_capacity) {
+int read_word_from_fd(int fd, char** word) {
     char c;
     size_t i = 0;  // Keep track of the current position in the word
-    size_t capacity = initial_capacity;  // Initialize word capacity
 
+    size_t capacity = 5;  // Initialize word capacity
+    *word = malloc(capacity * sizeof(char));
+    if (*word == NULL) {
+        fprintf(stderr, "Memory allocation failed");
+        return 1;
+    }
+    
     while (1) {
         ssize_t n = read(fd, &c, 1);  // Read one byte at a time
         if (n == -1) {
@@ -33,8 +39,8 @@ int read_word_from_fd(int fd, char* word, size_t initial_capacity) {
         // If the buffer is full, reallocate more memory
         if (i >= capacity - 1) {  // We reserve the last byte for the null-terminator
             capacity *= 2;  // Double the capacity
-            word = realloc(word, capacity * sizeof(char));  // Reallocate memory
-            if (word == NULL) {
+            *word = realloc(*word, capacity * sizeof(char));  // Reallocate memory
+            if (*word == NULL) {
                 fprintf(stderr, "Memory reallocation failed");
                 return 1;
             }
@@ -46,10 +52,10 @@ int read_word_from_fd(int fd, char* word, size_t initial_capacity) {
         }
 
         // Add the character to the word
-        word[i++] = c;
+        (*word)[i++] = c;
     }
 
-    word[i] = '\0';  // Null-terminate the word
+    (*word)[i] = '\0';  // Null-terminate the word
     return 0;
 }
 
@@ -90,8 +96,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     char msg[15];
     snprintf(msg, sizeof(msg), "SNG %s %s", PLID_arg, max_playtime_arg);
 
-    printf("[TEST] Message: %s\n", msg);
-
+    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -150,8 +155,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     char msg[21];
     snprintf(msg, 21, "TRY %d %c %c %c %c %d", PLID, C1, C2, C3, C4, nT);
 
-    printf("[TEST] Message: %s\n", msg);
-
+    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -241,14 +245,6 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
     }
 
 
-    // Create message to send
-    char msg[11];
-    snprintf(msg, 11, "STR %d", PLID);
-
-    printf("[TEST] Message: %s\n", msg);
-
-
-
     // Create TCP socket
     int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_fd == -1) {
@@ -262,6 +258,13 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         fprintf(stderr, "Error while trying to establish a connection with GS.\n");
         return 1;
     }
+
+
+    // Create message to send
+    char msg[11];
+    snprintf(msg, 11, "STR %d", PLID);
+
+    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
 
     // Send message to server
     n = write(tcp_fd, msg, sizeof(msg));
@@ -280,33 +283,22 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         return 1;
     }
 
-    // Deal with response
     char response_status[4];
     sscanf(response, "RST %s", response_status);
+
+    // Deal with response
     if (!strcmp(response_status, "ACT")) {
         // Read Fname
-        size_t initial_capacity = 10;
-        char *Fname = malloc(initial_capacity * sizeof(char));
-        if (Fname == NULL) {
-            perror("Memory allocation failed");
-            close(tcp_fd);
-            return 1;
-        }
-        if (read_word_from_fd(tcp_fd, Fname, initial_capacity)) {
+        char *Fname = NULL;
+        if (read_word_from_fd(tcp_fd, &Fname)) {
             free(Fname);
             close(tcp_fd);
             return 1;
         }
 
         // Read Fsize
-        char *Fsize_char = malloc(initial_capacity * sizeof(char));
-        if (Fsize_char == NULL) {
-            perror("Memory allocation failed");
-            free(Fname);
-            close(tcp_fd);
-            return 1;
-        }
-        if (read_word_from_fd(tcp_fd, Fsize_char, initial_capacity)) {
+        char *Fsize_char = NULL;
+        if (read_word_from_fd(tcp_fd, &Fsize_char)) {
             free(Fname);
             free(Fsize_char);
             close(tcp_fd);
@@ -320,9 +312,12 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         n = read(tcp_fd, Fdata, Fsize);
         if (n == -1) {
             fprintf(stderr, "Error while reading from TCP socket.\n");
+            free(Fname);
+            close(tcp_fd);
             return 1;
         }
         Fdata[Fsize] = '\0';
+
 
         // Show file
         printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
@@ -334,28 +329,16 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         return 0;
     } else if (!strcmp(response_status, "FIN")) {
         // Read Fname
-        size_t initial_capacity = 10;
-        char *Fname = malloc(initial_capacity * sizeof(char));
-        if (Fname == NULL) {
-            perror("Memory allocation failed");
-            close(tcp_fd);
-            return 1;
-        }
-        if (read_word_from_fd(tcp_fd, Fname, initial_capacity)) {
+        char *Fname = NULL;
+        if (read_word_from_fd(tcp_fd, &Fname)) {
             free(Fname);
             close(tcp_fd);
             return 1;
         }
 
         // Read Fsize
-        char *Fsize_char = malloc(initial_capacity * sizeof(char));
-        if (Fsize_char == NULL) {
-            perror("Memory allocation failed");
-            free(Fname);
-            close(tcp_fd);
-            return 1;
-        }
-        if (read_word_from_fd(tcp_fd, Fsize_char, initial_capacity)) {
+        char *Fsize_char = NULL;
+        if (read_word_from_fd(tcp_fd, &Fsize_char)) {
             free(Fname);
             free(Fsize_char);
             close(tcp_fd);
@@ -369,15 +352,19 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         n = read(tcp_fd, Fdata, Fsize);
         if (n == -1) {
             fprintf(stderr, "Error while reading from TCP socket.\n");
+            free(Fname);
+            close(tcp_fd);
             return 1;
         }
         Fdata[Fsize] = '\0';
+
 
         // Show file
         printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
 
         // TODO: Terminate game???
         
+
         // Close TCP connection and frees allocated memory
         free(Fname);
         close(tcp_fd);
@@ -410,14 +397,6 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     }
 
 
-    // Create message to send
-    char msg[4];
-    snprintf(msg, 4, "SSB");
-
-    printf("[TEST] Message: %s\n", msg);
-
-
-
     // Create TCP socket
     int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_fd == -1) {
@@ -431,6 +410,13 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         fprintf(stderr, "Error while trying to establish a connection with GS.\n");
         return 1;
     }
+
+
+    // Create message to send
+    char msg[4];
+    snprintf(msg, 4, "SSB");
+
+    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
 
     // Send message to server
     n = write(tcp_fd, msg, sizeof(msg));
@@ -449,45 +435,28 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         return 1;
     }
 
-    // Deal with response
-    size_t initial_capacity = 5;
-    char *response_status = malloc(initial_capacity * sizeof(char));
-    if (response_status == NULL) {
-        perror("Memory allocation failed");
-        close(tcp_fd);
-        return 1;
-    }
-    if (read_word_from_fd(tcp_fd, response_status, initial_capacity)) {
+    char *response_status = NULL;
+    if (read_word_from_fd(tcp_fd, &response_status)) {
         free(response_status);
         close(tcp_fd);
         return 1;
     }
 
+    // Deal with response
     if (!strcmp(response_status, "OK")) {
-        size_t initial_capacity = 10;
+        free(response_status);
 
         // Read Fname
-        char *Fname = malloc(initial_capacity * sizeof(char));
-        if (Fname == NULL) {
-            perror("Memory allocation failed");
-            close(tcp_fd);
-            return 1;
-        }
-        if (read_word_from_fd(tcp_fd, Fname, initial_capacity)) {
+        char *Fname = NULL;
+        if (read_word_from_fd(tcp_fd, &Fname)) {
             free(Fname);
             close(tcp_fd);
             return 1;
         }
 
         // Read Fsize
-        char *Fsize_char = malloc(initial_capacity * sizeof(char));
-        if (Fsize_char == NULL) {
-            perror("Memory allocation failed");
-            free(Fname);
-            close(tcp_fd);
-            return 1;
-        }
-        if (read_word_from_fd(tcp_fd, Fsize_char, initial_capacity)) {
+        char *Fsize_char = NULL;
+        if (read_word_from_fd(tcp_fd, &Fsize_char)) {
             free(Fname);
             free(Fsize_char);
             close(tcp_fd);
@@ -501,6 +470,8 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         n = read(tcp_fd, Fdata, Fsize);
         if (n == -1) {
             fprintf(stderr, "Error while reading from TCP socket.\n");
+            free(Fname);
+            close(tcp_fd);
             return 1;
         }
         Fdata[Fsize] = '\0';
@@ -508,13 +479,16 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         // Show file
         printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
 
+        free(Fname);
         close(tcp_fd);
         return 0;
     } else if (!strcmp(response_status, "EMPTY")) {
+        free(response_status);
         printf("The scoreboard is still empty.\n");
         close(tcp_fd);
         return 0;
     } else {
+        free(response_status);
         fprintf(stderr, "Error: Response format/status not known.\n");
         close(tcp_fd);
         return 1;
@@ -537,8 +511,7 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     char msg[11];
     snprintf(msg, 11, "QUT %d", PLID);
 
-    printf("[TEST] Message: %s\n", msg);
-
+    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -596,8 +569,7 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     char msg[11];
     snprintf(msg, 11, "QUT %d", PLID);
 
-    printf("[TEST] Message: %s\n", msg);
-
+    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -667,12 +639,12 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     int PLID = atoi(PLID_arg);
     int max_playtime = atoi(max_playtime_arg);
 
+
     // Create message to send
     char msg[23];
     snprintf(msg, 23, "DBG %d %d %c %c %c %c", PLID, max_playtime, C1, C2, C3, C4);
 
-    printf("[TEST] Message: %s\n", msg);
-
+    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -714,6 +686,7 @@ int main(int argc, char* argv[]) {
     char *GSIP = localhost;
     char *GSport = GSPORT;
 
+    // Read command-line arguments
     if (!((argc == 1) || 
         (argc == 3 && ((strcmp(argv[1], "-n") == 0 && is_valid_ip(argv[2])) || 
                         (strcmp(argv[1], "-p") == 0 && is_integer(argv[2])))) || 
@@ -733,7 +706,7 @@ int main(int argc, char* argv[]) {
         GSIP = argv[2];
         GSport = argv[4];
     }
-    printf("[Arguments]\nGSIP: %s\nGSport: %s\n", GSIP, GSport);
+    printf("[Arguments]\nGSIP: %s\nGSport: %s\n", GSIP, GSport); // TODO: REMOVE
 
 
     // ######################################## UDP ############################################### //
@@ -782,7 +755,7 @@ int main(int argc, char* argv[]) {
         char cmd[MAX_PLAYER_COMMAND];
         fgets(cmd, MAX_PLAYER_COMMAND, stdin);
 
-        // Remove the trailing newline character, if any
+        // Remove the trailing newline character
         cmd[strcspn(cmd, "\n")] = '\0';
 
         // Get command type
@@ -822,7 +795,10 @@ int main(int argc, char* argv[]) {
             if (PLID < 0) {
                 fprintf(stderr, "Error: There is no active game.\n");
             } else if (exit_function(udp_fd, udp_res, cmd, PLID)) {
-                exit(1);
+                //printf("Error\n");
+                freeaddrinfo(udp_res);
+                close(udp_fd);
+                return 1;   // exit(1) ???
             }
             break;
         } else if (!strcmp(type, "debug")) {
