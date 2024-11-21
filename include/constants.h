@@ -21,6 +21,9 @@
 #define FOUND 1
 #define NOT_FOUND 0
 
+#define MAX_GAME_TIME 1
+#define START_TIME 0
+
 #define max(A,B) ((A)>=(B)?(A):(B))
 #define BUFFER_SIZE 1024
 
