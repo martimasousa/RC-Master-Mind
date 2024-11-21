@@ -133,6 +133,10 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     }
 }
 
+/**
+ * Handles try command.
+ * Returns: 1 (in case of error) | 0 (in case of non-correct try) | -1 (in case of correct try)
+ */
 int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID, int nT) {
     char C1, C2, C3, C4;
     char extra[100];
@@ -186,6 +190,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
         if (nB == 4) {
             // Player won the game
             printf("Congratulations! You won the game!\n");
+            return -1;
         }
 
         printf("nT: %d\nnB: %d\nnW: %d\n", nT, nB, nW);
@@ -194,6 +199,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
         // The same reply is provided if the trial number nT is the expected value minus 1, and the
         // secret key guess repeats the one of the previous message (it is a resend) – in this case
         // the number of trials is not increased" ?????????????????????????????????????????????????
+        // TODO: Check if the last try was the same. If yes, return 1. But what is the expected nT?
 
         return 0;
     } else if (!strcmp(response_status, "DUP")) {
@@ -772,8 +778,16 @@ int main(int argc, char* argv[]) {
         } else if (!strcmp(type, "try")) {
             if (PLID < 0) {
                 fprintf(stderr, "Error: Please start a game before making a try.\n");
-            } else if (!try_function(udp_fd, udp_res, cmd, PLID, nT)) { // No error
-                nT += 1;
+            } else {
+                int try_res = try_function(udp_fd, udp_res, cmd, PLID, nT);
+
+                if (try_res == 0) {
+                    nT += 1;
+                } else if (try_res == -1) {
+                    PLID = -1;
+                } else {
+                    //printf("Error\n");
+                }
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
             if (PLID < 0) {
