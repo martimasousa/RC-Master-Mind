@@ -16,6 +16,11 @@
 #define PLID_DIGITS         6 + 1           // '\0'
 #define TIME_DIGITS         3 + 1           // '\0'
 
+#define ONGOING_GAME_FILE_NAME 13           // '\0'
+
+#define FOUND 1
+#define NOT_FOUND 0
+
 #define max(A,B) ((A)>=(B)?(A):(B))
 #define BUFFER_SIZE 1024
 

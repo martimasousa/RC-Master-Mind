@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include "utils.h"
 
 void generate_solution(GameTry* game_solution) {
     char colors[] = {'R', 'G', 'B', 'Y', 'O', 'P'};
@@ -55,21 +56,37 @@ void check_try(GameTry game_solution, GameTry player_try, int* res) {
 
 
 void process_sng_command(GameInfo *gameInfo, const char* command) {
+
     char time[TIME_DIGITS];
+    char PLID[PLID_DIGITS];
+
+    sscanf(command, "SNG %s %s", PLID, time);
+    // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
+
+    /* Verify if there is an ongoing game! */
+    char file_name[ONGOING_GAME_FILE_NAME];
+    snprintf(file_name, sizeof(file_name), "GAMES_%s", PLID);
+
+    /* If there is an ongoing game, respond with "RSG NOK" */
+    if (search_file(file_name)) {
+        char *response = "RSG NOK";
+        send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+        return;
+    }
+
+    /* If not, generate a new solution, create a new file and write the first line infos */
+    GameTry *game_solution = malloc(sizeof(GameTry));
+    generate_solution(game_solution);
+    
+    char file_path[100];
+    snprintf(file_path, sizeof(file_path), "./GAMES/%s", file_name);
+
+    create_game_log_timestamp(file_path, PLID, game_solution, time,'P');
 
     char *response = "RSG OK";
-
-    sscanf(command, "SNG %s %s", gameInfo->PLID, time);
-
-    generate_solution(&gameInfo->game_solution);
-
     send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
-
-    printf("PLID: %s\n", gameInfo->PLID);
-    printf("time: %s\n", time);
-
-    // TODO: Add Game Logic!
 }
+
 
 void process_try_command(GameInfo *gameInfo, const char *command) {
 
@@ -106,48 +123,75 @@ void process_try_command(GameInfo *gameInfo, const char *command) {
 }
 
 void process_qut_command(GameInfo *gameInfo, const char *command) {
+
     char PLID[PLID_DIGITS];
-    char *response = "RQT OK";
-
-    sscanf(command, "QUT %s", PLID);
     
+    sscanf(command, "QUT %s", PLID);
+    // TODO: Verify arguments. In case they are wrongly formed return "RQT ERR\n"
+
+    /* Verify if there is an ongoing game! */
+    char file_name[ONGOING_GAME_FILE_NAME];
+    snprintf(file_name, sizeof(file_name), "GAMES_%s", PLID);
+
+    /* If there is an ongoing game, respond with "RQT NOK" */
+    if (!search_file(file_name)) {
+        char *response = "RQT NOK";
+        send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+        return;
+    }
+
+    /* Get the solution and send the message */
+    GameTry *game_solution = malloc(sizeof(GameTry));
+    
+    char file_path[100];
+    snprintf(file_path, sizeof(file_path), "./GAMES/%s", file_name);
+
+    extract_game_colour(file_path, game_solution);
+
+    char response[100];
+    snprintf(response, sizeof(response), "RQT OK %c %c %c %c\n", game_solution->colours[0],
+                                                                 game_solution->colours[1],
+                                                                 game_solution->colours[2],
+                                                                 game_solution->colours[3]);
+
     send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
-
-    gameInfo->playing = FALSE;
-    printf("PLID: %s\n", PLID);
-
-    // TODO: Add Game Logic!
 }
 
 void process_dbg_command(GameInfo *gameInfo, const char *command) {
 
-    //GameTry *game_solution = &gameInfo->game_solution;
     char time[TIME_DIGITS];
-    char *response = "RDB OK";
-
-    printf("%s\n", command);
+    char PLID[PLID_DIGITS];
+    GameTry *game_solution = malloc(sizeof(GameTry));
 
     // Informação não está a ser bem guardada na estrutura
-    sscanf(command, "DBG  %s %s %c %c %c %c", gameInfo->PLID, time,
-                                              &gameInfo->game_solution.colours[0],
-                                              &gameInfo->game_solution.colours[1],
-                                              &gameInfo->game_solution.colours[2],
-                                              &gameInfo->game_solution.colours[3]);
+    sscanf(command, "DBG  %s %s %c %c %c %c", PLID, time,
+                                              &game_solution->colours[0],
+                                              &game_solution->colours[1],
+                                              &game_solution->colours[2],
+                                              &game_solution->colours[3]);
+
+    // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
     
+    /* Verify if there is an ongoing game! */
+    char file_name[ONGOING_GAME_FILE_NAME];
+    snprintf(file_name, sizeof(file_name), "GAMES_%s", PLID);
+
+    /* If there is an ongoing game, respond with "RSG NOK" */
+    if (search_file(file_name)) {
+        char *response = "RDB NOK";
+        send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+        return;
+    }
+
+    char file_path[100];
+    snprintf(file_path, sizeof(file_path), "./GAMES/%s", file_name);
+
+    create_game_log_timestamp(file_path, PLID, game_solution, time,'D');
+
+    char *response = "RDB OK";
     send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
-
-    printf("PLID: %s\n", gameInfo->PLID);
-    printf("time: %s\n", time);
-    /*
-    printf("Colors: %c %c %c %c\n", game_solution->colours[0],
-                                    game_solution->colours[1],
-                                    game_solution->colours[2],
-                                    game_solution->colours[3]);
-    */
-
-
-    // TODO: Add Game Logic!
 }
+
 
 void process_command(GameInfo *gameInfo, const char *command) {
     char type[3];
