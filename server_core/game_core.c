@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <time.h>
 
-void assign_color(GameTry* game_solution) {
+void generate_solution(GameTry* game_solution) {
     char colors[] = {'R', 'G', 'B', 'Y', 'O', 'P'};
     int len_colors = sizeof(colors) / sizeof(colors[0]);
     int len_solution = sizeof(game_solution->colours) / sizeof(game_solution->colours[0]);
@@ -30,7 +30,7 @@ void check_try(GameTry game_solution, GameTry player_try, int* res) {
     char wrong_tries[4];        // Try colors that were wrong
     int wrongs = 0;             // Number of wrong guesses
 
-    // First pass: Check for exact matches (correct color and position)
+    // First step: Check for exact matches (correct color and position)
     for (i = 0; i < 4; i++) {
         if (game_solution.colours[i] == player_try.colours[i]) {
             res[0]++;
@@ -41,6 +41,7 @@ void check_try(GameTry game_solution, GameTry player_try, int* res) {
         }
     }
 
+    // Second step: Find correct colors in wrong positions
     for (i = 0; i < wrongs; i++) {
         for (j = 0; j < wrongs; j++) {
             if (wrong_tries[i] == wrong_solutions[j]) {
@@ -52,6 +53,7 @@ void check_try(GameTry game_solution, GameTry player_try, int* res) {
     }
 }
 
+
 void process_sng_command(GameInfo *gameInfo, const char* command) {
     char time[TIME_DIGITS];
 
@@ -59,7 +61,7 @@ void process_sng_command(GameInfo *gameInfo, const char* command) {
 
     sscanf(command, "SNG %s %s", gameInfo->PLID, time);
 
-    assign_color(&gameInfo->game_solution);
+    generate_solution(&gameInfo->game_solution);
 
     send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
 
@@ -88,7 +90,7 @@ void process_try_command(GameInfo *gameInfo, const char *command) {
 
     check_try(gameInfo->game_solution, player_try, check_try_counter);
 
-    snprintf(response, sizeof(response), "RTR OK %d %d %c", check_try_counter[0], check_try_counter[1], nt);
+    snprintf(response, sizeof(response), "RTR OK %c %d %d", nt, check_try_counter[0], check_try_counter[1]);
     
     send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
 
@@ -148,23 +150,22 @@ void process_dbg_command(GameInfo *gameInfo, const char *command) {
 }
 
 void process_command(GameInfo *gameInfo, const char *command) {
-
     char type[3];
     sscanf(command, "%s", type);
 
-    if (strcmp(SNG_CMD, type) == 0) {
+    if (!strcmp(SNG_CMD, type)) {
         process_sng_command(gameInfo, command);
         return;
 
-    } else if (strcmp(TRY_CMD, type) == 0) {
+    } else if (!strcmp(TRY_CMD, type)) {
         process_try_command(gameInfo, command);
         return;
 
-    } else if (strcmp(QUT_CMD, type) == 0) {
-        process_qut_command(&gameInfo, command);
+    } else if (!strcmp(QUT_CMD, type)) {
+        process_qut_command(gameInfo, command);
         return;
 
-    } else if (strcmp(DBG_CMD, type) == 0) {
+    } else if (!strcmp(DBG_CMD, type)) {
         process_dbg_command(gameInfo, command);
         return;
     } else {
@@ -172,6 +173,7 @@ void process_command(GameInfo *gameInfo, const char *command) {
         return;
     }
 }
+
 
 int handle_TCP_messages(int client_fd) { 
     // TODO: Add commands logic

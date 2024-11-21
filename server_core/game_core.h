@@ -19,7 +19,13 @@ typedef struct GameInfo {
 
 } GameInfo;
 
+/**
+ * Compare the player's try with the solution and evaluate nB (correct in both colour and position)
+ * and nW (belong to the secret key but are incorrectly positioned).
+ */
 void check_try(GameTry game_solution, GameTry player_try, int* res);
+
+
 void process_sng_command(GameInfo *gameInfo, const char* command);
 void process_try_command(GameInfo *gameInfo, const char* command);
 void process_qut_command(GameInfo *gameInfo, const char* command);

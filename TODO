@@ -2,7 +2,7 @@
 - Quit
 - Rever uma cena no try do player.c
 - Rever lógica do server
-- Tempo de jogo
+- Tempo de jogo
 - Quando UDP falha ao enviar
 - Prováveis loops necessários nos sends e receives
 - SIGNAL (aquela cena de se escrever num socket quando um cliente desconecta do nada)
