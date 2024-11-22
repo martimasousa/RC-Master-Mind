@@ -9,15 +9,6 @@ typedef struct GameTry {
     char colours[4];
 } GameTry;
 
-typedef struct GameInfo {
-    int udp_fd;
-    time_t max_time;
-    char PLID[PLID_DIGITS];
-    struct sockaddr_in *client_addr;
-    int playing;
-    GameTry game_solution;
-
-} GameInfo;
 
 /**
  * Compare the player's try with the solution and evaluate nB (correct in both colour and position)
@@ -26,11 +17,11 @@ typedef struct GameInfo {
 void check_try(GameTry game_solution, GameTry player_try, int* res);
 
 
-void process_sng_command(GameInfo *gameInfo, const char* command);
-void process_try_command(GameInfo *gameInfo, const char* command);
-void process_qut_command(GameInfo *gameInfo, const char* command);
-void process_dbg_command(GameInfo *gameInfo, const char* command);
-void process_command(GameInfo *gameInfo, const char *command);
+void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
+void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
+void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
+void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
+void process_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 int handle_TCP_messages(int client_fd);
 //int gameLogic(GameInfo **gameInfo);
 

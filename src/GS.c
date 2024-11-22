@@ -67,6 +67,7 @@ int handleServer(char *GSport, int is_verbose) {
 
         // Verify new TCP connections
         if (FD_ISSET(tcp_fd, &rfds)) {
+            // TODO: fork()
             struct sockaddr_in client_addr;
             socklen_t client_len = sizeof(client_addr);
             client_fd = accept(tcp_fd, (struct sockaddr *)&client_addr, &client_len);
@@ -78,43 +79,22 @@ int handleServer(char *GSport, int is_verbose) {
 
         // Verify UDP messages (Game Logic)
         if (FD_ISSET(udp_fd, &rfds)) {
+            struct sockaddr_in *client_addr = malloc(sizeof(struct sockaddr_in));
+            char *command = malloc(sizeof(char) * BUFFER_SIZE);
 
-            if ((pid = fork()) == -1) {
-                perror("Error creating process with fork");
+            if (recv_udp_message(udp_fd, command, BUFFER_SIZE, client_addr) == -1) {
+                perror("Error reading command");
                 exit(1);
-            } else if (pid==0) { // CHILD PROCESS
-                GameInfo *gameInfo = malloc(sizeof(GameInfo));
-                gameInfo->udp_fd = udp_fd;
-                gameInfo->playing = TRUE;
-                gameInfo->client_addr = malloc(sizeof(struct sockaddr_in));
-                char *command = malloc(sizeof(char) * BUFFER_SIZE);
-                char *type = malloc(sizeof(char) * 3);
-
-                while (gameInfo->playing) {
-                    if (recv_udp_message(gameInfo->udp_fd, command, BUFFER_SIZE, gameInfo->client_addr) == -1) {
-                        perror("Error reading command");
-                        exit(1);
-                    }
-                    process_command(gameInfo, command);
-
-                    printf("[gameLogic] Solution: %c %c %c %c\n", gameInfo->game_solution.colours[0], gameInfo->game_solution.colours[1], gameInfo->game_solution.colours[2], gameInfo->game_solution.colours[3]);
-                }
-
-                free(command);
-                free(type);
-                free(gameInfo->client_addr);
-                free(gameInfo);
-                
-                //gameLogic(&gameInfo);
-                //printf("[MAIN] Solution: %c %c %c %c\n", gameInfo->game_solution.colours[0], gameInfo->game_solution.colours[1], gameInfo->game_solution.colours[2], gameInfo->game_solution.colours[3]);
-
-            } else { // PARENT PROCESS
-                int status;
-                wait(&status); // Wait for the child process to finish
-                if (WIFEXITED(status)) {
-                    // printf("Child exited with status %d\n", WEXITSTATUS(status));
-                }
             }
+            process_command(udp_fd, client_addr, command);
+
+            //printf("[gameLogic] Solution: %c %c %c %c\n", gameInfo->game_solution.colours[0], gameInfo->game_solution.colours[1], gameInfo->game_solution.colours[2], gameInfo->game_solution.colours[3]);
+
+            free(command);
+            free(client_addr);
+            
+            //gameLogic(&gameInfo);
+            //printf("[MAIN] Solution: %c %c %c %c\n", gameInfo->game_solution.colours[0], gameInfo->game_solution.colours[1], gameInfo->game_solution.colours[2], gameInfo->game_solution.colours[3]);
         }
     }
     close(tcp_fd);

@@ -55,7 +55,7 @@ void check_try(GameTry game_solution, GameTry player_try, int* res) {
 }
 
 
-void process_sng_command(GameInfo *gameInfo, const char* command) {
+void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
     char time[TIME_DIGITS];
     char PLID[PLID_DIGITS];
@@ -66,7 +66,7 @@ void process_sng_command(GameInfo *gameInfo, const char* command) {
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (search_file(PLID)) {
         char *response = "RSG NOK";
-        send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+        send_udp_response(udp_fd, response, client_addr);
         return;
     }
 
@@ -77,11 +77,11 @@ void process_sng_command(GameInfo *gameInfo, const char* command) {
     create_game_log_timestamp(PLID, game_solution, time,'P');
 
     char *response = "RSG OK";
-    send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+    send_udp_response(udp_fd, response, client_addr);
 }
 
 
-void process_try_command(GameInfo *gameInfo, const char *command) {
+void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
     GameTry player_try;
     char PLID[PLID_DIGITS], nt;
@@ -107,17 +107,17 @@ void process_try_command(GameInfo *gameInfo, const char *command) {
 
 
 
-    // check_try(gameInfo->game_solution, player_try, check_try_counter);
+    // check_try(game_solution, player_try, check_try_counter);
 
     // snprintf(response, sizeof(response), "RTR OK %c %d %d", nt, check_try_counter[0], check_try_counter[1]);
     
-    // send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+    // send_udp_response(udp_fd, response, client_addr);
 
 
     // TODO: Add Game Logic!
 }
 
-void process_qut_command(GameInfo *gameInfo, const char *command) {
+void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
     char PLID[PLID_DIGITS];
     
@@ -127,7 +127,7 @@ void process_qut_command(GameInfo *gameInfo, const char *command) {
     /* If there is an ongoing game, respond with "RQT NOK" */
     if (!search_file(PLID)) {
         char *response = "RQT NOK";
-        send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+        send_udp_response(udp_fd, response, client_addr);
         return;
     }
 
@@ -142,10 +142,10 @@ void process_qut_command(GameInfo *gameInfo, const char *command) {
                                                                  game_solution->colours[2],
                                                                  game_solution->colours[3]);
 
-    send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+    send_udp_response(udp_fd, response, client_addr);
 }
 
-void process_dbg_command(GameInfo *gameInfo, const char *command) {
+void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
     char time[TIME_DIGITS];
     char PLID[PLID_DIGITS];
@@ -164,35 +164,35 @@ void process_dbg_command(GameInfo *gameInfo, const char *command) {
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (search_file(PLID)) {
         char *response = "RDB NOK";
-        send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+        send_udp_response(udp_fd, response, client_addr);
         return;
     }
 
     create_game_log_timestamp(PLID, game_solution, time,'D');
 
     char *response = "RDB OK";
-    send_udp_response(gameInfo->udp_fd, response, gameInfo->client_addr);
+    send_udp_response(udp_fd, response, client_addr);
 }
 
 
-void process_command(GameInfo *gameInfo, const char *command) {
+void process_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
     char type[3];
     sscanf(command, "%s", type);
 
     if (!strcmp(SNG_CMD, type)) {
-        process_sng_command(gameInfo, command);
+        process_sng_command(udp_fd, client_addr, command);
         return;
 
     } else if (!strcmp(TRY_CMD, type)) {
-        process_try_command(gameInfo, command);
+        process_try_command(udp_fd, client_addr, command);
         return;
 
     } else if (!strcmp(QUT_CMD, type)) {
-        process_qut_command(gameInfo, command);
+        process_qut_command(udp_fd, client_addr, command);
         return;
 
     } else if (!strcmp(DBG_CMD, type)) {
-        process_dbg_command(gameInfo, command);
+        process_dbg_command(udp_fd, client_addr, command);
         return;
     } else {
         printf("Error: %s\n", type);

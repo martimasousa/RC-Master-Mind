@@ -30,8 +30,6 @@ int compare_game_try(const GameTry *input, const GameTry *line) {
     return TRUE;  // Se todas as cores coincidirem, retorna true
 }
 
-// Função para iterar pelas linhas do ficheiro
-// Retorna true se já houver alguma linha igual
 int extract_colors_from_file(const char *PLID, GameTry *game_try) {
     
     char *file_path = get_game_folder_path(PLID);
@@ -127,7 +125,7 @@ void create_game_log_timestamp(const char *PLID, GameTry *game_solution, char *t
         return;
     }
 
-    char timestr[20];
+    char timestr[50];
     snprintf(timestr, sizeof(timestr), "%4d-%02d-%02d %02d:%02d:%02d",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
@@ -248,11 +246,7 @@ int inTime(const char *PLID) {
     int max_time = atoi(maxTimeStr);
     time_t now = time(NULL);
     int current_time = (int)now;
-
-    printf("1st Time %d\n", current_time);
-    printf("2nd Time %d\n", start_time);
-
-    printf("Diff: %d, Max: %d\n", current_time-start_time, max_time);
+    
     if ((current_time - start_time) > max_time) return FALSE;
     
     return TRUE;
