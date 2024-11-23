@@ -21,7 +21,11 @@ void generate_solution(GameTry* game_solution) {
 }
 
 
-void check_try(GameTry game_solution, GameTry player_try, int* res) {
+void check_try(const char *PLID, GameTry player_try, int* res) {
+
+    GameTry game_solution;
+    strncpy(game_solution.colours, extract_game_info(PLID, ARG_SOLUTION), sizeof(game_solution.colours));
+
     int i, j;
 
     res[0] = 0; // Correct position and color
@@ -64,7 +68,7 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
     // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
 
     /* If there is an ongoing game, respond with "RSG NOK" */
-    if (search_file(PLID)) {
+    if (has_ongoing_game(PLID)) {
         char *response = "RSG NOK";
         send_udp_response(udp_fd, response, client_addr);
         return;
@@ -97,15 +101,37 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     // TODO: Verify Sintaxe!
 
+    if (!has_ongoing_game(PLID)) {
+        char *response = "RTR NOK";
+        send_udp_response(udp_fd, response, client_addr);
+        return;
+    }
+
     if (!inTime(PLID)) {
-        //TODO: OUT OF TIME!
+        char *response = "RTR ETM";
+        send_udp_response(udp_fd, response, client_addr);
+        return;
     }
 
-    if (extract_colors_from_file(PLID, &player_try)) {
-        //TODO: Duplicated!
+    if (is_duplicated(PLID, &player_try)) {
+        char *response = "RTR NOK";
+        send_udp_response(udp_fd, response, client_addr);
+        return;
     }
 
+    // TODO: Verify the INV response!
 
+    //TODO: Verify the ENT response!
+
+    // OK response
+    int *try_res = malloc(sizeof(int) * 2);
+    check_try(PLID, player_try, try_res);
+    write_try(PLID, player_try, try_res);
+
+    char response[50];
+    sprintf(response, "RTR OK %d %d %c",try_res[0], try_res[1], nt); 
+
+    send_udp_response(udp_fd, response, client_addr);
 
     // check_try(game_solution, player_try, check_try_counter);
 
@@ -125,7 +151,7 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
     // TODO: Verify arguments. In case they are wrongly formed return "RQT ERR\n"
 
     /* If there is an ongoing game, respond with "RQT NOK" */
-    if (!search_file(PLID)) {
+    if (!has_ongoing_game(PLID)) {
         char *response = "RQT NOK";
         send_udp_response(udp_fd, response, client_addr);
         return;
@@ -162,7 +188,7 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
 
     /* If there is an ongoing game, respond with "RSG NOK" */
-    if (search_file(PLID)) {
+    if (has_ongoing_game(PLID)) {
         char *response = "RDB NOK";
         send_udp_response(udp_fd, response, client_addr);
         return;

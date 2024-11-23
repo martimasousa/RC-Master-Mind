@@ -14,7 +14,7 @@ typedef struct GameTry {
  * Compare the player's try with the solution and evaluate nB (correct in both colour and position)
  * and nW (belong to the secret key but are incorrectly positioned).
  */
-void check_try(GameTry game_solution, GameTry player_try, int* res);
+void check_try(const char *PLID, GameTry player_try, int* res);
 
 
 void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);

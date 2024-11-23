@@ -14,7 +14,7 @@ int is_valid_ip(const char *ip);
 int is_valid_color(char C);
 
 // Returns true if PLID has an ongoing game
-int search_file(const char *PLID);
+int has_ongoing_game(const char *PLID);
 
 // Generate the path of the file that contains the player's information.
 char* get_game_folder_path(const char *PLID);
@@ -29,7 +29,7 @@ void create_game_log_timestamp(const char *PLID, GameTry *game_solution, char *t
 int extract_game_colour(const char *PLID, GameTry *game);
 
 // For a certain file, extract the game initial and max time
-char* extract_game_time(const char *PLID, const char time_type);
+char* extract_game_info(const char *PLID, const char arg_type);
 
 // Check if the game is within the time limit
 int inTime(const char *PLID);
@@ -39,6 +39,8 @@ int compare_game_try(const GameTry *input, const GameTry *line);
 
 // Função para iterar pelas linhas do ficheiro
 // Retorna true se já houver alguma linha igual
-int extract_colors_from_file(const char *PLID, GameTry *game_try);
+int is_duplicated(const char *PLID, GameTry *game_try);
+
+void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 
 #endif

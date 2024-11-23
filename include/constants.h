@@ -21,8 +21,15 @@
 #define FOUND 1
 #define NOT_FOUND 0
 
-#define MAX_GAME_TIME 1
-#define START_TIME 0
+// First line file arguments index
+#define ARG_PLID 0
+#define ARG_MODE 1
+#define ARG_SOLUTION 2
+#define ARG_MAXTIME 3
+#define ARG_DATE 4
+#define ARG_TIME 5
+#define ARG_ELAPSED_TIME 6
+
 
 #define max(A,B) ((A)>=(B)?(A):(B))
 #define BUFFER_SIZE 1024
