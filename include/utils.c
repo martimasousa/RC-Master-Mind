@@ -52,33 +52,25 @@ int is_duplicated(const char *PLID, GameTry *game_try) {
 
     // Itera pelas linhas seguintes
     while (fgets(line, sizeof(line), file) != NULL) {
-        // A linha está no formato: num: C C C C
         char colour1, colour2, colour3, colour4;
-
-        // Usando sscanf para ler os dados da linha
         int result = sscanf(line, "T: %c%c%c%c", &colour1, &colour2, &colour3, &colour4);
 
-        // Verifica se leu corretamente a linha
         if (result == 4) {
-            // Criar a estrutura GameTry e armazenar as cores
             GameTry line_game;
             line_game.colours[0] = colour1;
             line_game.colours[1] = colour2;
             line_game.colours[2] = colour3;
             line_game.colours[3] = colour4;
 
-            // Comparar a linha com o input
             if (compare_game_try(game_try, &line_game)) {
                 fclose(file);
-                return TRUE;  // Encontrou uma correspondência
+                return TRUE;
             }
         }
-
         line_num++;
     }
-
     fclose(file);
-    return FALSE;  // Não encontrou nenhuma correspondência
+    return FALSE;
 }
 
 
@@ -191,61 +183,35 @@ char* extract_game_info(const char *PLID, const char arg_type) {
 }
 
 
-
 int inTime(const char *PLID) {
-    // Extrair os tempos do ficheiro
-    char *startTimeStr = extract_game_info(PLID, ARG_ELAPSED_TIME);
-    char *maxTimeStr = extract_game_info(PLID, ARG_MAXTIME);
-    
-    if (startTimeStr == NULL || maxTimeStr == NULL) {
-        fprintf(stderr, "Erro ao extrair os tempos do ficheiro.\n");
-        return 0;
-    }
 
-    int start_time = atoi(startTimeStr);
-    int max_time = atoi(maxTimeStr);
-    time_t now = time(NULL);
-    int current_time = (int)now;
+    int max_time = atoi(extract_game_info(PLID, ARG_MAXTIME));
     
-    if ((current_time - start_time) > max_time) return FALSE;
-    
-    return TRUE;
+    return (get_elapsed_time(PLID) < max_time);
 }
 
-void write_try(const char *PLID, GameTry game_try, int *game_try_res) {
 
-    char *file_path = get_game_folder_path(PLID);
+int get_elapsed_time(const char *PLID) {
+    return (int)time(NULL) - atoi(extract_game_info(PLID, ARG_ELAPSED_TIME));
+}
 
-    FILE *file = fopen(file_path, "a");
-    if (file == NULL) {
-        perror("Erro ao abrir o ficheiro");
-        return;
-    }
 
-    char message[50];
+void write_try(const char *PLID, GameTry game_try, int *player_try_res) {
 
-    int *try_res = malloc(sizeof(int) * 2);
+    char message[50], elapsed_time;
 
-    GameTry game_solution;
-    strncpy(game_solution.colours, extract_game_info(PLID, ARG_SOLUTION), sizeof(game_solution.colours));
-    
-    check_try(PLID, game_try, try_res);
+    elapsed_time = get_elapsed_time(PLID);
 
-    char *startTime = extract_game_info(PLID, ARG_ELAPSED_TIME);
-    int elapsed_time = (int)time(NULL) - atoi(startTime);
     sprintf(message, "T: %c%c%c%c %d %d %d", 
                                         game_try.colours[0],                                               
                                         game_try.colours[1],
                                         game_try.colours[2],
                                         game_try.colours[3],
-                                        game_try_res[0],
-                                        game_try_res[1],
+                                        player_try_res[0],
+                                        player_try_res[1],
                                         elapsed_time);
 
-    
-    fprintf(file, "%s\n", message);
-    fflush(file);
-    fclose(file);
+    write_game_line(PLID, message);
 }
 
 int is_integer(const char *str) {

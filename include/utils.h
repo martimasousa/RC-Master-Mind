@@ -41,6 +41,8 @@ int compare_game_try(const GameTry *input, const GameTry *line);
 // Retorna true se já houver alguma linha igual
 int is_duplicated(const char *PLID, GameTry *game_try);
 
+int get_elapsed_time(const char *PLID);
+
 void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 
 #endif

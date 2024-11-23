@@ -121,26 +121,19 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     // TODO: Verify the INV response!
 
-    //TODO: Verify the ENT response!
+    // TODO: Verify the ENT response!
 
     // OK response
-    int *try_res = malloc(sizeof(int) * 2);
-    check_try(PLID, player_try, try_res);
-    write_try(PLID, player_try, try_res);
+    int *player_try_res = malloc(sizeof(int) * 2);
+    check_try(PLID, player_try, player_try_res);
+    write_try(PLID, player_try, player_try_res);
 
     char response[50];
-    sprintf(response, "RTR OK %d %d %c",try_res[0], try_res[1], nt); 
+    sprintf(response, "RTR OK %d %d %c",player_try_res[0], player_try_res[1], nt); 
 
     send_udp_response(udp_fd, response, client_addr);
 
-    // check_try(game_solution, player_try, check_try_counter);
-
-    // snprintf(response, sizeof(response), "RTR OK %c %d %d", nt, check_try_counter[0], check_try_counter[1]);
-    
-    // send_udp_response(udp_fd, response, client_addr);
-
-
-    // TODO: Add Game Logic!
+    // TODO: Add function that verifies if game solved
 }
 
 void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
@@ -231,29 +224,3 @@ int handle_TCP_messages(int client_fd) {
     // TODO: Add commands logic
     return 1;
 }
-
-/*
-int gameLogic(GameInfo **gameInfo) {
-    
-    (*gameInfo)->playing = TRUE;
-    (*gameInfo)->client_addr = malloc(sizeof(struct sockaddr_in));
-    char *command = malloc(sizeof(char) * BUFFER_SIZE);
-    char *type = malloc(sizeof(char) * 3);
-
-    while ((*gameInfo)->playing) {
-        if (recv_udp_message((*gameInfo)->udp_fd, command, BUFFER_SIZE, (*gameInfo)->client_addr) == -1) {
-            perror("Error reading command");
-            exit(1);
-        }
-        process_command(gameInfo, command);
-
-        printf("[gameLogic] Solution: %c %c %c %c\n", (*gameInfo)->game_solution.colours[0], (*gameInfo)->game_solution.colours[1], (*gameInfo)->game_solution.colours[2], (*gameInfo)->game_solution.colours[3]);
-    }
-
-    free(command);
-    free(type);
-    free((*gameInfo)->client_addr);
-    
-    return 1;
-}
-*/
