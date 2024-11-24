@@ -21,6 +21,8 @@
 #define FOUND 1
 #define NOT_FOUND 0
 
+#define MAX_TRIALS 8
+
 // First line file arguments index
 #define ARG_PLID 0
 #define ARG_MODE 1

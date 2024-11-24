@@ -119,9 +119,21 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
-    // TODO: Verify the INV response!
+    if (hasExceededMaxTurn(nt)) {
+        GameTry *game_solution = malloc(sizeof(GameTry));
+    
+        extract_game_colour(PLID, game_solution);
 
-    // TODO: Verify the ENT response!
+        char response[100];
+        snprintf(response, sizeof(response), "RTR ENT %c %c %c %c\n", game_solution->colours[0],
+                                                                    game_solution->colours[1],
+                                                                    game_solution->colours[2],
+                                                                    game_solution->colours[3]);
+        send_udp_response(udp_fd, response, client_addr);
+        return;
+    }
+
+    // TODO: Verify the INV response!
 
     // OK response
     int *player_try_res = malloc(sizeof(int) * 2);

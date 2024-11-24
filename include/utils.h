@@ -43,6 +43,8 @@ int is_duplicated(const char *PLID, GameTry *game_try);
 
 int get_elapsed_time(const char *PLID);
 
+int hasExceededMaxTurn(char trial_number);
+
 void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 
 #endif

@@ -85,6 +85,10 @@ int has_ongoing_game(const char *PLID) {
     }
 }
 
+int hasExceededMaxTurn(char trial_number) {
+    return (trial_number - '0' > MAX_TRIALS);
+}
+
 void write_game_line(const char *PLID, const char *message) {
     
     char *file_path = get_game_folder_path(PLID);
@@ -202,7 +206,7 @@ void write_try(const char *PLID, GameTry game_try, int *player_try_res) {
 
     elapsed_time = get_elapsed_time(PLID);
 
-    sprintf(message, "T: %c%c%c%c %d %d %d", 
+    sprintf(message, "T: %c%c%c%c %d %d %d\n", 
                                         game_try.colours[0],                                               
                                         game_try.colours[1],
                                         game_try.colours[2],
