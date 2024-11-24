@@ -22,7 +22,10 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 void process_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
-int handle_TCP_messages(int client_fd);
+void handle_TCP_messages(int client_fd, const char *command);
+
+void process_str_command(int client_fd, const char *command);
+void process_ssb_command(int client_fd, const char *command);
 //int gameLogic(GameInfo **gameInfo);
 
 #endif

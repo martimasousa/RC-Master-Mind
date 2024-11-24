@@ -12,54 +12,6 @@
 #include "utils.h"
 
 
-// Reads ' ' or '\0' separated word from the file descriptor.
-int read_word_from_fd(int fd, char** word) {
-    char c;
-    size_t i = 0;  // Keep track of the current position in the word
-
-    size_t capacity = 5;  // Initialize word capacity
-    *word = malloc(capacity * sizeof(char));
-    if (*word == NULL) {
-        fprintf(stderr, "Memory allocation failed");
-        return 1;
-    }
-    
-    while (1) {
-        ssize_t n = read(fd, &c, 1);  // Read one byte at a time
-        if (n == -1) {
-            fprintf(stderr, "Error while reading from TCP socket.\n");
-            return 1;
-        }
-
-        if (n == 0) {  // End of stream (connection closed)
-            fprintf(stderr, "Unexpected end of stream while reading word.\n");
-            return 1;
-        }
-
-        // If the buffer is full, reallocate more memory
-        if (i >= capacity - 1) {  // We reserve the last byte for the null-terminator
-            capacity *= 2;  // Double the capacity
-            *word = realloc(*word, capacity * sizeof(char));  // Reallocate memory
-            if (*word == NULL) {
-                fprintf(stderr, "Memory reallocation failed");
-                return 1;
-            }
-        }
-
-        // If we encounter a space or null character, stop reading
-        if (c == ' ' || c == '\0') {
-            break;
-        }
-
-        // Add the character to the word
-        (*word)[i++] = c;
-    }
-
-    (*word)[i] = '\0';  // Null-terminate the word
-    return 0;
-}
-
-
 int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
     char PLID_arg[7];
     char max_playtime_arg[4];

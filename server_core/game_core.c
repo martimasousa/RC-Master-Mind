@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <time.h>
 #include "utils.h"
+#include <sys/stat.h>
 
 void generate_solution(GameTry* game_solution) {
     char colors[] = {'R', 'G', 'B', 'Y', 'O', 'P'};
@@ -205,6 +206,106 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
     send_udp_response(udp_fd, response, client_addr);
 }
 
+void process_str_command(int client_fd, const char *command) {
+
+    char PLID[PLID_DIGITS];
+    char response[BUFFER_SIZE];
+    char *filename; // Caminho do arquivo de jogo
+    struct stat file_stat;
+
+    printf("Command: %s\n", command);
+    // Verifica o comando recebido (espera "STR <PLID>")
+    if (sscanf(command, "STR %s", PLID) != 1) {
+        snprintf(response, sizeof(response), "RST NOK\n");
+        send(client_fd, response, strlen(response), 0);
+        close(client_fd);
+        return;
+    }
+    printf("1\n");
+    // Determine o arquivo associado ao jogador
+    filename = get_game_folder_path(PLID);
+
+    // Verifica se o arquivo existe
+    if (stat(filename, &file_stat) != 0) {
+        printf("Erro STAT!\n");
+        snprintf(response, sizeof(response), "RST NOK\n");
+        send(client_fd, response, strlen(response), 0);
+        close(client_fd);
+        return;
+    }
+    printf("2\n");
+
+    // Abre o arquivo
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        perror("Erro ao abrir arquivo");
+        snprintf(response, sizeof(response), "RST NOK\n");
+        send(client_fd, response, strlen(response), 0);
+        close(client_fd);
+        return;
+    }
+    printf("3\n");
+
+    // Ignora a primeira linha
+    char line[BUFFER_SIZE];
+    if (fgets(line, sizeof(line), file) == NULL) {
+        fprintf(stderr, "Erro ao ignorar a primeira linha ou arquivo vazio.\n");
+        fclose(file);
+        snprintf(response, sizeof(response), "RST NOK\n");
+        send(client_fd, response, strlen(response), 0);
+        close(client_fd);
+        return;
+    }
+    printf("4\n");
+
+    // Lê o restante do arquivo e calcula o tamanho real
+    size_t total_size = 0;
+    char* filedata = malloc(file_stat.st_size); // Aloca com base no tamanho original (garantido suficiente)
+    if (!filedata) {
+        perror("Erro ao alocar memória");
+        snprintf(response, sizeof(response), "RST NOK\n");
+        send(client_fd, response, strlen(response), 0);
+        fclose(file);
+        close(client_fd);
+        return;
+    }
+    printf("5\n");
+
+    // Constrói o buffer com as linhas restantes
+    while (fgets(line, sizeof(line), file)) {
+        size_t len = strlen(line);
+        memcpy(filedata + total_size, line, len);
+        total_size += len;
+    }
+
+    fclose(file);
+
+    // Prepara a resposta com o status "ACT" ou "FIN"
+    snprintf(response, sizeof(response), "RST ACT %s %ld ", filename, total_size);
+
+    printf("%s", filedata);
+
+    // // Envia o cabeçalho
+    // send(client_fd, response, strlen(response), 0);
+
+    // // Envia o conteúdo do arquivo (após ignorar a primeira linha)
+    // send(client_fd, filedata, total_size, 0);
+
+    // // Libera recursos
+    // free(filedata);
+    // close(client_fd);
+    // printf("Resposta enviada ao cliente.\n");
+    /*
+    char *response = "RST NOK";
+    printf("Respondi!\n");
+    write(client_fd, response, sizeof(response));
+    */
+}
+
+void process_ssb_command(int client_fd, const char *command) {
+    return;
+}
+
 
 void process_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
     char type[3];
@@ -232,7 +333,20 @@ void process_command(int udp_fd, struct sockaddr_in *client_addr, const char *co
 }
 
 
-int handle_TCP_messages(int client_fd) { 
-    // TODO: Add commands logic
-    return 1;
+void handle_TCP_messages(int client_fd, const char *command) { 
+    char type[3];
+    sscanf(command, "%s", type);
+
+    if (!strcmp(STR_CMD, type)) {
+        process_str_command(client_fd, command);
+        return;
+
+    } else if (!strcmp(SSB_CMD, type)) {
+        process_ssb_command(client_fd, command);
+        return;
+
+    } else {
+        printf("Error: %s\n", command);
+        return;
+    }
 }

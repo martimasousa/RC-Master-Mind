@@ -71,10 +71,15 @@ int handleServer(char *GSport, int is_verbose) {
             struct sockaddr_in client_addr;
             socklen_t client_len = sizeof(client_addr);
             client_fd = accept(tcp_fd, (struct sockaddr *)&client_addr, &client_len);
+            char *command2 = NULL;
 
+            read_word_from_fd(client_fd, &command2);
+            // TODO: read function
+            printf("Command2: %s\n", command2);
             if (client_fd >= 0) {
-                handle_TCP_messages(client_fd);
+                handle_TCP_messages(client_fd, command2);
             }
+            free(command2);
         }
 
         // Verify UDP messages (Game Logic)

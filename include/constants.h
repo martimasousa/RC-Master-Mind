@@ -8,6 +8,8 @@
 #define TRY_CMD             "TRY"
 #define QUT_CMD             "QUT"
 #define DBG_CMD             "DBG"
+#define STR_CMD             "STR"
+#define SSB_CMD             "SSB"
 
 #define localhost           "127.0.0.1"
 #define GSPORT              "58000"

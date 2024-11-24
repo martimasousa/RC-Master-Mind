@@ -1,6 +1,5 @@
 - Toda a lógica relacionada aos TCPs (ler, escrever ficheiros, criar diretórios)
 - Rever uma cena no try do player.c -> PASSA PARA O SERVER
-- Rever lógica do server
 - Quando UDP falha ao enviar
 - Prováveis loops necessários nos sends e receives
 - SIGNAL (aquela cena de se escrever num socket quando um cliente desconecta do nada)
