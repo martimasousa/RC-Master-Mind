@@ -5,3 +5,7 @@
 - SIGNAL (aquela cena de se escrever num socket quando um cliente desconecta do nada)
 - Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
 - Constantes para tamanhos de buffer
+
+
+Ideia:
+  o server pode montar a string a enviar e enviar toda de uma vez e o cliente pode ir lendo aos poucos!
