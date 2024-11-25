@@ -284,3 +284,28 @@ int read_word_from_fd(int fd, char** word) {
     (*word)[i] = '\0';  // Null-terminate the word
     return 0;
 }
+
+int line_size(FILE *fp) {
+    char c;
+    int res = 0;
+
+    while ((c = fgetc(fp)) != EOF) {
+        if (c == '\n') {
+            res++;
+            break;
+        }
+        res++;
+    }
+
+    return res;
+}
+
+int get_data_size(FILE *file) {
+    int first_line_size = line_size(file);
+    fseek(file, 0L, SEEK_END);
+    int file_size = ftell(file);
+    fseek(file, first_line_size, SEEK_SET);
+    
+    return (file_size - first_line_size);
+
+}

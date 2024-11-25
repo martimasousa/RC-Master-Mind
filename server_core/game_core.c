@@ -213,7 +213,6 @@ void process_str_command(int client_fd, const char *command) {
     char *filename; // Caminho do arquivo de jogo
     struct stat file_stat;
 
-    printf("Command: %s\n", command);
     // Verifica o comando recebido (espera "STR <PLID>")
     if (sscanf(command, "STR %s", PLID) != 1) {
         snprintf(response, sizeof(response), "RST NOK\n");
@@ -221,20 +220,15 @@ void process_str_command(int client_fd, const char *command) {
         close(client_fd);
         return;
     }
-    printf("1\n");
-    // Determine o arquivo associado ao jogador
-    filename = get_game_folder_path(PLID);
 
-    // Verifica se o arquivo existe
-    if (stat(filename, &file_stat) != 0) {
-        printf("Erro STAT!\n");
-        snprintf(response, sizeof(response), "RST NOK\n");
+    if (!has_ongoing_game(PLID)) {
+        char *response = "RST NOK";
         send(client_fd, response, strlen(response), 0);
-        close(client_fd);
         return;
     }
-    printf("2\n");
 
+    // Determine o arquivo associado ao jogador
+    filename = get_game_folder_path(PLID);
     // Abre o arquivo
     FILE* file = fopen(filename, "r");
     if (!file) {
@@ -244,46 +238,29 @@ void process_str_command(int client_fd, const char *command) {
         close(client_fd);
         return;
     }
-    printf("3\n");
 
-    // Ignora a primeira linha
+    int file_data_size = get_data_size(file);
+
+    char filedata[BUFFER_SIZE];
+    int total_size = 0;
+
+    int i = 0;
     char line[BUFFER_SIZE];
-    if (fgets(line, sizeof(line), file) == NULL) {
-        fprintf(stderr, "Erro ao ignorar a primeira linha ou arquivo vazio.\n");
-        fclose(file);
-        snprintf(response, sizeof(response), "RST NOK\n");
-        send(client_fd, response, strlen(response), 0);
-        close(client_fd);
-        return;
-    }
-    printf("4\n");
-
-    // Lê o restante do arquivo e calcula o tamanho real
-    size_t total_size = 0;
-    char* filedata = malloc(file_stat.st_size); // Aloca com base no tamanho original (garantido suficiente)
-    if (!filedata) {
-        perror("Erro ao alocar memória");
-        snprintf(response, sizeof(response), "RST NOK\n");
-        send(client_fd, response, strlen(response), 0);
-        fclose(file);
-        close(client_fd);
-        return;
-    }
-    printf("5\n");
-
-    // Constrói o buffer com as linhas restantes
     while (fgets(line, sizeof(line), file)) {
+        i++;
         size_t len = strlen(line);
         memcpy(filedata + total_size, line, len);
         total_size += len;
     }
 
-    fclose(file);
+    printf("File_name: Teste, File_Size:%d, File_Data: %s\n", file_data_size, filedata);
 
-    // Prepara a resposta com o status "ACT" ou "FIN"
-    snprintf(response, sizeof(response), "RST ACT %s %ld ", filename, total_size);
+    // fclose(file);
 
-    printf("%s", filedata);
+    // // Prepara a resposta com o status "ACT" ou "FIN"
+    // snprintf(response, sizeof(response), "RST ACT %s %ld ", filename, total_size);
+
+    // printf("%s", filedata);
 
     // // Envia o cabeçalho
     // send(client_fd, response, strlen(response), 0);

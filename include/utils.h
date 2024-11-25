@@ -49,4 +49,8 @@ void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 
 int read_word_from_fd(int fd, char** word);
 
+int line_size(FILE *fp);
+
+int get_data_size(FILE *file);
+
 #endif

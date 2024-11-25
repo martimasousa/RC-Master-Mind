@@ -73,11 +73,10 @@ int handleServer(char *GSport, int is_verbose) {
             client_fd = accept(tcp_fd, (struct sockaddr *)&client_addr, &client_len);
             char *command2 = NULL;
 
-            read_word_from_fd(client_fd, &command2);
+            //read_word_from_fd(client_fd);
             // TODO: read function
-            printf("Command2: %s\n", command2);
             if (client_fd >= 0) {
-                handle_TCP_messages(client_fd, command2);
+                handle_TCP_messages(client_fd, "STR 106324");
             }
             free(command2);
         }
