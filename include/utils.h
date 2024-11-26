@@ -57,4 +57,6 @@ int hasWon(int *player_try_res);
 
 int calculateScore(char *PLID, int turnsPlayed);
 
+char* getScoreFileName(int score, char *PLID);
+
 #endif

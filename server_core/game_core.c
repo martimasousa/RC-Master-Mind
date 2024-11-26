@@ -68,6 +68,8 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
     sscanf(command, "SNG %s %s", PLID, time);
     // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
 
+    char *fileName = getScoreFileName(200, PLID);
+
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (has_ongoing_game(PLID)) {
         char *response = "RSG NOK";
@@ -149,7 +151,8 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     if (hasWon(player_try_res)) {
         // TODO: 
         
-        printf("Ganhou com o scrore: %d!\n", calculateScore(PLID, (nt - '0')));
+        int score = calculateScore(PLID, (nt - '0'));
+        char *fileName = getScoreFileName(score, PLID);
     }
     
 

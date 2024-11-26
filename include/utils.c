@@ -329,3 +329,23 @@ int calculateScore(char *PLID, int turnsPlayed) {
     // Arredonde para 2 casas decimais
     return round(score);
 }
+
+char* getScoreFileName(int score, char *PLID) {
+
+    char string[BUFFER_SIZE];
+    time_t now = time(NULL);
+    struct tm *current_time = gmtime(&now);
+
+    sprintf(string, "%d_%s_%02d%02d%4d_%02d%02d%02d.txt", score, PLID, 
+                                                          current_time->tm_mday,
+                                                          current_time->tm_mon + 1,
+                                                          current_time->tm_year + 1900,
+                                                          current_time->tm_hour,
+                                                          current_time->tm_min,
+                                                          current_time->tm_sec);
+
+    char *res = malloc(sizeof(char) * strlen(string));
+    memcpy(res, string, strlen(string));
+    return res;
+    
+}
