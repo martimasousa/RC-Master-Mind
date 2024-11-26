@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+#include <math.h>
 
 char* get_game_folder_path(const char *PLID) {
     size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
@@ -308,4 +309,23 @@ int get_data_size(FILE *file) {
     
     return (file_size - first_line_size);
 
+}
+
+int hasWon(int *player_try_res) {
+    return (player_try_res[0] == 4);
+}
+
+int calculateScore(char *PLID, int turnsPlayed) {
+
+
+    float elapsed_time = get_elapsed_time(PLID);
+    float max_time = (float)atoi(extract_game_info(PLID, ARG_MAXTIME));
+
+    // Calcule o score
+    float score = 100.0f * (((float)MAX_ALLOWED_PLAYS - turnsPlayed) / (float)MAX_ALLOWED_PLAYS) * 
+                            (1.0f - (elapsed_time / (float)MAX_ALLOWED_TIME)) * 
+                            ((float)MAX_ALLOWED_TIME / max_time);
+
+    // Arredonde para 2 casas decimais
+    return round(score);
 }

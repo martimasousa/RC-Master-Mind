@@ -34,6 +34,9 @@
 #define ARG_TIME 5
 #define ARG_ELAPSED_TIME 6
 
+#define MAX_ALLOWED_TIME 600
+#define MAX_ALLOWED_PLAYS 8
+
 
 #define max(A,B) ((A)>=(B)?(A):(B))
 #define BUFFER_SIZE 1024

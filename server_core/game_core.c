@@ -146,6 +146,13 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     send_udp_response(udp_fd, response, client_addr);
 
+    if (hasWon(player_try_res)) {
+        // TODO: 
+        
+        printf("Ganhou com o scrore: %d!\n", calculateScore(PLID, (nt - '0')));
+    }
+    
+
     // TODO: Add function that verifies if game solved
 }
 
@@ -214,12 +221,7 @@ void process_str_command(int client_fd, const char *command) {
     struct stat file_stat;
 
     // Verifica o comando recebido (espera "STR <PLID>")
-    if (sscanf(command, "STR %s", PLID) != 1) {
-        snprintf(response, sizeof(response), "RST NOK\n");
-        send(client_fd, response, strlen(response), 0);
-        close(client_fd);
-        return;
-    }
+    sscanf(command, "STR %s", PLID);
 
     if (!has_ongoing_game(PLID)) {
         char *response = "RST NOK";
@@ -253,7 +255,16 @@ void process_str_command(int client_fd, const char *command) {
         total_size += len;
     }
 
-    printf("File_name: Teste, File_Size:%d, File_Data: %s\n", file_data_size, filedata);
+    char teste[BUFFER_SIZE * 10];
+    sprintf(teste, "RST ACT Teste %d %s", file_data_size, filedata);
+
+    int n = 0;
+    int total = 0;
+    while (total < strlen(teste))
+    {
+        n = write(client_fd, teste, strlen(teste));
+        total += n;
+    }
 
     // fclose(file);
 
