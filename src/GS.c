@@ -61,24 +61,53 @@ int handleServer(char *GSport, int is_verbose) {
         rfds = allfds;
         int ready = select(maxfd + 1, &rfds, NULL, NULL, NULL); // TODO: Verify the arguments of this function
         if (ready < 0) {
-            perror("Erro no select");
-            exit(1);
+            fprintf(stderr, "Error during select execution...");
+            exit(1); // TODO: ???
         }
 
         // Verify new TCP connections
         if (FD_ISSET(tcp_fd, &rfds)) {
-            // TODO: fork()
             struct sockaddr_in client_addr;
             socklen_t client_len = sizeof(client_addr);
-            client_fd = accept(tcp_fd, (struct sockaddr *)&client_addr, &client_len);
-            char *command2 = NULL;
 
-            //read_word_from_fd(client_fd);
-            // TODO: read function
+            // Accept new connection
+            client_fd = accept(tcp_fd, (struct sockaddr *)&client_addr, &client_len);
+            
             if (client_fd >= 0) {
-                handle_TCP_messages(client_fd, "STR 106324");
+                // Create a child process to handle the client
+                pid_t pid = fork();
+
+                if (pid == 0) { // Child process
+                    close(tcp_fd); // Close listening socket in child
+
+                    // Read command (whole line)
+                    char *command = NULL;
+                    tcp_read_until_delimiter(client_fd, &command, '\n');
+                    fprintf("Command line: %s", command);
+                    free(command);
+
+                    // Handle client messages
+                    handle_TCP_messages(client_fd, "STR 106324");
+
+                    close(client_fd); // Close client socket
+                    exit(0); // Exit child process
+                } else if (pid > 0) { // Parent process
+                    close(client_fd); // Close client socket in parent
+                } else {
+                    fprintf(stderr, "Error during fork execution...");
+                    close(client_fd); // Clean up on fork failure
+                }
+            } else {
+                fprintf(stderr, "Error during accept execution...");
             }
-            free(command2);
+
+            // char *command2 = NULL; // TODO: ???
+            // tcp_read_until_delimiter(client_fd);
+            // TODO: read function
+            // if (client_fd >= 0) {
+            //     handle_TCP_messages(client_fd, "STR 106324");
+            // }
+            // free(command2);
         }
 
         // Verify UDP messages (Game Logic)
@@ -88,7 +117,7 @@ int handleServer(char *GSport, int is_verbose) {
 
             if (recv_udp_message(udp_fd, command, BUFFER_SIZE, client_addr) == -1) {
                 perror("Error reading command");
-                exit(1);
+                exit(1); // TODO: ???
             }
             process_command(udp_fd, client_addr, command);
 

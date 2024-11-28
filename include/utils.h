@@ -47,7 +47,8 @@ int hasExceededMaxTurn(char trial_number);
 
 void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 
-int read_word_from_fd(int fd, char** word);
+// Reads delimited string from the file descriptor.
+int tcp_read_until_delimiter(int fd, char** word, char separator);
 
 int line_size(FILE *fp);
 

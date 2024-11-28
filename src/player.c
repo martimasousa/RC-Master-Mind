@@ -248,7 +248,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
     if (!strcmp(response_status, "ACT")) {
         // Read Fname
         char *Fname = NULL;
-        if (read_word_from_fd(tcp_fd, &Fname)) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
             free(Fname);
             close(tcp_fd);
             return 1;
@@ -256,7 +256,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
 
         // Read Fsize
         char *Fsize_char = NULL;
-        if (read_word_from_fd(tcp_fd, &Fsize_char)) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
             free(Fname);
             free(Fsize_char);
             close(tcp_fd);
@@ -288,7 +288,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
     } else if (!strcmp(response_status, "FIN")) {
         // Read Fname
         char *Fname = NULL;
-        if (read_word_from_fd(tcp_fd, &Fname)) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
             free(Fname);
             close(tcp_fd);
             return 1;
@@ -296,7 +296,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
 
         // Read Fsize
         char *Fsize_char = NULL;
-        if (read_word_from_fd(tcp_fd, &Fsize_char)) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
             free(Fname);
             free(Fsize_char);
             close(tcp_fd);
@@ -394,7 +394,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     }
 
     char *response_status = NULL;
-    if (read_word_from_fd(tcp_fd, &response_status)) {
+    if (tcp_read_until_delimiter(tcp_fd, &response_status, ' ')) {
         free(response_status);
         close(tcp_fd);
         return 1;
@@ -406,7 +406,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
 
         // Read Fname
         char *Fname = NULL;
-        if (read_word_from_fd(tcp_fd, &Fname)) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
             free(Fname);
             close(tcp_fd);
             return 1;
@@ -414,7 +414,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
 
         // Read Fsize
         char *Fsize_char = NULL;
-        if (read_word_from_fd(tcp_fd, &Fsize_char)) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
             free(Fname);
             free(Fsize_char);
             close(tcp_fd);

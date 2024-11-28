@@ -241,8 +241,7 @@ int is_valid_color(char C) {
 }
 
 
-// Reads ' ' or '\0' separated word from the file descriptor.
-int read_word_from_fd(int fd, char** word) {
+int tcp_read_until_delimiter(int fd, char** word, char separator) {
     char c;
     size_t i = 0;  // Keep track of the current position in the word
 
@@ -275,7 +274,7 @@ int read_word_from_fd(int fd, char** word) {
         }
 
         // If we encounter a space or null character, stop reading
-        if (c == ' ' || c == '\0') {
+        if (c == separator || c == '\0') {
             break;
         }
 
