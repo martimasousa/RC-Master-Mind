@@ -1,11 +1,13 @@
 #include "utils.h"
 #include "game_core.h"
 #include "constants.h"
+#include <sys/stat.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <time.h>
+#include <errno.h>    // Para verificar erros com errno
 #include <string.h>
 #include <math.h>
 
@@ -19,6 +21,86 @@ char* get_game_folder_path(const char *PLID) {
     }
     snprintf(file_path, path_length, "./GAMES/GAME_%s", PLID);
     return file_path;
+}
+
+char* get_player_folder_path(const char *PLID) {
+    size_t path_length = strlen("./GAMES/") + strlen(PLID) + 1;
+
+    char *file_path = malloc(path_length);
+    if (file_path == NULL) {
+        perror("Error allocating memory for the path!\n");
+        return NULL;
+    }
+    snprintf(file_path, path_length, "./GAMES/%s", PLID);
+    return file_path;
+}
+
+int create_directory(const char *directory) {
+    int result = mkdir(directory, 0777); // Tenta criar o diretório
+
+    if (result == 0) {
+        printf("Diretoria '%s' criada com sucesso.\n", directory);
+        return 0; // Sucesso
+    }
+
+    // Se houver erro, verifica o valor de errno
+    if (errno == EEXIST) {
+        printf("Diretoria '%s' já existe.\n", directory);
+        return 0; // Não tratamos como erro, pois o diretório já existe
+    } else {
+        perror("Erro ao criar diretoria"); // Mostra o erro apropriado
+        return -1; // Falha
+    }
+}
+
+int move_file(const char *PLID, const char endGameType) {
+    char *destinationDirectoryPath = get_player_folder_path(PLID);
+    char *sourceFilePath = get_game_folder_path(PLID);
+    char *newFileName = get_end_game_name(endGameType);
+    time_t now = time(NULL);
+    struct tm *current_time = gmtime(&now);
+
+    size_t path_length = strlen(destinationDirectoryPath) + 1 + strlen(newFileName) + 1;
+    char *destination_path = malloc(path_length);
+
+    snprintf(destination_path, path_length, "%s/%s", destinationDirectoryPath, newFileName);
+
+    char *message = malloc(sizeof(char) * 50);
+    snprintf(message, 50, "%4d-%02d-%02d %02d:%02d:%02d %d",
+                                        current_time->tm_year + 1900,
+                                        current_time->tm_mon + 1,
+                                        current_time->tm_mday,
+                                        current_time->tm_hour,
+                                        current_time->tm_min,
+                                        current_time->tm_sec,
+                                        get_elapsed_time(PLID));
+    
+    write_game_line(PLID, message);
+
+    if (rename(sourceFilePath, destination_path) == 0) {
+        printf("Ficheiro '%s' movido para '%s' com sucesso.\n", PLID, destinationDirectoryPath);
+        return 0;
+    } else {
+        perror("Erro ao mover o ficheiro");
+        return -1;
+    }
+}
+
+char* get_end_game_name(char const type) {
+    time_t now = time(NULL);
+    struct tm *current_time = gmtime(&now);
+
+    char *res = malloc(sizeof(char) * 50);
+    snprintf(res, 50, "%4d%02d%02d_%02d%02d%02d_%c",
+                                        current_time->tm_year + 1900,
+                                        current_time->tm_mon + 1,
+                                        current_time->tm_mday,
+                                        current_time->tm_hour,
+                                        current_time->tm_min,
+                                        current_time->tm_sec,
+                                        type);
+
+    return res;
 }
 
 // Função para comparar as cores
@@ -86,8 +168,22 @@ int has_ongoing_game(const char *PLID) {
     }
 }
 
-int hasExceededMaxTurn(char trial_number) {
+int has_exceeded_max_turn(char trial_number) {
     return (trial_number - '0' > MAX_TRIALS);
+}
+
+char* get_max_turn_response(const char* PLID) {
+    GameTry *game_solution = malloc(sizeof(GameTry));
+    
+    extract_game_colour(PLID, game_solution);
+
+    char *response = malloc(sizeof(char) * 100);
+    snprintf(response, 100, "RTR ENT %c %c %c %c\n", game_solution->colours[0],
+                                                                game_solution->colours[1],
+                                                                game_solution->colours[2],
+                                                                game_solution->colours[3]);
+
+    return response;
 }
 
 void write_game_line(const char *PLID, const char *message) {
@@ -188,11 +284,11 @@ char* extract_game_info(const char *PLID, const char arg_type) {
 }
 
 
-int inTime(const char *PLID) {
+int has_exceeded_time(const char *PLID) {
 
     int max_time = atoi(extract_game_info(PLID, ARG_MAXTIME));
     
-    return (get_elapsed_time(PLID) < max_time);
+    return (get_elapsed_time(PLID) > max_time);
 }
 
 
@@ -330,21 +426,30 @@ int calculateScore(char *PLID, int turnsPlayed) {
 }
 
 char* getScoreFileName(int score, char *PLID) {
+    char *res = "77";
 
-    char string[BUFFER_SIZE];
-    time_t now = time(NULL);
-    struct tm *current_time = gmtime(&now);
-
-    sprintf(string, "%d_%s_%02d%02d%4d_%02d%02d%02d.txt", score, PLID, 
-                                                          current_time->tm_mday,
-                                                          current_time->tm_mon + 1,
-                                                          current_time->tm_year + 1900,
-                                                          current_time->tm_hour,
-                                                          current_time->tm_min,
-                                                          current_time->tm_sec);
-
-    char *res = malloc(sizeof(char) * strlen(string));
-    memcpy(res, string, strlen(string));
     return res;
+
+    // char string[BUFFER_SIZE];
+    // time_t now = time(NULL);
+    // struct tm *current_time = gmtime(&now);
+
+    // sprintf(string, "%d_%s_%02d%02d%4d_%02d%02d%02d.txt", score, PLID, 
+    //                                                       current_time->tm_mday,
+    //                                                       current_time->tm_mon + 1,
+    //                                                       current_time->tm_year + 1900,
+    //                                                       current_time->tm_hour,
+    //                                                       current_time->tm_min,
+    //                                                       current_time->tm_sec);
+
+    // char *res = malloc(sizeof(char) * strlen(string));
+    // memcpy(res, string, strlen(string));
+    // return res;
     
+}
+
+int directoryExists(char *filepath) {
+    struct stat st;
+
+    return (stat(filepath, &st) == 0 && S_ISDIR(st.st_mode));
 }

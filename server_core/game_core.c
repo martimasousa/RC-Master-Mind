@@ -68,8 +68,6 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
     sscanf(command, "SNG %s %s", PLID, time);
     // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
 
-    char *fileName = getScoreFileName(200, PLID);
-
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (has_ongoing_game(PLID)) {
         char *response = "RSG NOK";
@@ -77,11 +75,15 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
+
     /* If not, generate a new solution, create a new file and write the first line infos */
     GameTry *game_solution = malloc(sizeof(GameTry));
     generate_solution(game_solution);
 
     create_game_log_timestamp(PLID, game_solution, time,'P');
+
+    char *directoryPath = get_player_folder_path(PLID);
+    if (!directoryExists(directoryPath)) create_directory(directoryPath);
 
     char *response = "RSG OK";
     send_udp_response(udp_fd, response, client_addr);
@@ -101,44 +103,37 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     sscanf(command, "TRY %s %c %c %c %c %c", PLID, &player_try.colours[0], &player_try.colours[1], 
                                                    &player_try.colours[2], &player_try.colours[3], &nt);
 
-
+    
     // TODO: Verify Sintaxe!
 
+    // TODO: Verify INV!
+
     if (!has_ongoing_game(PLID)) {
-        char *response = "RTR NOK";
+        char *response =  "RTR NOK";
         send_udp_response(udp_fd, response, client_addr);
         return;
-    }
-
-    if (!inTime(PLID)) {
+    } 
+    
+    if (has_exceeded_time(PLID)) {
         char *response = "RTR ETM";
+        move_file(PLID, END_TIMEOUT);
         send_udp_response(udp_fd, response, client_addr);
         return;
-    }
-
+    } 
+    
     if (is_duplicated(PLID, &player_try)) {
         char *response = "RTR NOK";
         send_udp_response(udp_fd, response, client_addr);
         return;
-    }
-
-    if (hasExceededMaxTurn(nt)) {
-        GameTry *game_solution = malloc(sizeof(GameTry));
+    } 
     
-        extract_game_colour(PLID, game_solution);
-
-        char response[100];
-        snprintf(response, sizeof(response), "RTR ENT %c %c %c %c\n", game_solution->colours[0],
-                                                                    game_solution->colours[1],
-                                                                    game_solution->colours[2],
-                                                                    game_solution->colours[3]);
+    if (has_exceeded_max_turn(nt)) {
+        char *response = get_max_turn_response(PLID);
+        move_file(PLID, END_FAIL);
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
 
-    // TODO: Verify the INV response!
-
-    // OK response
     int *player_try_res = malloc(sizeof(int) * 2);
     check_try(PLID, player_try, player_try_res);
     write_try(PLID, player_try, player_try_res);
@@ -146,17 +141,15 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     char response[50];
     sprintf(response, "RTR OK %d %d %c",player_try_res[0], player_try_res[1], nt); 
 
-    send_udp_response(udp_fd, response, client_addr);
 
     if (hasWon(player_try_res)) {
-        // TODO: 
         
-        int score = calculateScore(PLID, (nt - '0'));
-        char *fileName = getScoreFileName(score, PLID);
+        move_file(PLID, END_WIN);
+        // int score = calculateScore(PLID, (nt - '0'));
+        // char *fileName = getScoreFileName(score, PLID);
     }
-    
 
-    // TODO: Add function that verifies if game solved
+    send_udp_response(udp_fd, response, client_addr);
 }
 
 void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
@@ -183,7 +176,7 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
                                                                  game_solution->colours[1],
                                                                  game_solution->colours[2],
                                                                  game_solution->colours[3]);
-
+    move_file(PLID, END_QUIT);
     send_udp_response(udp_fd, response, client_addr);
 }
 
@@ -212,6 +205,9 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     create_game_log_timestamp(PLID, game_solution, time,'D');
 
+    char *directoryPath = get_player_folder_path(PLID);
+    if (!directoryExists(directoryPath)) create_directory(directoryPath);
+
     char *response = "RDB OK";
     send_udp_response(udp_fd, response, client_addr);
 }
@@ -221,7 +217,6 @@ void process_str_command(int client_fd, const char *command) {
     char PLID[PLID_DIGITS];
     char response[BUFFER_SIZE];
     char *filename; // Caminho do arquivo de jogo
-    struct stat file_stat;
 
     // Verifica o comando recebido (espera "STR <PLID>")
     sscanf(command, "STR %s", PLID);

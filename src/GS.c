@@ -19,7 +19,6 @@ int handleServer(char *GSport, int is_verbose) {
     int tcp_fd, udp_fd, client_fd, maxfd;
     struct sockaddr_in tcp_addr, udp_addr; //, client_addr;
     fd_set rfds, allfds;
-    pid_t pid;
 
     // Creating and configuring TCP socket
     tcp_fd = socket(AF_INET, SOCK_STREAM, 0);

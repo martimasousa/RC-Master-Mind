@@ -37,6 +37,10 @@
 #define MAX_ALLOWED_TIME 600
 #define MAX_ALLOWED_PLAYS 8
 
+#define END_WIN 'W'
+#define END_FAIL 'F'
+#define END_QUIT 'Q'
+#define END_TIMEOUT 'T'
 
 #define max(A,B) ((A)>=(B)?(A):(B))
 #define BUFFER_SIZE 1024
