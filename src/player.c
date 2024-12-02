@@ -278,7 +278,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
 
 
         // Show file
-        printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
+        printf("Fname: %s\nFsize: %d\nFdata:\n-----------------\n%s\n-----------------\n", Fname, Fsize, Fdata);
 
 
         // Close TCP connection and frees allocated memory
@@ -318,7 +318,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
 
 
         // Show file
-        printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
+        printf("Fname: %s\nFsize: %d\nFdata:\n-----------------\n%s\n-----------------\n", Fname, Fsize, Fdata);
 
         // TODO: Terminate game???
         
