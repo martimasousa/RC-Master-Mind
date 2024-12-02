@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <unistd.h>
 
 #include "constants.h"
 #include "utils.h"
@@ -213,13 +214,13 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     }
     
     // Receive response from server
-    char response[4];
-    n = read(tcp_fd, response, 4);
-    if (n == -1) {
-        fprintf(stderr, "Error while reading from TCP socket.\n");
+    char *response = NULL;
+    if (tcp_read_until_delimiter(tcp_fd, &response, ' ')) {
+        free(response);
         close(tcp_fd);
         return 1;
     }
+    free(response);
 
     char *response_status = NULL;
     if (tcp_read_until_delimiter(tcp_fd, &response_status, ' ')) {
@@ -227,8 +228,10 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         close(tcp_fd);
         return 1;
     }
+    // TODO: The problem here is that the server returns the messages terminated with \n so for an EMPTY status response there will be no ' ' and the function does not detect the end of file
 
-    // Deal with response
+    // Evaluate responses that have '\n' after the status
+    // Evaluate responses that have ' ' after the status
     if (!strcmp(response_status, "OK")) {
         free(response_status);
 
@@ -268,7 +271,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         free(Fname);
         close(tcp_fd);
         return 0;
-    } else if (!strcmp(response_status, "EMPTY")) {
+    } else if (!strcmp(response_status, "EMPTY\nRSS")) {
         free(response_status);
         printf("The scoreboard is still empty.\n");
         close(tcp_fd);

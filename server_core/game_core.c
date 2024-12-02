@@ -86,7 +86,7 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
     char *directoryPath = get_player_folder_path(PLID);
     if (!directoryExists(directoryPath)) create_directory(directoryPath);
 
-    char *response = "RSG OK";
+    char *response = "RSG OK\n";
     send_udp_response(udp_fd, response, client_addr);
 }
 

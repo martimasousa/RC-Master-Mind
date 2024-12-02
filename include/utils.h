@@ -67,6 +67,13 @@ int tcp_read_until_delimiter(int fd, char** word, char separator);
 // Writes some string to a tcp file descriptor
 int tcp_write(int fd, char* to_write);
 
+// Função que recebe uma mensagem UDP e retorna o número de bytes lidos.
+// Modifica o buffer com os dados recebidos.
+ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr);
+
+// Função que envia uma resposta UDP para o cliente especificado.
+void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr);
+
 int line_size(FILE *fp);
 
 int get_data_size(FILE *file);

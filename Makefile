@@ -4,7 +4,7 @@ LDFLAGS = -lm
 
 SRCS_SERVER = src/GS.c
 SRCS_CLIENT = src/player.c client_core/client_core.c client_core/aux_client.c
-SRCS_GENERAL = include/utils.c io/udp_io.c server_core/game_core.c
+SRCS_GENERAL = include/utils.c server_core/game_core.c
 
 EXEC_SERVER = server.o
 EXEC_CLIENT = player.o

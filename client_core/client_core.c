@@ -1,6 +1,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <netdb.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
 #include "constants.h"
 #include "client_core.h"
@@ -39,7 +42,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     }
 
     char response_status[RESPONSE_STATUS];
-    sscanf(response, "RSG %s", response_status);
+    sscanf(response, "RSG %s\n", response_status);
 
     int PLID = atoi(PLID_arg);
 
