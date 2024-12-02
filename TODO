@@ -7,5 +7,7 @@
 - Constantes para tamanhos de buffer
 
 
+MUDAR PARA A ORDEM CORRETA AQUELAS 2 CENAS de nB e nT
+
 Ideia:
   o server pode montar a string a enviar e enviar toda de uma vez e o cliente pode ir lendo aos poucos!
