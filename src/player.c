@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     udp_hints.ai_family = AF_INET; //IPv4
     udp_hints.ai_socktype = SOCK_DGRAM; //UDP socket
 
-    if (getaddrinfo(GSIP, GSPORT, &udp_hints, &udp_res) != 0) {
+    if (getaddrinfo(GSIP, GSport, &udp_hints, &udp_res) != 0) {
         fprintf(stderr, "Error while getting UDP Game Server address.");
         exit(1);   
     }
@@ -113,6 +113,7 @@ int main(int argc, char* argv[]) {
                     nT += 1;
                 } else if (try_res == GAME_ENDED) {
                     PLID = NOT_PLAYING;
+                    nT = 1;
                 }
             }
         } else if (!strcmp(type, "quit")) {
@@ -123,18 +124,14 @@ int main(int argc, char* argv[]) {
 
                 if (quit_res == GAME_ENDED) {
                     PLID = NOT_PLAYING;
+                    nT = 1;
                 }
             }
         } else if (!strcmp(type, "exit")) {
-            if (PLID == NOT_PLAYING) {
-                fprintf(stderr, "Error: There is no active game.\n");
-            } else {
-                int exit_res = exit_function(udp_fd, udp_res, cmd, PLID);
-
-                if (exit_res == GAME_ENDED) {
-                    running = FALSE;
-                }
+            if (PLID != NOT_PLAYING) {
+                exit_function(udp_fd, udp_res, cmd, PLID);
             }
+            running = FALSE;
         } else if (!strcmp(type, "debug")) {
             if (PLID == NOT_PLAYING) {
                 PLID = debug_function(udp_fd, udp_res, cmd);
@@ -142,9 +139,7 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Error: You already have an ongoing game.\n");
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
-            if (PLID == NOT_PLAYING) {
-                fprintf(stderr, "Error: Please start a game before showing trials.\n");
-            }
+            PLID = 106324;
             show_trials_function(tcp_res, cmd, type, PLID);
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
             scoreboard_function(tcp_res, cmd, type);

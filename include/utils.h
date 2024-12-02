@@ -104,5 +104,7 @@ typedef struct {
 
 int FindTopScores(SCORELIST *list);
 
+int FindLastGame(const char *PLID, char *fname);
+
 
 #endif

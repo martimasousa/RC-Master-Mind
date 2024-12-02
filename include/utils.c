@@ -589,3 +589,41 @@ int FindTopScores(SCORELIST *list) {
     list->nscores = ifile;
     return (ifile);
 }
+
+
+// Função para encontrar o último jogo de um jogador com base no PLID
+int FindLastGame(const char *PLID, char *fname) {
+    struct dirent **filelist;
+    int nentries, found;
+    char dirname[256]; // Buffer para armazenar o diretório
+
+    // Construir o caminho do diretório com base no PLID
+    snprintf(dirname, sizeof(dirname), "GAMES/%s/", PLID);
+
+    // Ler as entradas do diretório, usando alphasort para ordenar os arquivos
+    nentries = scandir(dirname, &filelist, NULL, alphasort);
+    found = 0;
+
+    // Se não há entradas no diretório ou ocorreu um erro
+    if (nentries <= 0) {
+        return 0;
+    } else {
+        // Percorrer as entradas do diretório de trás para frente
+        while (nentries--) {
+            // Ignorar arquivos ocultos (nomes que começam com '.')
+            if (filelist[nentries]->d_name[0] != '.' && !found) {
+                // Construir o caminho completo do arquivo
+                snprintf(fname, 256, "GAMES/%s/%s", PLID, filelist[nentries]->d_name);
+                found = 1; // Marca como encontrado
+            }
+
+            // Liberar a entrada de diretório
+            free(filelist[nentries]);
+        }
+
+        // Liberar a lista de entradas
+        free(filelist);
+    }
+
+    return found;
+}

@@ -123,7 +123,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     } 
     
     if (is_duplicated(PLID, &player_try)) {
-        char *response = "RTR NOK";
+        char *response = "RTR DUP";
         send_udp_response(udp_fd, response, client_addr);
         return;
     } 
@@ -140,7 +140,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     write_try(PLID, player_try, player_try_res);
 
     char response[50];
-    sprintf(response, "RTR OK %d %d %c", player_try_res[0], player_try_res[1], nt);
+    sprintf(response, "RTR OK %c %d %d", nt, player_try_res[0], player_try_res[1]);
 
     if (hasWon(player_try_res)) {
         end_game(PLID, END_WIN);
@@ -221,13 +221,10 @@ void process_str_command(int client_fd, const char *command) {
     sscanf(command, "STR %s", PLID);
 
     if (!has_ongoing_game(PLID)) {
-        char *response = "RST NOK";
-        send(client_fd, response, strlen(response), 0);
-        return;
-    }
+        filename = malloc(BUFFER_SIZE);
+        FindLastGame(PLID, filename);
+    } else filename = get_game_folder_path(PLID);
 
-    // Determine o arquivo associado ao jogador
-    filename = get_game_folder_path(PLID);
     // Abre o arquivo
     FILE* file = fopen(filename, "r");
     if (!file) {
@@ -262,29 +259,6 @@ void process_str_command(int client_fd, const char *command) {
         n = write(client_fd, teste, strlen(teste));
         total += n;
     }
-
-    // fclose(file);
-
-    // // Prepara a resposta com o status "ACT" ou "FIN"
-    // snprintf(response, sizeof(response), "RST ACT %s %ld ", filename, total_size);
-
-    // printf("%s", filedata);
-
-    // // Envia o cabeçalho
-    // send(client_fd, response, strlen(response), 0);
-
-    // // Envia o conteúdo do arquivo (após ignorar a primeira linha)
-    // send(client_fd, filedata, total_size, 0);
-
-    // // Libera recursos
-    // free(filedata);
-    // close(client_fd);
-    // printf("Resposta enviada ao cliente.\n");
-    /*
-    char *response = "RST NOK";
-    printf("Respondi!\n");
-    write(client_fd, response, sizeof(response));
-    */
 }
 
 void process_ssb_command(int client_fd, const char *command) {
