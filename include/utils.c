@@ -36,7 +36,7 @@ char* get_player_folder_path(const char *PLID) {
 }
 
 int create_directory(const char *directory) {
-    int result = mkdir(directory, 0777); // Tenta criar o diretório
+    int result = mkdir(directory, 0777);
 
     if (result == 0) {
         printf("Diretoria '%s' criada com sucesso.\n", directory);
@@ -57,6 +57,7 @@ int create_score_file(const char *PLID) {
 
     time_t now = time(NULL);
     struct tm *current_time = gmtime(&now);
+
     char *mode = extract_game_info(PLID, ARG_MODE);
 
     GameTry *solution = malloc(sizeof(GameTry));
@@ -76,10 +77,6 @@ int create_score_file(const char *PLID) {
                                         current_time->tm_sec);
 
     FILE *file = fopen(file_path, "a");
-    if (file == NULL) {
-        perror("Erro ao abrir o ficheiro");
-        return 0;
-    }
 
     if (strcmp("P", mode) == 0) {
         mode = "PLAY";

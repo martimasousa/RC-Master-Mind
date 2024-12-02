@@ -82,7 +82,7 @@ int handleServer(char *GSport, int is_verbose) {
                     // Read command (whole line)
                     char *command = NULL;
                     tcp_read_until_delimiter(client_fd, &command, '\n');
-                    fprintf("Command line: %s", command);
+                    printf("Command line: %s", command);
                     free(command);
 
                     // Handle client messages

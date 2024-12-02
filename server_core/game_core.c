@@ -75,13 +75,14 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
-
-    /* If not, generate a new solution, create a new file and write the first line infos */
+    /* If not, generate a new solution */
     GameTry *game_solution = malloc(sizeof(GameTry));
     generate_solution(game_solution);
 
-    create_game_log_timestamp(PLID, game_solution, time,'P');
+    /* Create a new file and write the first line infos */
+    create_game_log_timestamp(PLID, game_solution, time, 'P');
 
+    /* Create PLID game directory if not created */
     char *directoryPath = get_player_folder_path(PLID);
     if (!directoryExists(directoryPath)) create_directory(directoryPath);
 
@@ -141,13 +142,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     char response[50];
     sprintf(response, "RTR OK %d %d %c",player_try_res[0], player_try_res[1], nt); 
 
-
-    if (hasWon(player_try_res)) {
-        
-        end_game(PLID, END_WIN);
-        // int score = calculateScore(PLID, (nt - '0'));
-        // char *fileName = getScoreFileName(score, PLID);
-    }
+    if (hasWon(player_try_res)) end_game(PLID, END_WIN);
 
     send_udp_response(udp_fd, response, client_addr);
 }
@@ -168,7 +163,6 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     /* Get the solution and send the message */
     GameTry *game_solution = malloc(sizeof(GameTry));
-    
     extract_game_colour(PLID, game_solution);
 
     char response[100];
@@ -203,14 +197,17 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
-    create_game_log_timestamp(PLID, game_solution, time,'D');
+    /* Create a new file and write the first line infos */
+    create_game_log_timestamp(PLID, game_solution, time, 'D');
 
+    /* Create PLID game directory if not created */
     char *directoryPath = get_player_folder_path(PLID);
     if (!directoryExists(directoryPath)) create_directory(directoryPath);
 
     char *response = "RDB OK";
     send_udp_response(udp_fd, response, client_addr);
 }
+
 
 void process_str_command(int client_fd, const char *command) {
 
