@@ -21,8 +21,10 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     }
 
     // Create message to send
-    char msg[15];
-    snprintf(msg, sizeof(msg), "SNG %s %s", PLID_arg, max_playtime_arg);
+    // Example: SNG 106324 100
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + TIME_DIGITS + 1;
+    char msg[msg_len];
+    snprintf(msg, msg_len, "SNG %s %s", PLID_arg, max_playtime_arg);
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -75,8 +77,10 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     }
 
     // Create message to send
-    char msg[21];
-    snprintf(msg, 21, "TRY %d %c %c %c %c %d", PLID, C1, C2, C3, C4, nT);
+    // Example: TRY 106324 Y Y Y Y 1
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 4*2 + 1 + 1 + 1;
+    char msg[msg_len];
+    snprintf(msg, msg_len, "TRY %d %c %c %c %c %d", PLID, C1, C2, C3, C4, nT);
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -150,8 +154,10 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     }
 
     // Create message to send
-    char msg[11];
-    snprintf(msg, 11, "QUT %d", PLID);
+    // Example: quit 106324
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1;
+    char msg[msg_len];
+    snprintf(msg, msg_len, "QUT %d", PLID);
 
 
     // Send message to server
@@ -201,8 +207,10 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     }
 
     // Create message to send
-    char msg[11];
-    snprintf(msg, 11, "QUT %d", PLID);
+    // Example: quit 106324
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1;
+    char msg[msg_len];
+    snprintf(msg, msg_len, "QUT %d", PLID);
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -258,8 +266,10 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     int max_playtime = atoi(max_playtime_arg);
 
     // Create message to send
-    char msg[23];
-    snprintf(msg, 23, "DBG %d %d %c %c %c %c", PLID, max_playtime, C1, C2, C3, C4);
+    // Example: DBG 106324 100 Y Y Y Y
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + TIME_DIGITS + 4*2 + 1;
+    char msg[msg_len];
+    snprintf(msg, msg_len, "DBG %d %d %c %c %c %c", PLID, max_playtime, C1, C2, C3, C4);
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
