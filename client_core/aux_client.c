@@ -183,3 +183,49 @@ int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_a
     // Comando válido
     return OK;
 }
+
+
+int validate_show_trials_command(const char *cmd, const char *type) {
+    // Verifica se o comando começa com "show_trials" ou "st"
+    if ((strcmp(type, "show_trials") == 0 && strncmp(cmd, "show_trials", strlen("show_trials")) != 0) ||
+        (strcmp(type, "st") == 0 && strncmp(cmd, "st", strlen("st")) != 0)) {
+        fprintf(stderr, "Error: Command should start with '%s'.\n", type);
+        return ERROR;
+    }
+
+    // Calcula o final esperado do comando
+    const char *expected_end = cmd + strlen(type);
+    while (*expected_end == ' ') expected_end++; // Ignora espaços adicionais
+
+    // Verifica se o comando termina corretamente com '\n' ou '\0'
+    if (*expected_end != '\n' && *expected_end != '\0') {
+        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
+        return ERROR;
+    }
+
+    // Comando válido
+    return OK;
+}
+
+
+int validate_scoreboard_command(const char *cmd, const char *type) {
+    // Verifica se o comando começa corretamente com "scoreboard" ou "sb"
+    if ((strcmp(type, "scoreboard") == 0 && strncmp(cmd, "scoreboard", strlen("scoreboard")) != 0) ||
+        (strcmp(type, "sb") == 0 && strncmp(cmd, "sb", strlen("sb")) != 0)) {
+        fprintf(stderr, "Error: Command should start with '%s'.\n", type);
+        return ERROR;
+    }
+
+    // Calcula o final esperado do comando
+    const char *expected_end = cmd + strlen(type);
+    while (*expected_end == ' ') expected_end++; // Ignora espaços adicionais
+
+    // Verifica se o comando termina corretamente com '\n' ou '\0'
+    if (*expected_end != '\n' && *expected_end != '\0') {
+        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
+        return ERROR;
+    }
+
+    // Comando válido
+    return OK;
+}

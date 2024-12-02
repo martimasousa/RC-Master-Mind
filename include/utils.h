@@ -92,7 +92,7 @@ int directoryExists(char *filepath);
 #define SSB_SIZE    10
 typedef struct {
     int score[SSB_SIZE];                    // Array to store scores
-    char PLID[SSB_SIZE][PLID_DIGITS];       // Array of strings for Player IDs
+    char PLID[SSB_SIZE][PLID_DIGITS + 1];       // Array of strings for Player IDs
     char colcode[SSB_SIZE][CODE_DIGITS];    // Array of strings for color codes
     int notries[SSB_SIZE];                  // Array to store number of tries
     char mode[SSB_SIZE];                    // Array to store the mode for each entry

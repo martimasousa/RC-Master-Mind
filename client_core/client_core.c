@@ -12,8 +12,8 @@
 
 int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
 
-    char PLID_arg[PLID_DIGITS];
-    char max_playtime_arg[TIME_DIGITS];
+    char PLID_arg[PLID_DIGITS + 1];
+    char max_playtime_arg[TIME_DIGITS + 1];
 
     // Validate command syntax
     if (validate_start_command(cmd, PLID_arg, max_playtime_arg) == ERROR) {
@@ -41,7 +41,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
         return ERROR;
     }
 
-    char response_status[RESPONSE_STATUS];
+    char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RSG %s\n", response_status);
 
     int PLID = atoi(PLID_arg);
@@ -95,7 +95,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
         return ERROR;
     }
 
-    char response_status[RESPONSE_STATUS];
+    char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RTR %s", response_status);
 
     // TODO: ADD return constants to deal with dup, inv etc etc
@@ -171,7 +171,7 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
         return ERROR;
     }
 
-    char response_status[RESPONSE_STATUS];
+    char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RQT %s", response_status);
 
     // Deal with response
@@ -221,7 +221,7 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
         return ERROR;
     }
 
-    char response_status[RESPONSE_STATUS];
+    char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RQT %s", response_status);
 
     // Deal with response
@@ -244,8 +244,8 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
 
 
 int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
-    char PLID_arg[PLID_DIGITS];
-    char max_playtime_arg[TIME_DIGITS];
+    char PLID_arg[PLID_DIGITS + 1];
+    char max_playtime_arg[TIME_DIGITS + 1];
     char C1, C2, C3, C4;
 
     // Valida o comando "debug"
@@ -278,7 +278,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
         return ERROR;
     }
 
-    char response_status[RESPONSE_STATUS];
+    char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RDB %s", response_status);
 
     // Deal with response
@@ -293,5 +293,213 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     } else {
         fprintf(stderr, "Error: Response format/status not known.\n");
         return ERROR;
+    }
+}
+
+
+int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
+    
+    // Syntax Validation
+    if (validate_show_trials_command(cmd, type) == ERROR) {
+        return ERROR;
+    }
+
+    // -------------------------------------------------------------------------------
+
+    // Create TCP socket
+    int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_fd == ERROR) {
+        fprintf(stderr, "Error while creating TCP socket.");
+        return ERROR;
+        }
+
+    // Open a TCP connection with the server
+    ssize_t n = connect(tcp_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
+    if (n == ERROR) {
+        fprintf(stderr, "Error while trying to establish a connection with GS.\n");
+        return ERROR;
+    }
+
+    // -------------------------------------------------------------------------------
+
+    // Create message to send
+    // Example: STR 106324\0
+    size_t msg_len = COMMAND_LEN + PLID_DIGITS + 1 + 1;
+    char msg[msg_len];
+    snprintf(msg, msg_len, "STR %d", PLID);
+
+    // Send message to server
+    n = write(tcp_fd, msg, sizeof(msg));
+    if (n == ERROR) {
+        fprintf(stderr, "Error while writing to TCP socket.\n");
+        close(tcp_fd);
+        return ERROR;
+    }
+    
+    // Receive response from server
+    // Example: RCT ACT\0
+    size_t response_len = RESPONSE_LEN + COMMAND_LEN + 1 + 1;
+    char response[response_len];
+    n = read(tcp_fd, response, response_len);
+    if (n == ERROR) {
+        fprintf(stderr, "Error while reading from TCP socket.\n");
+        close(tcp_fd);
+        return ERROR;
+    }
+
+    char response_status[RESPONSE_LEN + 1];
+    sscanf(response, "RST %s", response_status);
+
+    char *Fname = NULL;
+    if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
+        free(Fname);
+        close(tcp_fd);
+        return ERROR;
+    }
+
+    char *Fsize_char = NULL;
+    if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
+        free(Fname);
+        free(Fsize_char);
+        close(tcp_fd);
+        return 1;
+    }
+
+    int Fsize = atoi(Fsize_char);
+    char Fdata[Fsize + 1];
+    n = read(tcp_fd, Fdata, Fsize);
+    if (n == -1) {
+        fprintf(stderr, "Error while reading from TCP socket.\n");
+        free(Fname);
+        close(tcp_fd);
+        return 1;
+    }
+    Fdata[Fsize] = '\0';
+
+    printf("Fname: %s\nFsize: %d\nFdata:\n-----------------\n%s\n-----------------\n", Fname, Fsize, Fdata);
+    free(Fsize_char);
+    free(Fname);
+    close(tcp_fd);
+
+    // Whats the difference????
+    if (!strcmp(response_status, "ACT") || !strcmp(response_status, "FIN")) {
+        return OK;
+    } else if (!strcmp(response_status, "NOK")) {
+        fprintf(stderr, "Error: No active/finished games found.\n");
+        close(tcp_fd);
+        return ERROR;
+    } else {
+        fprintf(stderr, "Error: Response format/status not known.\n");
+        close(tcp_fd);
+        return ERROR;
+    }
+}
+
+
+int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
+
+    if (validate_scoreboard_command(cmd, type) == ERROR) {
+        return ERROR;
+    }
+
+    // -------------------------------------------------------------------------------
+
+    // Create TCP socket
+    int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_fd == ERROR) {
+        fprintf(stderr, "Error while creating TCP socket.");
+        return ERROR;
+        }
+
+    // Open a TCP connection with the server
+    ssize_t n = connect(tcp_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
+    if (n == ERROR) {
+        fprintf(stderr, "Error while trying to establish a connection with GS.\n");
+        return ERROR;
+    }
+
+    // -------------------------------------------------------------------------------
+
+    // Create message to send
+    size_t msg_len = COMMAND_LEN + 1;
+    char msg[msg_len];
+    snprintf(msg, 4, "SSB");
+
+    // Send message to server
+    n = write(tcp_fd, msg, sizeof(msg));
+    if (n == ERROR) {
+        fprintf(stderr, "Error while writing to TCP socket.\n");
+        close(tcp_fd);
+        return ERROR;
+    }
+    
+    // Receive response from server
+    char *response = NULL;
+    if (tcp_read_until_delimiter(tcp_fd, &response, ' ')) {
+        free(response);
+        close(tcp_fd);
+        return 1;
+    }
+    free(response);
+
+    char *response_status = NULL;
+    if (tcp_read_until_delimiter(tcp_fd, &response_status, ' ')) {
+        free(response_status);
+        close(tcp_fd);
+        return 1;
+    }
+    // TODO: The problem here is that the server returns the messages terminated with \n so for an EMPTY status response there will be no ' ' and the function does not detect the end of file
+
+    // Evaluate responses that have '\n' after the status
+    // Evaluate responses that have ' ' after the status
+    if (!strcmp(response_status, "OK")) {
+        free(response_status);
+
+        // Read Fname
+        char *Fname = NULL;
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+
+        // Read Fsize
+        char *Fsize_char = NULL;
+        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
+            free(Fname);
+            free(Fsize_char);
+            close(tcp_fd);
+            return 1;
+        }
+        int Fsize = atoi(Fsize_char);
+        free(Fsize_char);
+
+        // Read file content
+        char Fdata[Fsize + 1];
+        n = read(tcp_fd, Fdata, Fsize);
+        if (n == -1) {
+            fprintf(stderr, "Error while reading from TCP socket.\n");
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+        Fdata[Fsize] = '\0';
+
+        // Show file
+        printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
+
+        free(Fname);
+        close(tcp_fd);
+        return 0;
+    } else if (!strcmp(response_status, "EMPTY\nRSS")) {
+        free(response_status);
+        printf("The scoreboard is still empty.\n");
+        close(tcp_fd);
+        return 0;
+    } else {
+        free(response_status);
+        fprintf(stderr, "Error: Response format/status not known.\n");
+        close(tcp_fd);
+        return 1;
     }
 }

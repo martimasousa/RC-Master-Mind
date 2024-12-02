@@ -62,8 +62,8 @@ void check_try(const char *PLID, GameTry player_try, int* res) {
 
 void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
-    char time[TIME_DIGITS];
-    char PLID[PLID_DIGITS];
+    char time[TIME_DIGITS + 1];
+    char PLID[PLID_DIGITS + 1];
 
     sscanf(command, "SNG %s %s", PLID, time);
     // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
@@ -94,7 +94,7 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
 void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
     GameTry player_try;
-    char PLID[PLID_DIGITS], nt;
+    char PLID[PLID_DIGITS + 1], nt;
 
     int *check_try_counter = malloc(2 * sizeof(int));
     check_try_counter[0] = 0;
@@ -151,7 +151,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
 void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
-    char PLID[PLID_DIGITS];
+    char PLID[PLID_DIGITS + 1];
     
     sscanf(command, "QUT %s", PLID);
     // TODO: Verify arguments. In case they are wrongly formed return "RQT ERR\n"
@@ -178,8 +178,8 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
 void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
-    char time[TIME_DIGITS];
-    char PLID[PLID_DIGITS];
+    char time[TIME_DIGITS + 1];
+    char PLID[PLID_DIGITS + 1];
     GameTry *game_solution = malloc(sizeof(GameTry));
 
     // Informação não está a ser bem guardada na estrutura
@@ -213,7 +213,7 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
 void process_str_command(int client_fd, const char *command) {
 
-    char PLID[PLID_DIGITS];
+    char PLID[PLID_DIGITS + 1];
     char response[BUFFER_SIZE];
     char *filename; // Caminho do arquivo de jogo
 

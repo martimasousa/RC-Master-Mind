@@ -16,13 +16,11 @@
 // Memory Related Constants
 #define BUFFER_SIZE 1024
 #define MAX_PLAYER_COMMAND  100
-
-#define PLID_DIGITS         6 + 1           // '\0'
-#define TIME_DIGITS         3 + 1           // '\0'
-
+#define PLID_DIGITS         6               // '\0'
+#define TIME_DIGITS         3               // '\0'
 #define ONGOING_GAME_FILE_NAME 13           // '\0'
-
-#define RESPONSE_STATUS 4
+#define RESPONSE_LEN 3
+#define COMMAND_LEN 3
 
 
 // MAIN COMMANDS
