@@ -281,192 +281,6 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     }
 }
 
-int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
-    char extra[100];
-
-    // Read arguments and check for errors
-    int result = sscanf(cmd, "quit %s", extra);
-
-    if (result == 1) {
-        fprintf(stderr, "Error: Command format should be 'quit'.\n");
-        return 1;
-    }
-
-
-    // Create message to send
-    char msg[11];
-    snprintf(msg, 11, "QUT %d", PLID);
-
-    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
-
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == -1) {
-        fprintf(stderr, "Error while sending message.\n");
-        return -1;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
-    char response[16];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == -1) {
-        fprintf(stderr, "Error while receiving message.\n");
-        return -1;
-    }
-
-    char response_status[4];
-    sscanf(response, "RQT %s", response_status);
-
-    // Deal with response
-    if (!strcmp(response_status, "OK")) {
-        // Read nT, nB and nW
-        char C1, C2, C3, C4;
-        sscanf(response, "RQT OK %c %c %c %c", &C1, &C2, &C3, &C4);
-
-        printf("The secret key is: %c %c %c %c\n", C1, C2, C3, C4);
-        return 0;
-    } else if (!strcmp(response_status, "NOK")) {
-        fprintf(stderr, "Error: PLID does not have an ongoing game.\n");
-        return 1;
-    } else if (!strcmp(response_status, "ERR")) {
-        fprintf(stderr, "Error: Incorrect request syntax.\n");
-        return 1;
-    } else {
-        fprintf(stderr, "Error: Response format/status not known.\n");
-        return 1;
-    }
-}
-
-int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
-    char extra[100];
-
-    // Read arguments and check for errors
-    int result = sscanf(cmd, "exit %s", extra);
-
-    if (result == 1) {
-        fprintf(stderr, "Error: Command format should be 'exit'.\n");
-        return 1;
-    }
-
-
-    // Create message to send
-    char msg[11];
-    snprintf(msg, 11, "QUT %d", PLID);
-
-    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
-
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == -1) {
-        fprintf(stderr, "Error while sending message.\n");
-        return -1;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
-    char response[16];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == -1) {
-        fprintf(stderr, "Error while receiving message.\n");
-        return -1;
-    }
-
-    char response_status[4];
-    sscanf(response, "RQT %s", response_status);
-
-    // Deal with response
-    if (!strcmp(response_status, "OK")) {
-        // Read nT, nB and nW
-        char C1, C2, C3, C4;
-        sscanf(response, "RQT OK %c %c %c %c", &C1, &C2, &C3, &C4);
-
-        printf("The secret key is: %c %c %c %c\n", C1, C2, C3, C4);
-        return 0;
-    } else if (!strcmp(response_status, "NOK")) {
-        fprintf(stderr, "Error: PLID does not have an ongoing game.\n");
-        return 1;
-    } else if (!strcmp(response_status, "ERR")) {
-        fprintf(stderr, "Error: Incorrect request syntax.\n");
-        return 1;
-    } else {
-        fprintf(stderr, "Error: Response format/status not known.\n");
-        return 1;
-    }
-}
-
-int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
-    char PLID_arg[7];
-    char max_playtime_arg[4];
-    char C1, C2, C3, C4;
-    char extra[100];
-
-    // Read arguments and check for errors
-    int result = sscanf(cmd, "debug %s %s %c %c %c %c %s", PLID_arg, max_playtime_arg, &C1, &C2, &C3, &C4, extra);
-
-    if (result != 6) {
-        fprintf(stderr, "Error: Command format should be 'debug PLID max_playtime C1 C2 C3 C4'.\n");
-        return -1;
-    }
-
-    if (!is_integer(PLID_arg) || !is_integer(max_playtime_arg)) {
-        fprintf(stderr, "Error: Command format should be 'debug PLID max_playtime C1 C2 C3 C4'.\nHint: Make sure PLID and max_playtime are integers.\n");
-        return -1;
-    }
-
-    if (!is_valid_color(C1) || !is_valid_color(C2) || !is_valid_color(C3) || !is_valid_color(C4)) {
-        fprintf(stderr, "Error: Command format should be 'debug PLID max_playtime C1 C2 C3 C4'.\nHint: The valid colours are: {red (R), green (G), blue (B), yellow (Y), orange (O) and purple (P)}.\n");
-        return -1;
-    }
-
-    // Convert arguments into integers
-    int PLID = atoi(PLID_arg);
-    int max_playtime = atoi(max_playtime_arg);
-
-
-    // Create message to send
-    char msg[23];
-    snprintf(msg, 23, "DBG %d %d %c %c %c %c", PLID, max_playtime, C1, C2, C3, C4);
-
-    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
-
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == -1) {
-        fprintf(stderr, "Error while sending message.\n");
-        return -1;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
-    char response[8];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == -1) {
-        fprintf(stderr, "Error while receiving message.\n");
-        return -1;
-    }
-
-    char response_status[4];
-    sscanf(response, "RDB %s", response_status);
-
-    // Deal with response
-    if (!strcmp(response_status, "OK")) {
-        return PLID;
-    } else if (!strcmp(response_status, "NOK")) {
-        fprintf(stderr, "Error: You cannot start a new game while playing another.\n");
-        return -1;
-    } else if (!strcmp(response_status, "ERR")) {
-        fprintf(stderr, "Error: Incorrect request syntax.\n");
-        return -1;
-    } else {
-        fprintf(stderr, "Error: Response format/status not known.\n");
-        return -1;
-    }
-}
-
 
 int main(int argc, char* argv[]) {
     char *GSIP = localhost;
@@ -531,12 +345,12 @@ int main(int argc, char* argv[]) {
     }
     // ######################################################################################### //
 
-
+    int running = TRUE;
     int PLID = NOT_PLAYING;
     int nT = 1;
 
     // Process commands
-    while (TRUE) {
+    while (running) {
 
         // Read command
         char cmd[MAX_PLAYER_COMMAND];
@@ -568,6 +382,32 @@ int main(int argc, char* argv[]) {
                     PLID = NOT_PLAYING;
                 }
             }
+        } else if (!strcmp(type, "quit")) {
+            if (PLID == NOT_PLAYING) {
+                fprintf(stderr, "Error: There is no active game.\n");
+            } else {
+                int quit_res = quit_function(udp_fd, udp_res, cmd, PLID);
+
+                if (quit_res == GAME_ENDED) {
+                    PLID = NOT_PLAYING;
+                }
+            }
+        } else if (!strcmp(type, "exit")) {
+            if (PLID == NOT_PLAYING) {
+                fprintf(stderr, "Error: There is no active game.\n");
+            } else {
+                int exit_res = exit_function(udp_fd, udp_res, cmd, PLID);
+
+                if (exit_res == GAME_ENDED) {
+                    running = FALSE;
+                }
+            }
+        } else if (!strcmp(type, "debug")) {
+            if (PLID == NOT_PLAYING) {
+                PLID = debug_function(udp_fd, udp_res, cmd);
+            } else {
+                fprintf(stderr, "Error: You already have an ongoing game.\n");
+            }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
             if (PLID == NOT_PLAYING) {
                 fprintf(stderr, "Error: Please start a game before showing trials.\n");
@@ -577,28 +417,6 @@ int main(int argc, char* argv[]) {
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
             if (scoreboard_function(tcp_res, cmd, type)) {
                 //printf("Error\n");
-            }
-        } else if (!strcmp(type, "quit")) {
-            if (PLID == NOT_PLAYING) {
-                fprintf(stderr, "Error: There is no active game.\n");
-            } else if (quit_function(udp_fd, udp_res, cmd, PLID)) {
-                //printf("Error\n");
-            }
-        } else if (!strcmp(type, "exit")) {
-            if (PLID == NOT_PLAYING) {
-                fprintf(stderr, "Error: There is no active game.\n");
-            } else if (exit_function(udp_fd, udp_res, cmd, PLID)) {
-                //printf("Error\n");
-                freeaddrinfo(udp_res);
-                close(udp_fd);
-                return 1;   // exit(1) ???
-            }
-            break;
-        } else if (!strcmp(type, "debug")) {
-            if (PLID == NOT_PLAYING) {
-                PLID = debug_function(udp_fd, udp_res, cmd);
-            } else {
-                fprintf(stderr, "Error: You already have an ongoing game.\n");
             }
         } else {
             fprintf(stderr, "Error: Please provide a valid command.\n");
