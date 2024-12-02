@@ -64,6 +64,9 @@ void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 // Reads delimited string from the file descriptor.
 int tcp_read_until_delimiter(int fd, char** word, char separator);
 
+// Writes some string to a tcp file descriptor
+int tcp_write(int fd, char* to_write);
+
 int line_size(FILE *fp);
 
 int get_data_size(FILE *file);
@@ -75,5 +78,24 @@ int calculateScore(const char *PLID, int turnsPlayed);
 char* getScoreFileName(int score, char *PLID);
 
 int directoryExists(char *filepath);
+
+
+// FUNCTIONS GIVEN BY THE UC ----------------------------------------------------------------------
+#define CODE_DIGITS 4 + 1   // '\0'
+#define SSB_SIZE    10
+typedef struct {
+    int score[SSB_SIZE];                    // Array to store scores
+    char PLID[SSB_SIZE][PLID_DIGITS];       // Array of strings for Player IDs
+    char colcode[SSB_SIZE][CODE_DIGITS];    // Array of strings for color codes
+    int notries[SSB_SIZE];                  // Array to store number of tries
+    char mode[SSB_SIZE];                    // Array to store the mode for each entry
+    int nscores;                            // Number of scores currently stored
+} SCORELIST;
+
+#define PLAY_MODE   'P'
+#define DEBUG_MODE  'D'
+
+int FindTopScores(SCORELIST *list);
+
 
 #endif

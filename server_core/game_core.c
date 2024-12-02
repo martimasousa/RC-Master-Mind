@@ -140,9 +140,11 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     write_try(PLID, player_try, player_try_res);
 
     char response[50];
-    sprintf(response, "RTR OK %d %d %c",player_try_res[0], player_try_res[1], nt); 
+    sprintf(response, "RTR OK %d %d %c", player_try_res[0], player_try_res[1], nt);
 
-    if (hasWon(player_try_res)) end_game(PLID, END_WIN);
+    if (hasWon(player_try_res)) {
+        end_game(PLID, END_WIN);
+    }
 
     send_udp_response(udp_fd, response, client_addr);
 }
@@ -286,6 +288,50 @@ void process_str_command(int client_fd, const char *command) {
 }
 
 void process_ssb_command(int client_fd, const char *command) {
+    // TODO: Check for command errors
+
+    // Get scores list
+    SCORELIST *files = malloc(sizeof(SCORELIST));
+    if (FindTopScores(files) <= 0) {
+        char res_init[20] = "RSS EMPTY\n";
+        if (tcp_write(client_fd, res_init)) {
+            return;
+        }
+    }
+
+    // Create a string (Fdata) containing all the scores returned
+    char *Fdata = malloc(1);
+    Fdata[0] = '\0';
+    size_t Fsize = 1;
+    for (int i = 0; i < files->nscores; i++) {
+        char line[6 + 1 + 4 + 1 + 1 + 1 + 1]; // PLID + SPACE + CODE + SPACE + N_PLAYS + \n
+
+        char *PLID = files->PLID[i];
+        char *colcode = files->colcode[i];
+        int notries = files->notries[i];
+
+        sprintf(line, "%s %s %d\n", PLID, colcode, notries);
+
+        Fsize += strlen(line);
+        Fdata = realloc(Fdata, Fsize);
+        strcat(Fdata, line); // Append line to the end of Fdata
+    }
+
+    // Write Fname and Fsize
+    char res_init[20];
+    sprintf(res_init, "RSS OK Fname %ld ", Fsize);
+    if (tcp_write(client_fd, res_init)) {
+        free(Fdata);
+        return;
+    }
+
+    // Write Fdata
+    if (tcp_write(client_fd, Fdata)) {
+        free(Fdata);
+        return;
+    }
+
+    free(Fdata);
     return;
 }
 

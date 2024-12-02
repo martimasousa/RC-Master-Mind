@@ -10,6 +10,7 @@
 #include <errno.h>    // Para verificar erros com errno
 #include <string.h>
 #include <math.h>
+#include <dirent.h>
 
 char* get_game_folder_path(const char *PLID) {
     size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
@@ -94,6 +95,8 @@ int create_score_file(const char *PLID) {
     fprintf(file, "%s", message);
     fflush(file);
     fclose(file);
+    free(solution);
+    free(message);
 
     return 0;
 }
@@ -435,6 +438,21 @@ int tcp_read_until_delimiter(int fd, char** word, char separator) {
     return 0;
 }
 
+int tcp_write(int fd, char* to_write) {
+    int total = 0;
+    int len = strlen(to_write);
+    while (total < len) {
+        int n = write(fd, to_write + total, len - total);
+        if (n < 0) {
+            fprintf(stderr, "Error while writing to tcp fd");
+            return 1;
+        }
+        total += n;  // Increment total by the number of bytes written
+    }
+
+    return 0;
+}
+
 int line_size(FILE *fp) {
     char c;
     int res = 0;
@@ -506,4 +524,49 @@ int directoryExists(char *filepath) {
     struct stat st;
 
     return (stat(filepath, &st) == 0 && S_ISDIR(st.st_mode));
+}
+
+
+
+// FUNCTIONS GIVEN BY THE UC ----------------------------------------------------------------------
+
+int FindTopScores(SCORELIST *list) {
+    struct dirent **filelist;
+    int nentries, ifile;
+    char fname[300];
+    FILE *fp;
+    char mode[8];
+
+    nentries = scandir("SCORES/", &filelist, 0, alphasort);
+    if (nentries <= 0)
+        return (0);
+    else {
+        ifile = 0;
+        while (nentries--) {
+            if (filelist[nentries]->d_name[0] != '.' && ifile < 10) {
+                sprintf(fname, "SCORES/%s", filelist[nentries]->d_name);
+                fp = fopen(fname, "r");
+                if (fp != NULL) {
+                    fscanf(fp, "%d %s %s %d %s",
+                           &list->score[ifile],
+                           list->PLID[ifile],
+                           list->colcode[ifile],
+                           &list->notries[ifile],
+                           mode);
+
+                    if (!strcmp(mode, "PLAY"))
+                        list->mode[ifile] = PLAY_MODE;
+                    if (!strcmp(mode, "DEBUG"))
+                        list->mode[ifile] = DEBUG_MODE;
+
+                    fclose(fp);
+                    ++ifile;
+                }
+            }
+            free(filelist[nentries]);
+        }
+        free(filelist);
+    }
+    list->nscores = ifile;
+    return (ifile);
 }

@@ -82,12 +82,12 @@ int handleServer(char *GSport, int is_verbose) {
                     // Read command (whole line)
                     char *command = NULL;
                     tcp_read_until_delimiter(client_fd, &command, '\n');
-                    printf("Command line: %s", command);
-                    free(command);
+                    printf("Command line: %s\n", command);
 
                     // Handle client messages
-                    handle_TCP_messages(client_fd, "STR 106324");
+                    handle_TCP_messages(client_fd, command);
 
+                    free(command);
                     close(client_fd); // Close client socket
                     exit(0); // Exit child process
                 } else if (pid > 0) { // Parent process
