@@ -25,6 +25,10 @@ int create_directory(const char *directory);
 
 int move_file(const char *source_file, const char endGameType);
 
+int end_game(const char *PLID, const char endGameType);
+
+int create_score_file(const char *PLID);
+
 char* get_end_game_name(char const type);
 
 // Write a new line in the player's game file (representing the command)
@@ -66,7 +70,7 @@ int get_data_size(FILE *file);
 
 int hasWon(int *player_try_res);
 
-int calculateScore(char *PLID, int turnsPlayed);
+int calculateScore(const char *PLID, int turnsPlayed);
 
 char* getScoreFileName(int score, char *PLID);
 

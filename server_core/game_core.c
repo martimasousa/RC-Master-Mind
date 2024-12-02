@@ -116,7 +116,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     
     if (has_exceeded_time(PLID)) {
         char *response = "RTR ETM";
-        move_file(PLID, END_TIMEOUT);
+        end_game(PLID, END_TIMEOUT);
         send_udp_response(udp_fd, response, client_addr);
         return;
     } 
@@ -129,7 +129,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     
     if (has_exceeded_max_turn(nt)) {
         char *response = get_max_turn_response(PLID);
-        move_file(PLID, END_FAIL);
+        end_game(PLID, END_FAIL);
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
@@ -144,7 +144,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     if (hasWon(player_try_res)) {
         
-        move_file(PLID, END_WIN);
+        end_game(PLID, END_WIN);
         // int score = calculateScore(PLID, (nt - '0'));
         // char *fileName = getScoreFileName(score, PLID);
     }
@@ -176,7 +176,7 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
                                                                  game_solution->colours[1],
                                                                  game_solution->colours[2],
                                                                  game_solution->colours[3]);
-    move_file(PLID, END_QUIT);
+    end_game(PLID, END_QUIT);
     send_udp_response(udp_fd, response, client_addr);
 }
 
