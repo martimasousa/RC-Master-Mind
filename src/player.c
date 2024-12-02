@@ -14,107 +14,6 @@
 #include "client_core.h"
 
 
-/**
- * Handles try command.
- * Returns: 1 (in case of error) | 0 (in case of non-correct try) | -1 (in case of correct try)
- */
-int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID, int nT) {
-    char C1, C2, C3, C4;
-    char extra[100];
-
-    // Read arguments and check for errors
-    int result = sscanf(cmd, "try %c %c %c %c %s", &C1, &C2, &C3, &C4, extra);
-
-    if (result != 4) {
-        fprintf(stderr, "Error: Command format should be 'try C1 C2 C3 C4'.\n");
-        return 1;
-    }
-
-    if (!is_valid_color(C1) || !is_valid_color(C2) || !is_valid_color(C3) || !is_valid_color(C4)) {
-        fprintf(stderr, "Error: Command format should be 'try C1 C2 C3 C4'.\nHint: The valid colours are: {red (R), green (G), blue (B), yellow (Y), orange (O) and purple (P)}.\n");
-        return 1;
-    }
-
-
-    // Create message to send
-    char msg[21];
-    snprintf(msg, 21, "TRY %d %c %c %c %c %d", PLID, C1, C2, C3, C4, nT);
-
-    printf("[TEST] Message: %s\n", msg); // TODO: REMOVE
-
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == -1) {
-        fprintf(stderr, "Error while sending message.\n");
-        return 1;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
-    char response[16];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == -1) {
-        fprintf(stderr, "Error while receiving message.\n");
-        return 1;
-    }
-
-    char response_status[4];
-    sscanf(response, "RTR %s", response_status);
-
-    // Deal with response
-    if (!strcmp(response_status, "OK")) {
-        // Read nT, nB and nW
-        int nT, nB, nW;
-        sscanf(response, "RTR OK %d %d %d", &nT, &nB, &nW);
-
-        if (nB == 4) {
-            // Player won the game
-            printf("Congratulations! You won the game!\n");
-            return -1;
-        }
-
-        printf("nT: %d\nnB: %d\nnW: %d\n", nT, nB, nW);
-
-        // TODO: "If nB = 4 the secret code has been correctly guessed and the player wins the game.
-        // The same reply is provided if the trial number nT is the expected value minus 1, and the
-        // secret key guess repeats the one of the previous message (it is a resend) – in this case
-        // the number of trials is not increased" ?????????????????????????????????????????????????
-        // TODO: Check if the last try was the same. If yes, return 1. But what is the expected nT?
-
-        return 0;
-    } else if (!strcmp(response_status, "DUP")) {
-        fprintf(stderr, "Error: Your secret key guess repeats a previous trial's guess.\n");
-        return 1;
-    } else if (!strcmp(response_status, "INV")) {
-        fprintf(stderr, "Error: Invalid nT value.\n");
-        return 1;
-    } else if (!strcmp(response_status, "NOK")) {
-        fprintf(stderr, "Error: Out of context trial.\n");
-        return 1;
-    } else if (!strcmp(response_status, "ENT")) {
-        // Read C1, C2, C3, C4
-        char C1, C2, C3, C4;
-        sscanf(response, "RTR ENT %c %c %c %c", &C1, &C2, &C3, &C4);
-
-        printf("You have no more attempts available!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
-        return 1;
-    } else if (!strcmp(response_status, "ETM")) {
-        // Read C1, C2, C3, C4
-        char C1, C2, C3, C4;
-        sscanf(response, "RTR ETM %c %c %c %c", &C1, &C2, &C3, &C4);
-
-        printf("You have exceed the play time!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
-        return 1;
-    } else if (!strcmp(response_status, "ERR")) {
-        fprintf(stderr, "Error: Incorrect syntax, invalid PLID or invalid color.\n");
-        return 1;
-    } else {
-        fprintf(stderr, "Error: Response format/status not known.\n");
-        return 1;
-    }
-}
-
 int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
     char extra[100];
 
@@ -657,19 +556,16 @@ int main(int argc, char* argv[]) {
             } else {
                 fprintf(stderr, "Error: You already have an ongoing game.\n");
             }
-
         } else if (!strcmp(type, "try")) {
             if (PLID == NOT_PLAYING) {
                 fprintf(stderr, "Error: Please start a game before making a try.\n");
             } else {
                 int try_res = try_function(udp_fd, udp_res, cmd, PLID, nT);
 
-                if (try_res == 0) {
+                if (try_res == OK) {
                     nT += 1;
-                } else if (try_res == -1) {
-                    PLID = -1;
-                } else {
-                    //printf("Error\n");
+                } else if (try_res == GAME_ENDED) {
+                    PLID = NOT_PLAYING;
                 }
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {

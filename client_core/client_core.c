@@ -12,7 +12,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     char PLID_arg[PLID_DIGITS];
     char max_playtime_arg[TIME_DIGITS];
 
-    // Valida o comando usando a nova função
+    // Validate command syntax
     if (validate_start_command(cmd, PLID_arg, max_playtime_arg) == ERROR) {
         return ERROR;
     }
@@ -31,7 +31,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     // Receive response from server
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
-    char response[8];
+    char response[10];
     n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while receiving message.\n");
@@ -51,6 +51,87 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
         return ERROR;
     } else if (!strcmp(response_status, "ERR")) {
         fprintf(stderr, "Error: Incorrect request syntax.\n");
+        return ERROR;
+    } else {
+        fprintf(stderr, "Error: Response format/status not known.\n");
+        return ERROR;
+    }
+}
+
+
+/**
+ * Handles try command.
+ * Returns: 1 (in case of error) | 0 (in case of non-correct try) | -1 (in case of correct try)
+ */
+int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID, int nT) {
+    char C1, C2, C3, C4;
+
+    // Validate command syntax
+    if (validate_try_command(cmd, &C1, &C2, &C3, &C4) == ERROR) {
+        return ERROR;
+    }
+
+    // Create message to send
+    char msg[21];
+    snprintf(msg, 21, "TRY %d %c %c %c %c %d", PLID, C1, C2, C3, C4, nT);
+
+    // Send message to server
+    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
+    if (n == ERROR) {
+        fprintf(stderr, "Error while sending message.\n");
+        return ERROR;
+    }
+
+    // Receive response from server
+    struct sockaddr_in addr;
+    socklen_t addrlen = sizeof(addr);
+    char response[16];
+    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
+    if (n == ERROR) {
+        fprintf(stderr, "Error while receiving message.\n");
+        return ERROR;
+    }
+
+    char response_status[RESPONSE_STATUS];
+    sscanf(response, "RTR %s", response_status);
+
+    // TODO: ADD return constants to deal with dup, inv etc etc
+    // Verify server message sending, receiving: "RTR OK 0 0 2="
+    // Prints when the game ends are coming with bugs
+
+    // Deal with response
+    if (!strcmp(response_status, "OK")) {
+
+        int nT, nB, nW;
+        sscanf(response, "RTR OK %d %d %d", &nT, &nB, &nW);
+
+        if (nB == 4) {
+            printf("Congratulations! You won the game!\n");
+            return GAME_ENDED;
+        }
+        printf("nT: %d\nnB: %d\nnW: %d\n", nT, nB, nW);        
+        return OK;
+    } else if (!strcmp(response_status, "DUP")) {
+        fprintf(stderr, "Error: Your secret key guess repeats a previous trial's guess.\n");
+        return ERROR;
+    } else if (!strcmp(response_status, "INV")) {
+        fprintf(stderr, "Error: Invalid nT value.\n");
+        return ERROR;
+    } else if (!strcmp(response_status, "NOK")) {
+        fprintf(stderr, "Error: Out of context trial.\n");
+        return ERROR;
+    } else if (!strcmp(response_status, "ENT")) {
+        char C1, C2, C3, C4;
+        sscanf(response, "RTR ENT %c %c %c %c", &C1, &C2, &C3, &C4);
+        printf("You have no more attempts available!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
+        return GAME_ENDED;
+    } else if (!strcmp(response_status, "ETM")) {
+        char C1, C2, C3, C4;
+        sscanf(response, "RTR ETM %c %c %c %c", &C1, &C2, &C3, &C4);
+        printf("You have exceed the play time!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
+        return GAME_ENDED;
+    } else if (!strcmp(response_status, "ERR")) {
+        fprintf(stderr, "Error: Incorrect syntax, invalid PLID or invalid color.\n");
         return ERROR;
     } else {
         fprintf(stderr, "Error: Response format/status not known.\n");

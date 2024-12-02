@@ -9,6 +9,7 @@
 #define NOT_FOUND 0
 
 #define ERROR -1
+#define GAME_ENDED 1
 #define OK 0
 
 
