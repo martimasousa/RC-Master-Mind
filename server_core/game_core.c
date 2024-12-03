@@ -116,7 +116,8 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     } 
     
     if (has_exceeded_time(PLID)) {
-        char *response = "RTR ETM";
+        char *response = get_end_game_response(PLID, "RTR", "ETM");
+        printf("%s\n", response);
         end_game(PLID, END_TIMEOUT);
         send_udp_response(udp_fd, response, client_addr);
         return;
@@ -129,7 +130,8 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     } 
     
     if (has_exceeded_max_turn(nt)) {
-        char *response = get_max_turn_response(PLID);
+        char *response = get_end_game_response(PLID, "RTR", "ENT");
+        printf("%s\n", response);
         end_game(PLID, END_FAIL);
         send_udp_response(udp_fd, response, client_addr);
         return;

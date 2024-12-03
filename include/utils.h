@@ -57,7 +57,7 @@ int get_elapsed_time(const char *PLID);
 
 int has_exceeded_max_turn(char trial_number);
 
-char* get_max_turn_response(const char* PLID);
+char* get_end_game_response(const char* PLID, const char* Command, const char* Status);
 
 void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 

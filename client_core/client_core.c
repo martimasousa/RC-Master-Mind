@@ -129,11 +129,13 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
         return ERROR;
     } else if (!strcmp(response_status, "ENT")) {
         char C1, C2, C3, C4;
+        printf("%s\n", response);
         sscanf(response, "RTR ENT %c %c %c %c", &C1, &C2, &C3, &C4);
         printf("You have no more attempts available!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
     } else if (!strcmp(response_status, "ETM")) {
         char C1, C2, C3, C4;
+        printf("%s\n", response);
         sscanf(response, "RTR ETM %c %c %c %c", &C1, &C2, &C3, &C4);
         printf("You have exceed the play time!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
