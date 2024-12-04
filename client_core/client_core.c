@@ -10,6 +10,9 @@
 #include "aux_client.h"
 #include "utils.h"
 
+/**
+ * Handles start command.
+ */
 int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
 
     char PLID_arg[PLID_DIGITS + 1];
@@ -21,10 +24,10 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     }
 
     // Create message to send
-    // Example: SNG 106324 100
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + TIME_DIGITS + 1;
+    // Example: SNG 106324 100\n\0
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + TIME_DIGITS + 1 + 1;
     char msg[msg_len];
-    snprintf(msg, msg_len, "SNG %s %s", PLID_arg, max_playtime_arg);
+    snprintf(msg, msg_len, "SNG %s %s\n", PLID_arg, max_playtime_arg);
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -36,13 +39,17 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     // Receive response from server
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
-    char response[10];
+    // Receive server response
+    // Example: SNG ERR\n\0
+    size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + 1;
+    char response[resp_len];
     n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while receiving message.\n");
         return ERROR;
     }
 
+    // Example: ERR\0
     char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RSG %s\n", response_status);
 
@@ -66,7 +73,6 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 
 /**
  * Handles try command.
- * Returns: 1 (in case of error) | 0 (in case of non-correct try) | -1 (in case of correct try)
  */
 int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID, int nT) {
     char C1, C2, C3, C4;
@@ -77,10 +83,10 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     }
 
     // Create message to send
-    // Example: TRY 106324 Y Y Y Y 1
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 4*2 + 1 + 1 + 1;
+    // Example: TRY 106324 Y Y Y Y 1\n\0
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 4*2 + 1 + 1 + 1 + 1;
     char msg[msg_len];
-    snprintf(msg, msg_len, "TRY %d %c %c %c %c %d", PLID, C1, C2, C3, C4, nT);
+    snprintf(msg, msg_len, "TRY %d %c %c %c %c %d\n", PLID, C1, C2, C3, C4, nT);
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -92,7 +98,10 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     // Receive response from server
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
-    char response[16];
+    // Receive server response
+    // Example: RTR ENT C1 C2 C3 C4\n\0 
+    size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
+    char response[resp_len];
     n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while receiving message.\n");
@@ -110,7 +119,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     if (!strcmp(response_status, "OK")) {
 
         int nT, nB, nW;
-        sscanf(response, "RTR OK %d %d %d", &nT, &nB, &nW);
+        sscanf(response, "RTR OK %d %d %d\n", &nT, &nB, &nW);
 
         if (nB == 4) {
             printf("Congratulations! You won the game!\n");
@@ -130,13 +139,13 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     } else if (!strcmp(response_status, "ENT")) {
         char C1, C2, C3, C4;
         printf("%s\n", response);
-        sscanf(response, "RTR ENT %c %c %c %c", &C1, &C2, &C3, &C4);
+        sscanf(response, "RTR ENT %c %c %c %c\n", &C1, &C2, &C3, &C4);
         printf("You have no more attempts available!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
     } else if (!strcmp(response_status, "ETM")) {
         char C1, C2, C3, C4;
         printf("%s\n", response);
-        sscanf(response, "RTR ETM %c %c %c %c", &C1, &C2, &C3, &C4);
+        sscanf(response, "RTR ETM %c %c %c %c\n", &C1, &C2, &C3, &C4);
         printf("You have exceed the play time!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
     } else if (!strcmp(response_status, "ERR")) {

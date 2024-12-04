@@ -65,12 +65,12 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
     char time[TIME_DIGITS + 1];
     char PLID[PLID_DIGITS + 1];
 
-    sscanf(command, "SNG %s %s", PLID, time);
+    sscanf(command, "SNG %s %s\n", PLID, time);
     // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
 
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (has_ongoing_game(PLID)) {
-        char *response = "RSG NOK";
+        char *response = "RSG NOK\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
@@ -101,7 +101,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     check_try_counter[1] = 0;
 
 
-    sscanf(command, "TRY %s %c %c %c %c %c", PLID, &player_try.colours[0], &player_try.colours[1], 
+    sscanf(command, "TRY %s %c %c %c %c %c\n", PLID, &player_try.colours[0], &player_try.colours[1], 
                                                    &player_try.colours[2], &player_try.colours[3], &nt);
 
     
@@ -109,29 +109,28 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     // TODO: Verify INV!
 
+
     if (!has_ongoing_game(PLID)) {
-        char *response =  "RTR NOK";
+        char *response =  "RTR NOK\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     } 
     
     if (has_exceeded_time(PLID)) {
         char *response = get_end_game_response(PLID, "RTR", "ETM");
-        printf("%s\n", response);
         end_game(PLID, END_TIMEOUT);
         send_udp_response(udp_fd, response, client_addr);
         return;
     } 
     
     if (is_duplicated(PLID, &player_try)) {
-        char *response = "RTR DUP";
+        char *response = "RTR DUP\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     } 
     
     if (has_exceeded_max_turn(nt)) {
         char *response = get_end_game_response(PLID, "RTR", "ENT");
-        printf("%s\n", response);
         end_game(PLID, END_FAIL);
         send_udp_response(udp_fd, response, client_addr);
         return;
@@ -142,7 +141,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     write_try(PLID, player_try, player_try_res);
 
     char response[50];
-    sprintf(response, "RTR OK %c %d %d", nt, player_try_res[0], player_try_res[1]);
+    sprintf(response, "RTR OK %c %d %d\n", nt, player_try_res[0], player_try_res[1]);
 
     if (hasWon(player_try_res)) {
         end_game(PLID, END_WIN);

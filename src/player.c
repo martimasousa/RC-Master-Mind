@@ -139,7 +139,6 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Error: You already have an ongoing game.\n");
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
-            PLID = 106324;
             show_trials_function(tcp_res, cmd, type, PLID);
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
             scoreboard_function(tcp_res, cmd, type);
