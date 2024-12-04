@@ -154,12 +154,12 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     char PLID[PLID_DIGITS + 1];
     
-    sscanf(command, "QUT %s", PLID);
+    sscanf(command, "QUT %s\n", PLID);
     // TODO: Verify arguments. In case they are wrongly formed return "RQT ERR\n"
 
     /* If there is an ongoing game, respond with "RQT NOK" */
     if (!has_ongoing_game(PLID)) {
-        char *response = "RQT NOK";
+        char *response = "RQT NOK\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
@@ -184,7 +184,7 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
     GameTry *game_solution = malloc(sizeof(GameTry));
 
     // Informação não está a ser bem guardada na estrutura
-    sscanf(command, "DBG  %s %s %c %c %c %c", PLID, time,
+    sscanf(command, "DBG  %s %s %c %c %c %c\n", PLID, time,
                                               &game_solution->colours[0],
                                               &game_solution->colours[1],
                                               &game_solution->colours[2],
@@ -195,7 +195,7 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (has_ongoing_game(PLID)) {
-        char *response = "RDB NOK";
+        char *response = "RDB NOK\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
@@ -207,7 +207,7 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
     char *directoryPath = get_player_folder_path(PLID);
     if (!directoryExists(directoryPath)) create_directory(directoryPath);
 
-    char *response = "RDB OK";
+    char *response = "RDB OK\n";
     send_udp_response(udp_fd, response, client_addr);
 }
 

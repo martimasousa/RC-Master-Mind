@@ -158,6 +158,9 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
 }
 
 
+/**
+ * Handles quit command.
+ */
 int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
 
     if (validate_quit_command(cmd) == ERROR) {
@@ -165,10 +168,10 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     }
 
     // Create message to send
-    // Example: quit 106324
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1;
+    // Example: quit 106324\n\0
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + 1;
     char msg[msg_len];
-    snprintf(msg, msg_len, "QUT %d", PLID);
+    snprintf(msg, msg_len, "QUT %d\n", PLID);
 
 
     // Send message to server
@@ -181,7 +184,10 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     // Receive response from server
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
-    char response[16];
+    // Receive server response
+    // Example: RQT OK C1 C2 C3 C4\n\0
+    size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
+    char response[resp_len];
     n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while receiving message.\n");
@@ -194,7 +200,7 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     // Deal with response
     if (!strcmp(response_status, "OK")) {
         char C1, C2, C3, C4;
-        sscanf(response, "RQT OK %c %c %c %c", &C1, &C2, &C3, &C4);
+        sscanf(response, "RQT OK %c %c %c %c\n", &C1, &C2, &C3, &C4);
         printf("The secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
     } else if (!strcmp(response_status, "NOK")) {
@@ -210,6 +216,9 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
 }
 
 
+/**
+ * Handles exit command.
+ */
 int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
     
     // Valida o comando "exit"
@@ -219,9 +228,9 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
 
     // Create message to send
     // Example: quit 106324
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1;
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + 1;
     char msg[msg_len];
-    snprintf(msg, msg_len, "QUT %d", PLID);
+    snprintf(msg, msg_len, "QUT %d\n", PLID);
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -233,7 +242,10 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
     // Receive response from server
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
-    char response[16];
+    // Receive server response
+    // Example: RQT OK C1 C2 C3 C4\n\0
+    size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
+    char response[resp_len];
     n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while receiving message.\n");
@@ -262,6 +274,9 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
 }
 
 
+/**
+ * Handles debug command.
+ */
 int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
     char PLID_arg[PLID_DIGITS + 1];
     char max_playtime_arg[TIME_DIGITS + 1];
@@ -277,10 +292,10 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     int max_playtime = atoi(max_playtime_arg);
 
     // Create message to send
-    // Example: DBG 106324 100 Y Y Y Y
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + TIME_DIGITS + 4*2 + 1;
+    // Example: DBG 106324 100 Y Y Y Y\n\0
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + TIME_DIGITS + 4*2 + 1 + 1;
     char msg[msg_len];
-    snprintf(msg, msg_len, "DBG %d %d %c %c %c %c", PLID, max_playtime, C1, C2, C3, C4);
+    snprintf(msg, msg_len, "DBG %d %d %c %c %c %c\n", PLID, max_playtime, C1, C2, C3, C4);
 
     // Send message to server
     ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
@@ -292,7 +307,10 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     // Receive response from server
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
-    char response[8];
+    // Receive server response
+    // Example: SNG ERR\n\0
+    size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + 1;
+    char response[resp_len];
     n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while receiving message.\n");
