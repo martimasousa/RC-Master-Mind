@@ -6,6 +6,8 @@
 - Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
 - Constantes para tamanhos de buffer
 
+- No show_trials, ver o read() e substituir pela outra função que assegura o ciclo while
+- Substituir no show_trials e no show_scoreboard a função write por uma função com um ciclo while
 
 
 Ideia:

@@ -336,6 +336,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 }
 
 
+
 int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
     
     // Syntax Validation
@@ -462,7 +463,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     // Create message to send
     size_t msg_len = COMMAND_LEN + 1;
     char msg[msg_len];
-    snprintf(msg, 4, "SSB");
+    snprintf(msg, msg_len, "SSB");
 
     // Send message to server
     n = write(tcp_fd, msg, sizeof(msg));
