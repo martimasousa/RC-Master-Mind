@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
 
     int running = TRUE;
     int PLID = NOT_PLAYING;
+    int lastPLID = NOT_PLAYING;
     int nT = 1;
 
     // Process commands
@@ -100,6 +101,7 @@ int main(int argc, char* argv[]) {
         if (!strcmp(type, "start")) {
             if (PLID == NOT_PLAYING) {
                 PLID = start_function(udp_fd, udp_res, cmd);
+                lastPLID = PLID;
             } else {
                 fprintf(stderr, "Error: You already have an ongoing game.\n");
             }
@@ -135,13 +137,14 @@ int main(int argc, char* argv[]) {
         } else if (!strcmp(type, "debug")) {
             if (PLID == NOT_PLAYING) {
                 PLID = debug_function(udp_fd, udp_res, cmd);
+                lastPLID = PLID;
             } else {
                 fprintf(stderr, "Error: You already have an ongoing game.\n");
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
-            show_trials_function(tcp_res, cmd, type, PLID);
+            show_trials_function(tcp_res, cmd, type, lastPLID);
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
-            scoreboard_function(tcp_res, cmd, type);
+            scoreboard_function(tcp_res, cmd, lastPLID);
         } else {
             fprintf(stderr, "Error: Please provide a valid command.\n");
         }
