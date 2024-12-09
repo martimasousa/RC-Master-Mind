@@ -14,6 +14,7 @@ int has_exceeded_max_turn(const char trial_number);
 int has_exceeded_time(const char *PLID);
 int is_duplicated(const char *PLID, GameTry *game_try);
 int has_won(const int *player_try_res);
+int directory_exists(const char *filepath);
 int are_equal_game_tries(const GameTry *input, const GameTry *line);
 
 
@@ -41,6 +42,11 @@ void generate_solution(GameTry* game_solution);
 
 // Creates the game log file with the respective informations
 void create_game_log(const char *PLID, GameTry *game_solution, const char *time_value, const char mode);
+
+
+/*
+    TRY auxiliar functions
+*/
 
 
 #endif

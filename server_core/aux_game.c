@@ -91,6 +91,11 @@ int has_won(const int *player_try_res) {
     return (player_try_res[0] == 4);
 }
 
+int directory_exists(const char *filepath) {
+    struct stat st;
+    return (stat(filepath, &st) == 0 && S_ISDIR(st.st_mode));
+}
+
 int are_equal_game_tries(const GameTry *input, const GameTry *line) {
     for (int i = 0; i < 4; i++) {
         if (input->colours[i] != line->colours[i]) {
@@ -138,7 +143,7 @@ int start_game(const char *PLID, const char *time, char mode, GameTry *game_solu
 
     /* Create PLID game directory if not created */
     char *directoryPath = get_player_folder_path(PLID);
-    if (!directoryExists(directoryPath)) create_directory(directoryPath);
+    if (!directory_exists(directoryPath)) create_directory(directoryPath);
 
     return OK;
 }

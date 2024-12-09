@@ -399,13 +399,6 @@ char* getScoreFileName(int score, char *PLID) {
     
 }
 
-int directoryExists(char *filepath) {
-    struct stat st;
-
-    return (stat(filepath, &st) == 0 && S_ISDIR(st.st_mode));
-}
-
-
 
 // FUNCTIONS GIVEN BY THE UC ----------------------------------------------------------------------
 

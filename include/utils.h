@@ -86,8 +86,6 @@ int calculateScore(const char *PLID, int turnsPlayed);
 
 char* getScoreFileName(int score, char *PLID);
 
-int directoryExists(char *filepath);
-
 
 // FUNCTIONS GIVEN BY THE UC ----------------------------------------------------------------------
 #define CODE_DIGITS 4 + 1   // '\0'
