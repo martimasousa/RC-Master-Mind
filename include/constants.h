@@ -65,6 +65,11 @@
 #define END_TIMEOUT 'T'
 
 
+// Game Modes
+#define DEBUG_MODE 'D'
+#define PLAY_MODE 'P'
+
+
 // Simple Functions
 #define max(A,B) ((A)>=(B)?(A):(B))
 

@@ -1,4 +1,5 @@
 #include "game_core.h"
+#include "aux_game.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +16,6 @@ void generate_solution(GameTry* game_solution) {
     srand((unsigned) time(NULL));
 
     for (int i = 0; i < len_solution; i++) {
-
         int random_index = rand() % len_colors;
         game_solution->colours[i] = colors[random_index];
     }
@@ -64,6 +64,8 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     char time[TIME_DIGITS + 1];
     char PLID[PLID_DIGITS + 1];
+    GameTry *game_solution = malloc(sizeof(GameTry));
+    char *response;
 
     sscanf(command, "SNG %s %s\n", PLID, time);
     // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
@@ -75,18 +77,9 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
-    /* If not, generate a new solution */
-    GameTry *game_solution = malloc(sizeof(GameTry));
-    generate_solution(game_solution);
+    if (start_game(PLID, time, PLAY_MODE, game_solution) == OK) response = "RSG OK\n";
+    else response = "RSG NOK\n";
 
-    /* Create a new file and write the first line infos */
-    create_game_log_timestamp(PLID, game_solution, time, 'P');
-
-    /* Create PLID game directory if not created */
-    char *directoryPath = get_player_folder_path(PLID);
-    if (!directoryExists(directoryPath)) create_directory(directoryPath);
-
-    char *response = "RSG OK\n";
     send_udp_response(udp_fd, response, client_addr);
 }
 
@@ -182,6 +175,7 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
     char time[TIME_DIGITS + 1];
     char PLID[PLID_DIGITS + 1];
     GameTry *game_solution = malloc(sizeof(GameTry));
+    char *response;
 
     // Informação não está a ser bem guardada na estrutura
     sscanf(command, "DBG  %s %s %c %c %c %c\n", PLID, time,
@@ -200,14 +194,9 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
-    /* Create a new file and write the first line infos */
-    create_game_log_timestamp(PLID, game_solution, time, 'D');
+    if (start_game(PLID, time, DEBUG_MODE, game_solution) == OK) response = "RDB OK\n";
+    else response = "RDB NOK\n";
 
-    /* Create PLID game directory if not created */
-    char *directoryPath = get_player_folder_path(PLID);
-    if (!directoryExists(directoryPath)) create_directory(directoryPath);
-
-    char *response = "RDB OK\n";
     send_udp_response(udp_fd, response, client_addr);
 }
 

@@ -55,6 +55,42 @@ int create_directory(const char *directory) {
     }
 }
 
+// Função para concatenar strings com espaço e adicionar um \n no final
+char* combine_strings(char** strings, int num_strings) {
+    if (num_strings <= 0) {
+        return NULL;
+    }
+
+    // Calcular o tamanho total necessário
+    int total_length = 2; // Para o '\n' e o '\0' no final
+    for (int i = 0; i < num_strings; i++) {
+        total_length += strlen(strings[i]) + 1; // +1 para o espaço
+    }
+
+    // Alocar memória para a string concatenada
+    char* result = (char*)malloc(total_length * sizeof(char));
+    char* current_position = result; // Ponteiro para a posição atual
+
+    // Concatenar todas as strings usando memcpy
+    for (int i = 0; i < num_strings; i++) {
+        int len = strlen(strings[i]);
+        memcpy(current_position, strings[i], len); // Copiar a string atual
+        current_position += len; // Avançar o ponteiro
+
+        if (i < num_strings - 1) {
+            *current_position = ' '; // Adicionar espaço
+            current_position++;
+        }
+    }
+
+    // Adicionar o '\n' no final
+    *current_position = '\n';
+    current_position++;
+    *current_position = '\0'; // Terminar a string com null-terminator
+
+    return result;
+}
+
 int create_score_file(const char *PLID) {
 
     time_t now = time(NULL);
@@ -247,7 +283,10 @@ char* get_end_game_response(const char* PLID, const char* Command, const char* S
 
 void write_game_line(const char *PLID, const char *message) {
     
-    char *file_path = get_game_folder_path(PLID);
+    write_line(get_game_folder_path(PLID), message);
+}
+
+void write_line(const char *file_path, const char *message) {
 
     FILE *file = fopen(file_path, "a");
     if (file == NULL) {
@@ -259,7 +298,7 @@ void write_game_line(const char *PLID, const char *message) {
     fclose(file);
 }
 
-void create_game_log_timestamp(const char *PLID, GameTry *game_solution, char *time_value, char mode) {
+void create_game_log(const char *PLID, GameTry *game_solution, const char *time_value, const char mode) {
 
     time_t now = time(NULL);
     if (now == -1) {

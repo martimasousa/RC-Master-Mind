@@ -7,6 +7,8 @@
 // Função para verificar se a string é um número inteiro
 int is_integer(const char *str);
 
+char* combine_strings(char** strings, int num_strings);
+
 // Função para verificar se a string é um IP válido
 int is_valid_ip(const char *ip);
 
@@ -34,8 +36,10 @@ char* get_end_game_name(char const type);
 // Write a new line in the player's game file (representing the command)
 void write_game_line(const char *PLID, const char *message);
 
+void write_line(const char *file_path, const char *message);
+
 // Create a game file and write the first line (command that initialized the game)
-void create_game_log_timestamp(const char *PLID, GameTry *game_solution, char *time, char mode);
+void create_game_log(const char *PLID, GameTry *game_solution, const char *time, const char mode);
 
 // For a certain file, extract the game solution
 int extract_game_colour(const char *PLID, GameTry *game);

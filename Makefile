@@ -2,9 +2,9 @@ CC = gcc
 CFLAGS = -Iinclude -Iio -Iclient_core -Iserver_core -Wall
 LDFLAGS = -lm
 
-SRCS_SERVER = src/GS.c
+SRCS_SERVER = src/GS.c server_core/aux_game.c server_core/game_core.c
 SRCS_CLIENT = src/player.c client_core/client_core.c client_core/aux_client.c
-SRCS_GENERAL = include/utils.c server_core/game_core.c
+SRCS_GENERAL = include/utils.c
 
 EXEC_SERVER = server.o
 EXEC_CLIENT = player.o

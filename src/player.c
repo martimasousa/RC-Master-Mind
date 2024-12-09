@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
             show_trials_function(tcp_res, cmd, type, lastPLID);
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
-            scoreboard_function(tcp_res, cmd, lastPLID);
+            scoreboard_function(tcp_res, cmd, type);
         } else {
             fprintf(stderr, "Error: Please provide a valid command.\n");
         }
