@@ -123,7 +123,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     char response[50];
     sprintf(response, "RTR OK %c %d %d\n", nt, player_try_res[0], player_try_res[1]);
 
-    if (hasWon(player_try_res)) {
+    if (has_won(player_try_res)) {
         end_game(PLID, END_WIN);
     }
 

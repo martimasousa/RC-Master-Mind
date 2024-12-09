@@ -4,6 +4,20 @@
 #include "constants.h"
 #include "game_core.h"
 #include "utils.h"
+
+/*
+    STATUS VERIFICATION auxiliar functions 
+*/
+
+int has_ongoing_game(const char *PLID);
+int has_exceeded_max_turn(const char trial_number);
+int has_exceeded_time(const char *PLID);
+int is_duplicated(const char *PLID, GameTry *game_try);
+int has_won(const int *player_try_res);
+int are_equal_game_tries(const GameTry *input, const GameTry *line);
+
+
+
 /*
     GENERAL auxiliar functions
 */

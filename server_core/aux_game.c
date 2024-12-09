@@ -15,6 +15,94 @@
 #include <stdlib.h>
 
 /*
+    STATUS VERIFICATION auxiliar functions 
+*/
+
+int has_ongoing_game(const char *PLID) {
+
+    char *file_path = get_game_folder_path(PLID);
+
+    if (access(file_path, F_OK) == 0) {
+        return FOUND;
+    } else {
+        return NOT_FOUND;
+    }
+}
+
+int has_exceeded_max_turn(const char trial_number) {
+    return (trial_number - '0' > MAX_TRIALS);
+}
+
+int has_exceeded_time(const char *PLID) {
+
+    int max_time = atoi(extract_game_info(PLID, ARG_MAXTIME));    
+    return (get_elapsed_time(PLID) > max_time);
+}
+
+int is_duplicated(const char *PLID, GameTry *game_try) {
+    
+    char *file_path = get_game_folder_path(PLID);
+
+    FILE *file = fopen(file_path, "r");
+    if (file == NULL) {
+        perror("Error openning file.\n");
+        return FALSE;
+    }
+
+    // Date String
+    size_t timestr_len = YEAR_LEN + 1 + MONTH_LEN + 1 + DAY_LEN + 1 + HOUR_LEN + 1 + MINUTES_LEN + 1 + SECONDS_LEN;
+    // First Line String
+    size_t first_line_len = PLID_DIGITS + 1 + MODE_LEN + 4*COLOR_LEN + 1 + TIME_DIGITS + 1 + timestr_len + NOW_TIME_LEN + 1;
+
+    char line[first_line_len + 1];
+    int line_num = 0;
+
+    // Ignores the first line
+    if (fgets(line, sizeof(line), file) == NULL) {
+        perror("Error reading from the file.\n");
+        fclose(file);
+        return FALSE;
+    }
+
+    // Iterates through the file lines
+    while (fgets(line, sizeof(line), file) != NULL) {
+        char colour1, colour2, colour3, colour4;
+        int result = sscanf(line, "T: %c%c%c%c", &colour1, &colour2, &colour3, &colour4);
+
+        if (result == 4) {
+            GameTry line_game;
+            line_game.colours[0] = colour1;
+            line_game.colours[1] = colour2;
+            line_game.colours[2] = colour3;
+            line_game.colours[3] = colour4;
+
+            if (are_equal_game_tries(game_try, &line_game)) {
+                fclose(file);
+                return TRUE;
+            }
+        }
+        line_num++;
+    }
+    fclose(file);
+    return FALSE;
+}
+
+int has_won(const int *player_try_res) {
+    return (player_try_res[0] == 4);
+}
+
+int are_equal_game_tries(const GameTry *input, const GameTry *line) {
+    for (int i = 0; i < 4; i++) {
+        if (input->colours[i] != line->colours[i]) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+
+
+/*
     GENERAL auxiliar functions
 */
 

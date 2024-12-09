@@ -43,41 +43,6 @@ int create_directory(const char *directory) {
     }
 }
 
-// Função para concatenar strings com espaço e adicionar um \n no final
-char* combine_strings(char** strings, int num_strings) {
-    if (num_strings <= 0) {
-        return NULL;
-    }
-
-    // Calcular o tamanho total necessário
-    int total_length = 2; // Para o '\n' e o '\0' no final
-    for (int i = 0; i < num_strings; i++) {
-        total_length += strlen(strings[i]) + 1; // +1 para o espaço
-    }
-
-    // Alocar memória para a string concatenada
-    char* result = (char*)malloc(total_length * sizeof(char));
-    char* current_position = result; // Ponteiro para a posição atual
-
-    // Concatenar todas as strings usando memcpy
-    for (int i = 0; i < num_strings; i++) {
-        int len = strlen(strings[i]);
-        memcpy(current_position, strings[i], len); // Copiar a string atual
-        current_position += len; // Avançar o ponteiro
-
-        if (i < num_strings - 1) {
-            *current_position = ' '; // Adicionar espaço
-            current_position++;
-        }
-    }
-
-    // Adicionar o '\n' no final
-    *current_position = '\n';
-    current_position++;
-    *current_position = '\0'; // Terminar a string com null-terminator
-
-    return result;
-}
 
 int create_score_file(const char *PLID) {
 
@@ -185,74 +150,6 @@ char* get_end_game_name(char const type) {
     return res;
 }
 
-// Função para comparar as cores
-int compare_game_try(const GameTry *input, const GameTry *line) {
-    for (int i = 0; i < 4; i++) {
-        if (input->colours[i] != line->colours[i]) {
-            return FALSE;  // Se alguma cor não bater, retorna false
-        }
-    }
-    return TRUE;  // Se todas as cores coincidirem, retorna true
-}
-
-int is_duplicated(const char *PLID, GameTry *game_try) {
-    
-    char *file_path = get_game_folder_path(PLID);
-
-    FILE *file = fopen(file_path, "r");
-    if (file == NULL) {
-        perror("Erro ao abrir o ficheiro");
-        return FALSE;  // Erro ao abrir o ficheiro
-    }
-
-    char line[100];
-    int line_num = 0;
-
-    // Ignora a primeira linha
-    if (fgets(line, sizeof(line), file) == NULL) {
-        perror("Erro ao ler a primeira linha do ficheiro");
-        fclose(file);
-        return FALSE;
-    }
-
-    // Itera pelas linhas seguintes
-    while (fgets(line, sizeof(line), file) != NULL) {
-        char colour1, colour2, colour3, colour4;
-        int result = sscanf(line, "T: %c%c%c%c", &colour1, &colour2, &colour3, &colour4);
-
-        if (result == 4) {
-            GameTry line_game;
-            line_game.colours[0] = colour1;
-            line_game.colours[1] = colour2;
-            line_game.colours[2] = colour3;
-            line_game.colours[3] = colour4;
-
-            if (compare_game_try(game_try, &line_game)) {
-                fclose(file);
-                return TRUE;
-            }
-        }
-        line_num++;
-    }
-    fclose(file);
-    return FALSE;
-}
-
-
-int has_ongoing_game(const char *PLID) {
-
-    char *file_path = get_game_folder_path(PLID);
-
-    if (access(file_path, F_OK) == 0) {
-        return FOUND;
-    } else {
-        return NOT_FOUND;
-    }
-}
-
-int has_exceeded_max_turn(char trial_number) {
-    return (trial_number - '0' > MAX_TRIALS);
-}
 
 char* get_end_game_response(const char* PLID, const char* Command, const char* Status) {
     GameTry *game_solution = malloc(sizeof(GameTry));
@@ -314,14 +211,6 @@ char* extract_game_info(const char *PLID, const char arg_type) {
 
     fclose(file);
     return NULL;
-}
-
-
-int has_exceeded_time(const char *PLID) {
-
-    int max_time = atoi(extract_game_info(PLID, ARG_MAXTIME));
-    
-    return (get_elapsed_time(PLID) > max_time);
 }
 
 
@@ -470,10 +359,6 @@ int get_data_size(FILE *file) {
     
     return (file_size - first_line_size);
 
-}
-
-int hasWon(int *player_try_res) {
-    return (player_try_res[0] == 4);
 }
 
 int calculateScore(const char *PLID, int turnsPlayed) {
