@@ -16,11 +16,22 @@
 // Memory Related Constants
 #define BUFFER_SIZE 1024
 #define MAX_PLAYER_COMMAND  100
+
 #define PLID_DIGITS         6               // '\0'
 #define TIME_DIGITS         3               // '\0'
-#define ONGOING_GAME_FILE_NAME 13           // '\0'
+
 #define RESPONSE_LEN 3
 #define COMMAND_LEN 3
+
+#define COLOR_LEN 1
+#define YEAR_LEN 4
+#define MONTH_LEN 2
+#define DAY_LEN 2
+#define HOUR_LEN 2
+#define MINUTES_LEN 2
+#define SECONDS_LEN 2
+#define MODE_LEN 1
+#define NOW_TIME_LEN 19 // MAX len a number from function "now" can have
 
 
 // MAIN COMMANDS

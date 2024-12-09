@@ -1,17 +1,5 @@
 #include "utils.h"
-#include "game_core.h"
-#include "constants.h"
-#include <sys/stat.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <time.h>
-#include <errno.h>    // Para verificar erros com errno
-#include <string.h>
-#include <math.h>
-#include <dirent.h>
-#include <stdlib.h>
+
 
 char* get_game_folder_path(const char *PLID) {
     size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
@@ -279,59 +267,6 @@ char* get_end_game_response(const char* PLID, const char* Command, const char* S
                                                    game_solution->colours[3]);
 
     return response;
-}
-
-void write_game_line(const char *PLID, const char *message) {
-    
-    write_line(get_game_folder_path(PLID), message);
-}
-
-void write_line(const char *file_path, const char *message) {
-
-    FILE *file = fopen(file_path, "a");
-    if (file == NULL) {
-        perror("Erro ao abrir o ficheiro");
-        return;
-    }
-    fprintf(file, "%s", message);
-    fflush(file);
-    fclose(file);
-}
-
-void create_game_log(const char *PLID, GameTry *game_solution, const char *time_value, const char mode) {
-
-    time_t now = time(NULL);
-    if (now == -1) {
-        perror("Erro ao obter o tempo atual");
-        return;
-    }
-
-    struct tm *current_time = gmtime(&now);
-    if (current_time == NULL) {
-        perror("Erro ao converter o tempo");
-        return;
-    }
-
-    char timestr[50];
-    snprintf(timestr, sizeof(timestr), "%4d-%02d-%02d %02d:%02d:%02d",
-                                        current_time->tm_year + 1900,
-                                        current_time->tm_mon + 1,
-                                        current_time->tm_mday,
-                                        current_time->tm_hour,
-                                        current_time->tm_min,
-                                        current_time->tm_sec);
-
-    char fullstr[100];
-    snprintf(fullstr, sizeof(fullstr), "%s %c %c%c%c%c %s %s %ld\n", 
-                                        PLID, mode, 
-                                        game_solution->colours[0],
-                                        game_solution->colours[1],
-                                        game_solution->colours[2],
-                                        game_solution->colours[3],
-                                        time_value,
-                                        timestr, now);
-
-    write_game_line(PLID, fullstr);
 }
 
 int extract_game_colour(const char *PLID, GameTry *game) {

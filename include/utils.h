@@ -1,5 +1,17 @@
-#include <stdio.h>
 #include "game_core.h"
+#include "constants.h"
+#include "aux_game.h"
+#include <sys/stat.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <time.h>
+#include <errno.h>    // Para verificar erros com errno
+#include <string.h>
+#include <math.h>
+#include <dirent.h>
+#include <stdlib.h>
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -32,14 +44,6 @@ int end_game(const char *PLID, const char endGameType);
 int create_score_file(const char *PLID);
 
 char* get_end_game_name(char const type);
-
-// Write a new line in the player's game file (representing the command)
-void write_game_line(const char *PLID, const char *message);
-
-void write_line(const char *file_path, const char *message);
-
-// Create a game file and write the first line (command that initialized the game)
-void create_game_log(const char *PLID, GameTry *game_solution, const char *time, const char mode);
 
 // For a certain file, extract the game solution
 int extract_game_colour(const char *PLID, GameTry *game);

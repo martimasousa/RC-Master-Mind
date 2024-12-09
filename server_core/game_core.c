@@ -8,19 +8,6 @@
 #include "utils.h"
 #include <sys/stat.h>
 
-void generate_solution(GameTry* game_solution) {
-    char colors[] = {'R', 'G', 'B', 'Y', 'O', 'P'};
-    int len_colors = sizeof(colors) / sizeof(colors[0]);
-    int len_solution = sizeof(game_solution->colours) / sizeof(game_solution->colours[0]);
-
-    srand((unsigned) time(NULL));
-
-    for (int i = 0; i < len_solution; i++) {
-        int random_index = rand() % len_colors;
-        game_solution->colours[i] = colors[random_index];
-    }
-}
-
 
 void check_try(const char *PLID, GameTry player_try, int* res) {
 
