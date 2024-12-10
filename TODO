@@ -4,11 +4,6 @@
 - Prováveis loops necessários nos sends e receives
 - SIGNAL (aquela cena de se escrever num socket quando um cliente desconecta do nada)
 - Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
-- Constantes para tamanhos de buffer
 
 - No show_trials, ver o read() e substituir pela outra função que assegura o ciclo while
 - Substituir no show_trials e no show_scoreboard a função write por uma função com um ciclo while
-
-
-Ideia:
-  o server pode montar a string a enviar e enviar toda de uma vez e o cliente pode ir lendo aos poucos!
