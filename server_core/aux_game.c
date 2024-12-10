@@ -202,10 +202,12 @@ GameTry* extract_game_colour(const char *PLID) {
 
     GameTry *game_try = malloc(sizeof(GameTry));
     char *colours = extract_game_info(PLID, ARG_SOLUTION);
-    strncpy(game_try->colours, colours, 4);
+    strncpy(game_try->colours, colours, sizeof(game_try->colours));
 
     return game_try;
 }
+
+
 /*
     START and DEBUG auxiliar functions
 */
@@ -280,6 +282,73 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
 /*
     TRY and QUIT auxiliar functions
 */
+
+int* make_try(const char *PLID, const GameTry player_try) {
+    int *player_try_res = get_try_results(PLID, player_try);
+    write_try(PLID, player_try, player_try_res);
+
+    return player_try_res;
+}
+
+int* get_try_results(const char *PLID, GameTry player_try) {
+
+    int *res = malloc(sizeof(int) * 2);
+    GameTry game_solution;
+
+    strncpy(game_solution.colours, extract_game_info(PLID, ARG_SOLUTION), sizeof(game_solution.colours));
+
+    int i, j;
+
+    res[0] = 0; // Correct position and color
+    res[1] = 0; // Correct color but wrong position
+
+    char wrong_solutions[4];    // Solution colors that were not guessed
+    char wrong_tries[4];        // Try colors that were wrong
+    int wrongs = 0;             // Number of wrong guesses
+
+    // First step: Check for exact matches (correct color and position)
+    for (i = 0; i < 4; i++) {
+        if (game_solution.colours[i] == player_try.colours[i]) {
+            res[0]++;
+        } else {
+            wrong_solutions[wrongs] = game_solution.colours[i];
+            wrong_tries[wrongs] = player_try.colours[i];
+            wrongs++;
+        }
+    }
+
+    // Second step: Find correct colors in wrong positions
+    for (i = 0; i < wrongs; i++) {
+        for (j = 0; j < wrongs; j++) {
+            if (wrong_tries[i] == wrong_solutions[j]) {
+                res[1]++;
+                wrong_solutions[j] = 'N'; // No color
+                break;
+            }
+        }
+    }
+    
+    return res;
+}
+
+void write_try(const char *PLID, GameTry game_try, int *player_try_res) {
+
+    char elapsed_time = get_elapsed_time(PLID);
+
+    size_t message_len = strlen("T:") + 1 + 4*COLOR_LEN + 2*TRIAL_MAX_LEN*2 + 1 + ELAPSED_TIME_LEN + 2;
+    char message[message_len];
+
+    sprintf(message, "T: %c%c%c%c %d %d %d\n", 
+                                        game_try.colours[0],                                               
+                                        game_try.colours[1],
+                                        game_try.colours[2],
+                                        game_try.colours[3],
+                                        player_try_res[0],
+                                        player_try_res[1],
+                                        elapsed_time);
+
+    write_game_line(PLID, message);
+}
 
 int end_game(const char *PLID, const char end_game_type) {
     if (end_game_type == END_WIN) create_score_file(PLID);

@@ -55,6 +55,16 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
     TRY and QUIT auxiliar functions
 */
 
+// Executes the try logic and returns the result
+int* make_try(const char *PLID, const GameTry player_try);
+
+// Compare the player's try with the solution and evaluate nB (correct in both colour and position)
+// and nW (belong to the secret key but are incorrectly positioned).
+int* get_try_results(const char *PLID, GameTry player_try);
+
+// Writes the player try into the players current game file
+void write_try(const char *PLID, GameTry game_try, int *player_try_res);
+
 // Ends the game taking care of all the related procedures
 int end_game(const char *PLID, const char end_game_type);
 

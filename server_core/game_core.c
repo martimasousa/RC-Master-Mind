@@ -9,43 +9,6 @@
 #include <sys/stat.h>
 
 
-void check_try(const char *PLID, GameTry player_try, int* res) {
-
-    GameTry game_solution;
-    strncpy(game_solution.colours, extract_game_info(PLID, ARG_SOLUTION), sizeof(game_solution.colours));
-
-    int i, j;
-
-    res[0] = 0; // Correct position and color
-    res[1] = 0; // Correct color but wrong position
-
-    char wrong_solutions[4];    // Solution colors that were not guessed
-    char wrong_tries[4];        // Try colors that were wrong
-    int wrongs = 0;             // Number of wrong guesses
-
-    // First step: Check for exact matches (correct color and position)
-    for (i = 0; i < 4; i++) {
-        if (game_solution.colours[i] == player_try.colours[i]) {
-            res[0]++;
-        } else {
-            wrong_solutions[wrongs] = game_solution.colours[i];
-            wrong_tries[wrongs] = player_try.colours[i];
-            wrongs++;
-        }
-    }
-
-    // Second step: Find correct colors in wrong positions
-    for (i = 0; i < wrongs; i++) {
-        for (j = 0; j < wrongs; j++) {
-            if (wrong_tries[i] == wrong_solutions[j]) {
-                res[1]++;
-                wrong_solutions[j] = 'N'; // No color
-                break;
-            }
-        }
-    }
-}
-
 
 void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
@@ -116,11 +79,10 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
-    int *player_try_res = malloc(sizeof(int) * 2);
-    check_try(PLID, player_try, player_try_res);
-    write_try(PLID, player_try, player_try_res);
+    int* player_try_res = make_try(PLID, player_try);
 
-    char response[50];
+    size_t response_len = COMMAND_LEN + 1 + RESPONSE_LEN + TRIAL_MAX_LEN*3*2 + 2;
+    char response[response_len];
     sprintf(response, "RTR OK %c %d %d\n", nt, player_try_res[0], player_try_res[1]);
 
     if (has_won(player_try_res)) {
@@ -146,7 +108,7 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     /* Get the solution and send the message */
     char *response = build_end_game_response(PLID, "RQT", "OK");
-    
+
     end_game(PLID, END_QUIT);
     send_udp_response(udp_fd, response, client_addr);
 }

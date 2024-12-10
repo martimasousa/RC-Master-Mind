@@ -50,24 +50,6 @@ int get_elapsed_time(const char *PLID) {
 }
 
 
-void write_try(const char *PLID, GameTry game_try, int *player_try_res) {
-
-    char message[50], elapsed_time;
-
-    elapsed_time = get_elapsed_time(PLID);
-
-    sprintf(message, "T: %c%c%c%c %d %d %d\n", 
-                                        game_try.colours[0],                                               
-                                        game_try.colours[1],
-                                        game_try.colours[2],
-                                        game_try.colours[3],
-                                        player_try_res[0],
-                                        player_try_res[1],
-                                        elapsed_time);
-
-    write_game_line(PLID, message);
-}
-
 int is_integer(const char *str) {
     while (*str) {
         if (!isdigit(*str)) return FALSE;
