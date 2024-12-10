@@ -44,6 +44,27 @@ char* get_player_folder_path(const char *PLID);
 int create_directory(const char *directory);
 
 
+/*
+    MESSAGE sending and receiving functions
+*/
+
+// Reads delimited string from the file descriptor.
+int tcp_read_until_delimiter(int fd, char** word, char separator);
+
+// Writes some string to a tcp file descriptor
+int tcp_write(int fd, char* to_write);
+
+// Função que recebe uma mensagem UDP e retorna o número de bytes lidos.
+// Modifica o buffer com os dados recebidos.
+ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr);
+
+// Função que envia uma resposta UDP para o cliente especificado.
+void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr);
+
+
+
+
+
 int move_file(const char *source_file, const char endGameType);
 
 int end_game(const char *PLID, const char endGameType);
@@ -61,22 +82,8 @@ char* extract_game_info(const char *PLID, const char arg_type);
 int get_elapsed_time(const char *PLID);
 
 
-char* get_end_game_response(const char* PLID, const char* Command, const char* Status);
-
 void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 
-// Reads delimited string from the file descriptor.
-int tcp_read_until_delimiter(int fd, char** word, char separator);
-
-// Writes some string to a tcp file descriptor
-int tcp_write(int fd, char* to_write);
-
-// Função que recebe uma mensagem UDP e retorna o número de bytes lidos.
-// Modifica o buffer com os dados recebidos.
-ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr);
-
-// Função que envia uma resposta UDP para o cliente especificado.
-void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr);
 
 int line_size(FILE *fp);
 

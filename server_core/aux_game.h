@@ -29,6 +29,9 @@ void write_line(const char *file_path, const char *message);
 // Write a message to the PLID game file
 void write_game_line(const char *PLID, const char *message);
 
+// Builds the end game response with the Command and Status given
+char* build_end_game_response(const char* PLID, const char* Command, const char* Status);
+
 
 /*
     START and DEBUG auxiliar functions

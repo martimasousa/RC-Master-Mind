@@ -128,6 +128,22 @@ void write_game_line(const char *PLID, const char *message) {
     write_line(get_game_folder_path(PLID), message);
 }
 
+char* build_end_game_response(const char* PLID, const char* Command, const char* Status) {
+    GameTry *game_solution = malloc(sizeof(GameTry));
+    
+    extract_game_colour(PLID, game_solution);
+
+    size_t response_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*COLOR_LEN*2 + 1 + 1;
+    char *response = malloc(sizeof(char) * response_len);
+    snprintf(response, response_len, "%s %s %c %c %c %c\n", Command, Status, 
+                                                   game_solution->colours[0],
+                                                   game_solution->colours[1],
+                                                   game_solution->colours[2],
+                                                   game_solution->colours[3]);
+
+    return response;
+}
+
 
 /*
     START and DEBUG auxiliar functions

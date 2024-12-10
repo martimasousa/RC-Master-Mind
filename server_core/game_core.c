@@ -97,7 +97,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     } 
     
     if (has_exceeded_time(PLID)) {
-        char *response = get_end_game_response(PLID, "RTR", "ETM");
+        char *response = build_end_game_response(PLID, "RTR", "ETM");
         end_game(PLID, END_TIMEOUT);
         send_udp_response(udp_fd, response, client_addr);
         return;
@@ -110,7 +110,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     } 
     
     if (has_exceeded_max_turn(nt)) {
-        char *response = get_end_game_response(PLID, "RTR", "ENT");
+        char *response = build_end_game_response(PLID, "RTR", "ENT");
         end_game(PLID, END_FAIL);
         send_udp_response(udp_fd, response, client_addr);
         return;
@@ -145,14 +145,8 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
     }
 
     /* Get the solution and send the message */
-    GameTry *game_solution = malloc(sizeof(GameTry));
-    extract_game_colour(PLID, game_solution);
-
-    char response[100];
-    snprintf(response, sizeof(response), "RQT OK %c %c %c %c\n", game_solution->colours[0],
-                                                                 game_solution->colours[1],
-                                                                 game_solution->colours[2],
-                                                                 game_solution->colours[3]);
+    char *response = build_end_game_response(PLID, "RQT", "OK");
+    
     end_game(PLID, END_QUIT);
     send_udp_response(udp_fd, response, client_addr);
 }

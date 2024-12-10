@@ -150,22 +150,6 @@ char* get_end_game_name(char const type) {
     return res;
 }
 
-
-char* get_end_game_response(const char* PLID, const char* Command, const char* Status) {
-    GameTry *game_solution = malloc(sizeof(GameTry));
-    
-    extract_game_colour(PLID, game_solution);
-
-    char *response = malloc(sizeof(char) * 100);
-    snprintf(response, 100, "%s %s %c %c %c %c\n", Command, Status, 
-                                                   game_solution->colours[0],
-                                                   game_solution->colours[1],
-                                                   game_solution->colours[2],
-                                                   game_solution->colours[3]);
-
-    return response;
-}
-
 int extract_game_colour(const char *PLID, GameTry *game) {
 
     char *colours = extract_game_info(PLID, ARG_SOLUTION);
