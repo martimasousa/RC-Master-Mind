@@ -44,53 +44,6 @@ int create_directory(const char *directory) {
 }
 
 
-int create_score_file(const char *PLID) {
-
-    time_t now = time(NULL);
-    struct tm *current_time = gmtime(&now);
-
-    char *mode = extract_game_info(PLID, ARG_MODE);
-
-    GameTry *solution = malloc(sizeof(GameTry));
-    extract_game_colour(PLID, solution);
-
-    int score = calculateScore(PLID, 1);
-
-    char *file_path = malloc(sizeof(char) * 50);
-    snprintf(file_path, 50, "./SCORES/%d_%s_%02d%02d%4d_%02d%02d%02d.txt",
-                                        score,
-                                        PLID,
-                                        current_time->tm_mday,
-                                        current_time->tm_mon + 1,
-                                        current_time->tm_year + 1900,
-                                        current_time->tm_hour,
-                                        current_time->tm_min,
-                                        current_time->tm_sec);
-
-    FILE *file = fopen(file_path, "a");
-
-    if (strcmp("P", mode) == 0) {
-        mode = "PLAY";
-    } else if (strcmp("D", mode) == 0) {
-        mode = "DEBUG";
-    }
-    
-    char *message = malloc(sizeof(char) * 50);
-    snprintf(message, 50, "%d %s %c%c%c%c nt %s", score, PLID, solution->colours[0],
-                                                               solution->colours[1],
-                                                               solution->colours[2],
-                                                               solution->colours[3],
-                                                               mode);
-
-    fprintf(file, "%s", message);
-    fflush(file);
-    fclose(file);
-    free(solution);
-    free(message);
-
-    return 0;
-}
-
 int extract_game_colour(const char *PLID, GameTry *game) {
 
     char *colours = extract_game_info(PLID, ARG_SOLUTION);

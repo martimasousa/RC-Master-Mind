@@ -24,6 +24,8 @@
 #define COMMAND_LEN 3
 
 #define ELAPSED_TIME_LEN 3
+#define SCORE_MAX_LEN 3
+#define TRIAL_MAX_LEN 1
 
 #define COLOR_LEN 1
 #define YEAR_LEN 4

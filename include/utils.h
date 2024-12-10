@@ -65,10 +65,6 @@ void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *clie
 
 
 
-int relocate_completed_game(const char *source_file, const char endGameType);
-
-int create_score_file(const char *PLID);
-
 // For a certain file, extract the game solution
 int extract_game_colour(const char *PLID, GameTry *game);
 

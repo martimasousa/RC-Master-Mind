@@ -59,4 +59,7 @@ int relocate_completed_game(const char *PLID, const char endGameType);
 // Builds the completed game file name
 char* get_completed_game_name(char const type);
 
+// Creates the score file
+int create_score_file(const char *PLID);
+
 #endif

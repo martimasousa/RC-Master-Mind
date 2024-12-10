@@ -259,11 +259,14 @@ int relocate_completed_game(const char *PLID, const char endGameType) {
     size_t destination_path_length = strlen(destinationDirectoryPath) + 1 + strlen(destinationFileName) + 1;
     char *destination_path = malloc(destination_path_length);
 
+    // Buils the path to the new file
     snprintf(destination_path, destination_path_length, "%s/%s", destinationDirectoryPath, destinationFileName);
 
     size_t message_len = YEAR_LEN + 1 + MONTH_LEN + 1 + DAY_LEN + 1 + HOUR_LEN + 1 +
                          MINUTES_LEN + 1 + SECONDS_LEN + 1 + ELAPSED_TIME_LEN + 1;
     char *message = malloc(sizeof(char) * message_len);
+
+    // Creates the end game string
     snprintf(message, message_len, "%4d-%02d-%02d %02d:%02d:%02d %d",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
@@ -275,10 +278,64 @@ int relocate_completed_game(const char *PLID, const char endGameType) {
     
     write_game_line(PLID, message);
 
+    // Moves the file
     if (rename(sourceFilePath, destination_path) == 0) {
         return OK;
     } else {
         perror("Error relocating the file!");
         return ERROR;
     }
+}
+
+int create_score_file(const char *PLID) {
+
+    time_t now = time(NULL);
+    struct tm *current_time = gmtime(&now);
+
+    char *mode = extract_game_info(PLID, ARG_MODE);
+
+    GameTry *solution = malloc(sizeof(GameTry));
+    extract_game_colour(PLID, solution);
+
+    int score = calculateScore(PLID, 1);
+
+    size_t file_path_len = strlen("./SCORES/") + SCORE_MAX_LEN + 1 + PLID_DIGITS +
+                           DAY_LEN + MONTH_LEN + YEAR_LEN + 1 + HOUR_LEN + MINUTES_LEN +
+                           SECONDS_LEN + strlen(".txt") + 1;
+    char *file_path = malloc(sizeof(char) * file_path_len);
+
+    // Builds the path string
+    snprintf(file_path, file_path_len, "./SCORES/%d_%s_%02d%02d%4d_%02d%02d%02d.txt",
+                                        score,
+                                        PLID,
+                                        current_time->tm_mday,
+                                        current_time->tm_mon + 1,
+                                        current_time->tm_year + 1900,
+                                        current_time->tm_hour,
+                                        current_time->tm_min,
+                                        current_time->tm_sec);
+
+    if (strcmp("P", mode) == 0) {
+        mode = "PLAY";
+    } else if (strcmp("D", mode) == 0) {
+        mode = "DEBUG";
+    }
+    
+    // Debug is the largest mode string
+    size_t message_len = SCORE_MAX_LEN + 1 + PLID_DIGITS + 1 + 4*COLOR_LEN + 1 + TRIAL_MAX_LEN + 1 + strlen("DEBUG") + 1;
+    char *message = malloc(sizeof(char) * message_len);
+    snprintf(message, message_len, "%d %s %c%c%c%c nt %s", score, PLID, solution->colours[0],
+                                                               solution->colours[1],
+                                                               solution->colours[2],
+                                                               solution->colours[3],
+                                                               mode);
+    FILE *file = fopen(file_path, "a");
+
+    fprintf(file, "%s", message);
+    fflush(file);
+    fclose(file);
+    free(solution);
+    free(message);
+
+    return 0;
 }
