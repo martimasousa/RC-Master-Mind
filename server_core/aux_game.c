@@ -132,9 +132,8 @@ char* get_completed_game_name(char const type) {
     time_t now = time(NULL);
     struct tm *current_time = gmtime(&now);
 
-    size_t message_len = YEAR_LEN + MONTH_LEN + DAY_LEN + 1 + HOUR_LEN + MINUTES_LEN + SECONDS_LEN + 1 + MODE_LEN + 1;
-    char *message = malloc(sizeof(char) * message_len);
-    snprintf(message, message_len, "%4d%02d%02d_%02d%02d%02d_%c",
+    char *message = malloc(sizeof(char) * GAME_COMPLETED_FILE_NAME_LEN + 1);
+    snprintf(message, GAME_COMPLETED_FILE_NAME_LEN + 1, "%4d%02d%02d_%02d%02d%02d_%c",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
                                         current_time->tm_mday,
@@ -156,7 +155,7 @@ char* extract_game_info(const char *PLID, const char arg_type) {
         return NULL;
     }
 
-    char line[GAME_INFO_MAX_LEN];
+    char line[GAME_INFO_MAX_LEN + 1];
     if (fgets(line, sizeof(line), file) == NULL) {
         perror("Erro ao ler a linha do ficheiro");
         fclose(file);
@@ -561,3 +560,31 @@ int FindLastGame(const char *PLID, char *fname) {
 }
 
 // -----------------------------------------------------------------------------
+
+void execute_show_trials(const int client_fd, const char* filepath) {
+
+    FILE* file = fopen(filepath, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+
+    // Gets the data_size and adjust the file pointer to the start of the second line
+    int file_data_size = get_data_size(file);
+
+    int total_size = 0;
+
+    char filedata[MAX_FSIZE];
+    char line[GAME_INFO_MAX_LEN];
+    while (fgets(line, sizeof(line), file)) {
+        size_t len = strlen(line);
+        memcpy(filedata + total_size, line, len);
+        total_size += len;
+    }
+
+    size_t message_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + MAX_FNAME + 1 + MAX_FILESIZE_DIGITS + 1 + file_data_size + 2;
+    char message[message_len];
+    sprintf(message, "RST ACT Teste %d %s\n", file_data_size, filedata);
+
+    tcp_write(client_fd, message);
+}

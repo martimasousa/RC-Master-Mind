@@ -24,6 +24,7 @@ int is_valid_ip(const char *ip);
 // Função para verificar se é uma cor válida
 int is_valid_color(char C);
 
+int file_exists(const char *path);
 
 /*
     GENERAL auxiliar functions

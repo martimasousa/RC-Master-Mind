@@ -25,6 +25,14 @@ int is_valid_color(char C) {
     return TRUE;
 }
 
+int file_exists(const char *path) {
+    FILE *file = fopen(path, "r");
+    if (file) {
+        fclose(file);
+        return TRUE;
+    }
+    return FALSE;
+}
 
 /*
     GENERAL auxiliar functions
@@ -39,6 +47,7 @@ char* get_game_folder_path(const char *PLID) {
         return NULL;
     }
     snprintf(file_path, path_length, "./GAMES/GAME_%s", PLID);
+
     return file_path;
 }
 

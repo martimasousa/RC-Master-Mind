@@ -351,7 +351,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
     if (tcp_fd == ERROR) {
         fprintf(stderr, "Error while creating TCP socket.");
         return ERROR;
-        }
+    }
 
     // Open a TCP connection with the server
     ssize_t n = connect(tcp_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
@@ -378,7 +378,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
     
     // Receive response from server
     // Example: RCT ACT\0
-    size_t response_len = RESPONSE_LEN + COMMAND_LEN + 1 + 1;
+    size_t response_len = RESPONSE_LEN + 1 + COMMAND_LEN + 1 + 1;
     char response[response_len];
     n = read(tcp_fd, response, response_len);
     if (n == ERROR) {
@@ -390,49 +390,44 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
     char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RST %s", response_status);
 
-    char *Fname = NULL;
-    if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
-        free(Fname);
+    if (!strcmp(response_status, "NOK")) {
         close(tcp_fd);
         return ERROR;
-    }
+    } else if (!strcmp(response_status, "ACT") || !strcmp(response_status, "FIN")) {
+        char *Fname = NULL;
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
+            free(Fname);
+            close(tcp_fd);
+            return ERROR;
+        }
 
-    char *Fsize_char = NULL;
-    if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
-        free(Fname);
+        char *Fsize_char = NULL;
+        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
+            free(Fname);
+            free(Fsize_char);
+            close(tcp_fd);
+            return 1;
+        }
+
+        int Fsize = atoi(Fsize_char);
+        char Fdata[Fsize + 1];
+        n = read(tcp_fd, Fdata, Fsize);
+        if (n == -1) {
+            fprintf(stderr, "Error while reading from TCP socket.\n");
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+        Fdata[Fsize] = '\0';
+
+        printf("Fname: %s\nFsize: %d\nFdata:\n-----------------\n%s\n-----------------\n", Fname, Fsize, Fdata);
         free(Fsize_char);
-        close(tcp_fd);
-        return 1;
-    }
-
-    int Fsize = atoi(Fsize_char);
-    char Fdata[Fsize + 1];
-    n = read(tcp_fd, Fdata, Fsize);
-    if (n == -1) {
-        fprintf(stderr, "Error while reading from TCP socket.\n");
         free(Fname);
         close(tcp_fd);
-        return 1;
-    }
-    Fdata[Fsize] = '\0';
-
-    printf("Fname: %s\nFsize: %d\nFdata:\n-----------------\n%s\n-----------------\n", Fname, Fsize, Fdata);
-    free(Fsize_char);
-    free(Fname);
-    close(tcp_fd);
-
-    // Whats the difference????
-    if (!strcmp(response_status, "ACT") || !strcmp(response_status, "FIN")) {
         return OK;
-    } else if (!strcmp(response_status, "NOK")) {
-        fprintf(stderr, "Error: No active/finished games found.\n");
-        close(tcp_fd);
-        return ERROR;
-    } else {
-        fprintf(stderr, "Error: Response format/status not known.\n");
-        close(tcp_fd);
-        return ERROR;
     }
+
+    return ERROR;
 }
 
 

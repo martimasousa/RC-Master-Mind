@@ -131,45 +131,26 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
 void process_str_command(int client_fd, const char *command) {
 
     char PLID[PLID_DIGITS + 1];
-    char response[BUFFER_SIZE];
-    char *filename; // Caminho do arquivo de jogo
+    char *response;
+    char *filepath;
 
-    // Verifica o comando recebido (espera "STR <PLID>")
-    sscanf(command, "STR %s", PLID);
+    // TODO: Verify arguments. In case they are wrongly formed return "RST NOK\n"
+    sscanf(command, "STR %s\n", PLID);
 
-    if (!has_ongoing_game(PLID)) {
-        filename = malloc(BUFFER_SIZE);
-        FindLastGame(PLID, filename);
-    } else filename = get_game_folder_path(PLID);
 
-    // Abre o arquivo
-    FILE* file = fopen(filename, "r");
-    if (!file) {
-        perror("Erro ao abrir arquivo");
-        snprintf(response, sizeof(response), "RST NOK\n");
-        send(client_fd, response, strlen(response), 0);
-        close(client_fd);
+    // APENAS PARA TESTE
+    if (atoi(PLID) < 0) {
+        response = "RST NOK\n";
+        tcp_write(client_fd, response);
         return;
     }
 
-    int file_data_size = get_data_size(file);
+    if (!has_ongoing_game(PLID)) {
+        filepath = malloc(sizeof(char) * BUFFER_SIZE);
+        FindLastGame(PLID, filepath);
+    } else filepath = get_game_folder_path(PLID);
 
-    char filedata[BUFFER_SIZE];
-    int total_size = 0;
-
-    int i = 0;
-    char line[BUFFER_SIZE];
-    while (fgets(line, sizeof(line), file)) {
-        i++;
-        size_t len = strlen(line);
-        memcpy(filedata + total_size, line, len);
-        total_size += len;
-    }
-
-    char teste[BUFFER_SIZE * 10];
-    sprintf(teste, "RST ACT Teste %d %s", file_data_size, filedata);
-
-    tcp_write(client_fd, teste);
+    execute_show_trials(client_fd, filepath);
 }
 
 void process_ssb_command(int client_fd, const char *command) {
