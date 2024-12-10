@@ -40,6 +40,12 @@ GameTry* extract_game_colour(const char *PLID);
 // Returns the current game elapsed time
 int get_elapsed_time(const char *PLID);
 
+// Gets the size of the data from a game file
+int get_data_size(FILE *file);
+
+// Gets the size of a line from a file 
+int get_line_size(FILE *file);
+
 /*
     START and DEBUG auxiliar functions
 */

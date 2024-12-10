@@ -211,6 +211,29 @@ int get_elapsed_time(const char *PLID) {
     return (int)time(NULL) - atoi(extract_game_info(PLID, ARG_ELAPSED_TIME));
 }
 
+int get_data_size(FILE *file) {
+    int first_line_size = get_line_size(file);
+    fseek(file, 0L, SEEK_END);
+    int file_size = ftell(file);
+    fseek(file, first_line_size, SEEK_SET);
+    
+    return (file_size - first_line_size);
+}
+
+int get_line_size(FILE *file) {
+    char c;
+    int res = 0;
+
+    while ((c = fgetc(file)) != EOF) {
+        if (c == '\n') {
+            res++;
+            break;
+        }
+        res++;
+    }
+
+    return res;
+}
 /*
     START and DEBUG auxiliar functions
 */

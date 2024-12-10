@@ -63,13 +63,6 @@ void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *clie
 
 
 
-int line_size(FILE *fp);
-
-int get_data_size(FILE *file);
-
-char* getScoreFileName(int score, char *PLID);
-
-
 // FUNCTIONS GIVEN BY THE UC ----------------------------------------------------------------------
 #define CODE_DIGITS 4 + 1   // '\0'
 #define SSB_SIZE    10

@@ -144,55 +144,6 @@ int tcp_write(int fd, char* to_write) {
 }
 
 
-int line_size(FILE *fp) {
-    char c;
-    int res = 0;
-
-    while ((c = fgetc(fp)) != EOF) {
-        if (c == '\n') {
-            res++;
-            break;
-        }
-        res++;
-    }
-
-    return res;
-}
-
-int get_data_size(FILE *file) {
-    int first_line_size = line_size(file);
-    fseek(file, 0L, SEEK_END);
-    int file_size = ftell(file);
-    fseek(file, first_line_size, SEEK_SET);
-    
-    return (file_size - first_line_size);
-
-}
-
-
-
-char* getScoreFileName(int score, char *PLID) {
-    char *res = "77";
-
-    return res;
-
-    // char string[BUFFER_SIZE];
-    // time_t now = time(NULL);
-    // struct tm *current_time = gmtime(&now);
-
-    // sprintf(string, "%d_%s_%02d%02d%4d_%02d%02d%02d.txt", score, PLID, 
-    //                                                       current_time->tm_mday,
-    //                                                       current_time->tm_mon + 1,
-    //                                                       current_time->tm_year + 1900,
-    //                                                       current_time->tm_hour,
-    //                                                       current_time->tm_min,
-    //                                                       current_time->tm_sec);
-
-    // char *res = malloc(sizeof(char) * strlen(string));
-    // memcpy(res, string, strlen(string));
-    // return res;
-    
-}
 
 
 // FUNCTIONS GIVEN BY THE UC ----------------------------------------------------------------------
