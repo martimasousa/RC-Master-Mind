@@ -387,11 +387,11 @@ int relocate_completed_game(const char *PLID, const char endGameType) {
     snprintf(destination_path, destination_path_length, "%s/%s", destinationDirectoryPath, destinationFileName);
 
     size_t message_len = YEAR_LEN + 1 + MONTH_LEN + 1 + DAY_LEN + 1 + HOUR_LEN + 1 +
-                         MINUTES_LEN + 1 + SECONDS_LEN + 1 + ELAPSED_TIME_LEN + 1;
+                         MINUTES_LEN + 1 + SECONDS_LEN + 1 + ELAPSED_TIME_LEN + 2;
     char *message = malloc(sizeof(char) * message_len);
 
     // Creates the end game string
-    snprintf(message, message_len, "%4d-%02d-%02d %02d:%02d:%02d %d",
+    snprintf(message, message_len, "%4d-%02d-%02d %02d:%02d:%02d %d\n",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
                                         current_time->tm_mday,

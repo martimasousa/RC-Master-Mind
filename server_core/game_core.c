@@ -169,13 +169,7 @@ void process_str_command(int client_fd, const char *command) {
     char teste[BUFFER_SIZE * 10];
     sprintf(teste, "RST ACT Teste %d %s", file_data_size, filedata);
 
-    int n = 0;
-    int total = 0;
-    while (total < strlen(teste))
-    {
-        n = write(client_fd, teste, strlen(teste));
-        total += n;
-    }
+    tcp_write(client_fd, teste);
 }
 
 void process_ssb_command(int client_fd, const char *command) {
@@ -227,7 +221,7 @@ void process_ssb_command(int client_fd, const char *command) {
 }
 
 
-void process_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
+void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
     char type[3];
     sscanf(command, "%s", type);
 
@@ -253,7 +247,7 @@ void process_command(int udp_fd, struct sockaddr_in *client_addr, const char *co
 }
 
 
-void handle_TCP_messages(int client_fd, const char *command) { 
+void process_command_tcp(int client_fd, const char *command) { 
     char type[3];
     sscanf(command, "%s", type);
 

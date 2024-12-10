@@ -84,7 +84,7 @@ int handleServer(char *GSport, int is_verbose) {
                     printf("Command line: %s\n", command);
 
                     // Handle client messages
-                    handle_TCP_messages(client_fd, command);
+                    process_command_tcp(client_fd, command);
 
                     free(command);
                     close(client_fd); // Close client socket
@@ -98,14 +98,6 @@ int handleServer(char *GSport, int is_verbose) {
             } else {
                 fprintf(stderr, "Error during accept execution...");
             }
-
-            // char *command2 = NULL; // TODO: ???
-            // tcp_read_until_delimiter(client_fd);
-            // TODO: read function
-            // if (client_fd >= 0) {
-            //     handle_TCP_messages(client_fd, "STR 106324");
-            // }
-            // free(command2);
         }
 
         // Verify UDP messages (Game Logic)
@@ -117,7 +109,7 @@ int handleServer(char *GSport, int is_verbose) {
                 perror("Error reading command");
                 exit(1); // TODO: ???
             }
-            process_command(udp_fd, client_addr, command);
+            process_command_udp(udp_fd, client_addr, command);
 
             //printf("[gameLogic] Solution: %c %c %c %c\n", gameInfo->game_solution.colours[0], gameInfo->game_solution.colours[1], gameInfo->game_solution.colours[2], gameInfo->game_solution.colours[3]);
 
