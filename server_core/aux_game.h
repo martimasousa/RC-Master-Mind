@@ -37,6 +37,9 @@ char* extract_game_info(const char *PLID, const char arg_type);
 // Extracts the colour and returns it into the GameTry structure
 GameTry* extract_game_colour(const char *PLID);
 
+// Returns the current game elapsed time
+int get_elapsed_time(const char *PLID);
+
 /*
     START and DEBUG auxiliar functions
 */

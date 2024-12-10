@@ -63,9 +63,6 @@ void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *clie
 
 
 
-
-int get_elapsed_time(const char *PLID);
-
 int line_size(FILE *fp);
 
 int get_data_size(FILE *file);

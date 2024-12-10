@@ -73,7 +73,6 @@
 // Game Constants
 #define MAX_ALLOWED_TIME 600
 #define MAX_ALLOWED_PLAYS 8
-#define MAX_TRIALS 8            // REMOVE THIS
 
 
 // Ways of End Game

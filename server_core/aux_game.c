@@ -30,7 +30,7 @@ int has_ongoing_game(const char *PLID) {
 }
 
 int has_exceeded_max_turn(const char trial_number) {
-    return (trial_number - '0' > MAX_TRIALS);
+    return (trial_number - '0' > MAX_ALLOWED_PLAYS);
 }
 
 int has_exceeded_time(const char *PLID) {
@@ -207,6 +207,9 @@ GameTry* extract_game_colour(const char *PLID) {
     return game_try;
 }
 
+int get_elapsed_time(const char *PLID) {
+    return (int)time(NULL) - atoi(extract_game_info(PLID, ARG_ELAPSED_TIME));
+}
 
 /*
     START and DEBUG auxiliar functions
@@ -333,7 +336,7 @@ int* get_try_results(const char *PLID, GameTry player_try) {
 
 void write_try(const char *PLID, GameTry game_try, int *player_try_res) {
 
-    char elapsed_time = get_elapsed_time(PLID);
+    int elapsed_time = get_elapsed_time(PLID);
 
     size_t message_len = strlen("T:") + 1 + 4*COLOR_LEN + 2*TRIAL_MAX_LEN*2 + 1 + ELAPSED_TIME_LEN + 2;
     char message[message_len];

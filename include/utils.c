@@ -45,11 +45,6 @@ int create_directory(const char *directory) {
 
 
 
-int get_elapsed_time(const char *PLID) {
-    return (int)time(NULL) - atoi(extract_game_info(PLID, ARG_ELAPSED_TIME));
-}
-
-
 int is_integer(const char *str) {
     while (*str) {
         if (!isdigit(*str)) return FALSE;
