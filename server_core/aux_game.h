@@ -18,7 +18,6 @@ int directory_exists(const char *filepath);
 int are_equal_game_tries(const GameTry *input, const GameTry *line);
 
 
-
 /*
     GENERAL auxiliar functions
 */
@@ -48,8 +47,16 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
 
 
 /*
-    TRY auxiliar functions
+    TRY and QUIT auxiliar functions
 */
 
+// Ends the game taking care of all the related procedures
+int end_game(const char *PLID, const char end_game_type);
+
+// Relocates the game status file to the completed games directory of the player
+int relocate_completed_game(const char *PLID, const char endGameType);
+
+// Builds the completed game file name
+char* get_completed_game_name(char const type);
 
 #endif

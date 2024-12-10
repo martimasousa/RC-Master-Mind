@@ -23,6 +23,8 @@
 #define RESPONSE_LEN 3
 #define COMMAND_LEN 3
 
+#define ELAPSED_TIME_LEN 3
+
 #define COLOR_LEN 1
 #define YEAR_LEN 4
 #define MONTH_LEN 2

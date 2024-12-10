@@ -91,65 +91,6 @@ int create_score_file(const char *PLID) {
     return 0;
 }
 
-int end_game(const char *PLID, const char endGameType) {
-    if (endGameType == END_WIN) create_score_file(PLID);
-    
-    move_file(PLID, endGameType);
-
-    return 0;
-}
-
-
-int move_file(const char *PLID, const char endGameType) {
-    char *destinationDirectoryPath = get_player_folder_path(PLID);
-    char *sourceFilePath = get_game_folder_path(PLID);
-    char *newFileName = get_end_game_name(endGameType);
-    time_t now = time(NULL);
-    struct tm *current_time = gmtime(&now);
-
-    size_t path_length = strlen(destinationDirectoryPath) + 1 + strlen(newFileName) + 1;
-    char *destination_path = malloc(path_length);
-
-    snprintf(destination_path, path_length, "%s/%s", destinationDirectoryPath, newFileName);
-
-    char *message = malloc(sizeof(char) * 50);
-    snprintf(message, 50, "%4d-%02d-%02d %02d:%02d:%02d %d",
-                                        current_time->tm_year + 1900,
-                                        current_time->tm_mon + 1,
-                                        current_time->tm_mday,
-                                        current_time->tm_hour,
-                                        current_time->tm_min,
-                                        current_time->tm_sec,
-                                        get_elapsed_time(PLID));
-    
-    write_game_line(PLID, message);
-
-    if (rename(sourceFilePath, destination_path) == 0) {
-        printf("Ficheiro '%s' movido para '%s' com sucesso.\n", PLID, destinationDirectoryPath);
-        return 0;
-    } else {
-        perror("Erro ao mover o ficheiro");
-        return -1;
-    }
-}
-
-char* get_end_game_name(char const type) {
-    time_t now = time(NULL);
-    struct tm *current_time = gmtime(&now);
-
-    char *res = malloc(sizeof(char) * 50);
-    snprintf(res, 50, "%4d%02d%02d_%02d%02d%02d_%c",
-                                        current_time->tm_year + 1900,
-                                        current_time->tm_mon + 1,
-                                        current_time->tm_mday,
-                                        current_time->tm_hour,
-                                        current_time->tm_min,
-                                        current_time->tm_sec,
-                                        type);
-
-    return res;
-}
-
 int extract_game_colour(const char *PLID, GameTry *game) {
 
     char *colours = extract_game_info(PLID, ARG_SOLUTION);
