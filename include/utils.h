@@ -1,16 +1,11 @@
-#include "game_core.h"
 #include "constants.h"
-#include "aux_game.h"
 #include <sys/stat.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <time.h>
-#include <errno.h>    // Para verificar erros com errno
+#include <errno.h>
 #include <string.h>
-#include <math.h>
-#include <dirent.h>
 #include <stdlib.h>
 
 #ifndef UTILS_H
@@ -61,23 +56,6 @@ ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct so
 // Função que envia uma resposta UDP para o cliente especificado.
 void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr);
 
-
-
-// FUNCTIONS GIVEN BY THE UC ----------------------------------------------------------------------
-#define CODE_DIGITS 4 + 1   // '\0'
-#define SSB_SIZE    10
-typedef struct {
-    int score[SSB_SIZE];                    // Array to store scores
-    char PLID[SSB_SIZE][PLID_DIGITS + 1];       // Array of strings for Player IDs
-    char colcode[SSB_SIZE][CODE_DIGITS];    // Array of strings for color codes
-    int notries[SSB_SIZE];                  // Array to store number of tries
-    char mode[SSB_SIZE];                    // Array to store the mode for each entry
-    int nscores;                            // Number of scores currently stored
-} SCORELIST;
-
-int FindTopScores(SCORELIST *list);
-
-int FindLastGame(const char *PLID, char *fname);
 
 
 #endif

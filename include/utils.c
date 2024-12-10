@@ -1,5 +1,34 @@
 #include "utils.h"
 
+/*
+    STATUS VERIFICATION auxiliar functions 
+*/
+
+int is_integer(const char *str) {
+    while (*str) {
+        if (!isdigit(*str)) return FALSE;
+        str++;
+    }
+    return TRUE;
+}
+
+int is_valid_ip(const char *ip) {
+    struct sockaddr_in sa;
+    return inet_pton(AF_INET, ip, &(sa.sin_addr)) != 0;
+}
+
+int is_valid_color(char C) {
+    if (C != 'R' && C != 'G' && C != 'B' && C != 'Y' && C != 'O' && C != 'P') {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
+/*
+    GENERAL auxiliar functions
+*/
 
 char* get_game_folder_path(const char *PLID) {
     size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
@@ -44,45 +73,9 @@ int create_directory(const char *directory) {
 }
 
 
-
-int is_integer(const char *str) {
-    while (*str) {
-        if (!isdigit(*str)) return FALSE;
-        str++;
-    }
-    return TRUE;
-}
-
-int is_valid_ip(const char *ip) {
-    struct sockaddr_in sa;
-    return inet_pton(AF_INET, ip, &(sa.sin_addr)) != 0;
-}
-
-int is_valid_color(char C) {
-    if (C != 'R' && C != 'G' && C != 'B' && C != 'Y' && C != 'O' && C != 'P') {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-
-ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr) {
-    socklen_t client_len = sizeof(*client_addr);
-    ssize_t n = recvfrom(udp_fd, buffer, buffer_size - 1, 0, (struct sockaddr *)client_addr, &client_len);
-    
-    if (n > 0) {
-        buffer[n] = '\0';
-    } else return -1;
-
-    return n;
-}
-
-void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr) {
-    socklen_t client_len = sizeof(*client_addr);
-    sendto(udp_fd, message, strlen(message) + 1, 0, (struct sockaddr *)client_addr, client_len);
-}
-
+/*
+    MESSAGE sending and receiving functions
+*/
 
 int tcp_read_until_delimiter(int fd, char** word, char separator) {
     char c;
@@ -143,86 +136,18 @@ int tcp_write(int fd, char* to_write) {
     return 0;
 }
 
+ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr) {
+    socklen_t client_len = sizeof(*client_addr);
+    ssize_t n = recvfrom(udp_fd, buffer, buffer_size - 1, 0, (struct sockaddr *)client_addr, &client_len);
+    
+    if (n > 0) {
+        buffer[n] = '\0';
+    } else return -1;
 
-
-
-// FUNCTIONS GIVEN BY THE UC ----------------------------------------------------------------------
-
-int FindTopScores(SCORELIST *list) {
-    struct dirent **filelist;
-    int nentries, ifile;
-    char fname[300];
-    FILE *fp;
-    char mode[8];
-
-    nentries = scandir("SCORES/", &filelist, 0, alphasort);
-    if (nentries <= 0)
-        return (0);
-    else {
-        ifile = 0;
-        while (nentries--) {
-            if (filelist[nentries]->d_name[0] != '.' && ifile < 10) {
-                sprintf(fname, "SCORES/%s", filelist[nentries]->d_name);
-                fp = fopen(fname, "r");
-                if (fp != NULL) {
-                    fscanf(fp, "%d %s %s %d %s",
-                           &list->score[ifile],
-                           list->PLID[ifile],
-                           list->colcode[ifile],
-                           &list->notries[ifile],
-                           mode);
-
-                    if (!strcmp(mode, "PLAY"))
-                        list->mode[ifile] = PLAY_MODE;
-                    if (!strcmp(mode, "DEBUG"))
-                        list->mode[ifile] = DEBUG_MODE;
-
-                    fclose(fp);
-                    ++ifile;
-                }
-            }
-            free(filelist[nentries]);
-        }
-        free(filelist);
-    }
-    list->nscores = ifile;
-    return (ifile);
+    return n;
 }
 
-
-// Função para encontrar o último jogo de um jogador com base no PLID
-int FindLastGame(const char *PLID, char *fname) {
-    struct dirent **filelist;
-    int nentries, found;
-    char dirname[256]; // Buffer para armazenar o diretório
-
-    // Construir o caminho do diretório com base no PLID
-    snprintf(dirname, sizeof(dirname), "GAMES/%s/", PLID);
-
-    // Ler as entradas do diretório, usando alphasort para ordenar os arquivos
-    nentries = scandir(dirname, &filelist, NULL, alphasort);
-    found = 0;
-
-    // Se não há entradas no diretório ou ocorreu um erro
-    if (nentries <= 0) {
-        return 0;
-    } else {
-        // Percorrer as entradas do diretório de trás para frente
-        while (nentries--) {
-            // Ignorar arquivos ocultos (nomes que começam com '.')
-            if (filelist[nentries]->d_name[0] != '.' && !found) {
-                // Construir o caminho completo do arquivo
-                snprintf(fname, 256, "GAMES/%s/%s", PLID, filelist[nentries]->d_name);
-                found = 1; // Marca como encontrado
-            }
-
-            // Liberar a entrada de diretório
-            free(filelist[nentries]);
-        }
-
-        // Liberar a lista de entradas
-        free(filelist);
-    }
-
-    return found;
+void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr) {
+    socklen_t client_len = sizeof(*client_addr);
+    sendto(udp_fd, message, strlen(message) + 1, 0, (struct sockaddr *)client_addr, client_len);
 }

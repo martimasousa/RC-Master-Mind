@@ -1,18 +1,4 @@
-#include "utils.h"
-#include "game_core.h"
-#include "constants.h"
 #include "aux_game.h"
-#include <sys/stat.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <time.h>
-#include <errno.h>
-#include <string.h>
-#include <math.h>
-#include <dirent.h>
-#include <stdlib.h>
 
 /*
     STATUS VERIFICATION auxiliar functions 
@@ -234,6 +220,8 @@ int get_line_size(FILE *file) {
 
     return res;
 }
+
+
 /*
     START and DEBUG auxiliar functions
 */
@@ -487,3 +475,89 @@ int calculate_score(const char *PLID, const int turnsPlayed) {
     // Arredonde para 2 casas decimais
     return round(score);
 }
+
+
+/*
+    SHOW_TRIALS and SCOREBOARD auxiliar functions
+*/
+
+// FUNCTIONS GIVEN BY THE UC ---------------------------------------------------
+
+int FindTopScores(SCORELIST *list) {
+    struct dirent **filelist;
+    int nentries, ifile;
+    char fname[300];
+    FILE *fp;
+    char mode[8];
+
+    nentries = scandir("SCORES/", &filelist, 0, alphasort);
+    if (nentries <= 0)
+        return (0);
+    else {
+        ifile = 0;
+        while (nentries--) {
+            if (filelist[nentries]->d_name[0] != '.' && ifile < 10) {
+                sprintf(fname, "SCORES/%s", filelist[nentries]->d_name);
+                fp = fopen(fname, "r");
+                if (fp != NULL) {
+                    fscanf(fp, "%d %s %s %d %s",
+                           &list->score[ifile],
+                           list->PLID[ifile],
+                           list->colcode[ifile],
+                           &list->notries[ifile],
+                           mode);
+
+                    if (!strcmp(mode, "PLAY"))
+                        list->mode[ifile] = PLAY_MODE;
+                    if (!strcmp(mode, "DEBUG"))
+                        list->mode[ifile] = DEBUG_MODE;
+
+                    fclose(fp);
+                    ++ifile;
+                }
+            }
+            free(filelist[nentries]);
+        }
+        free(filelist);
+    }
+    list->nscores = ifile;
+    return (ifile);
+}
+
+int FindLastGame(const char *PLID, char *fname) {
+    struct dirent **filelist;
+    int nentries, found;
+    char dirname[256]; // Buffer para armazenar o diretório
+
+    // Construir o caminho do diretório com base no PLID
+    snprintf(dirname, sizeof(dirname), "GAMES/%s/", PLID);
+
+    // Ler as entradas do diretório, usando alphasort para ordenar os arquivos
+    nentries = scandir(dirname, &filelist, NULL, alphasort);
+    found = 0;
+
+    // Se não há entradas no diretório ou ocorreu um erro
+    if (nentries <= 0) {
+        return 0;
+    } else {
+        // Percorrer as entradas do diretório de trás para frente
+        while (nentries--) {
+            // Ignorar arquivos ocultos (nomes que começam com '.')
+            if (filelist[nentries]->d_name[0] != '.' && !found) {
+                // Construir o caminho completo do arquivo
+                snprintf(fname, 256, "GAMES/%s/%s", PLID, filelist[nentries]->d_name);
+                found = 1; // Marca como encontrado
+            }
+
+            // Liberar a entrada de diretório
+            free(filelist[nentries]);
+        }
+
+        // Liberar a lista de entradas
+        free(filelist);
+    }
+
+    return found;
+}
+
+// -----------------------------------------------------------------------------

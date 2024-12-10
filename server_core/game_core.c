@@ -1,14 +1,4 @@
 #include "game_core.h"
-#include "aux_game.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <time.h>
-#include "utils.h"
-#include <sys/stat.h>
-
-
 
 void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
@@ -39,15 +29,9 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     GameTry player_try;
     char PLID[PLID_DIGITS + 1], nt;
 
-    int *check_try_counter = malloc(2 * sizeof(int));
-    check_try_counter[0] = 0;
-    check_try_counter[1] = 0;
-
-
     sscanf(command, "TRY %s %c %c %c %c %c\n", PLID, &player_try.colours[0], &player_try.colours[1], 
                                                    &player_try.colours[2], &player_try.colours[3], &nt);
 
-    
     // TODO: Verify Sintaxe!
 
     // TODO: Verify INV!
