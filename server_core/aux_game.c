@@ -129,9 +129,7 @@ void write_game_line(const char *PLID, const char *message) {
 }
 
 char* build_end_game_response(const char* PLID, const char* Command, const char* Status) {
-    GameTry *game_solution = malloc(sizeof(GameTry));
-    
-    extract_game_colour(PLID, game_solution);
+    GameTry *game_solution = extract_game_colour(PLID);
 
     size_t response_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*COLOR_LEN*2 + 1 + 1;
     char *response = malloc(sizeof(char) * response_len);
@@ -162,7 +160,52 @@ char* get_completed_game_name(char const type) {
     return message;
 }
 
+char* extract_game_info(const char *PLID, const char arg_type) {
 
+    char *file_path = get_game_folder_path(PLID);
+
+    FILE *file = fopen(file_path, "r");
+    if (file == NULL) {
+        perror("Error openning the file");
+        return NULL;
+    }
+
+    char line[GAME_INFO_MAX_LEN];
+    if (fgets(line, sizeof(line), file) == NULL) {
+        perror("Erro ao ler a linha do ficheiro");
+        fclose(file);
+        return NULL;
+    }
+
+    // Extrair o token correspondente
+    char *token = strtok(line, " ");
+    int i = 0;
+    while (token != NULL) {
+        if (i == arg_type) {
+            // Alocar dinamicamente a string para retornar
+            char *res = malloc(strlen(token) + 1);
+            if (res != NULL) {
+                strcpy(res, token);
+            }
+            fclose(file);
+            return res; // Retorna a string alocada dinamicamente
+        }
+        token = strtok(NULL, " ");
+        i++;
+    }
+
+    fclose(file);
+    return NULL;
+}
+
+GameTry* extract_game_colour(const char *PLID) {
+
+    GameTry *game_try = malloc(sizeof(GameTry));
+    char *colours = extract_game_info(PLID, ARG_SOLUTION);
+    strncpy(game_try->colours, colours, 4);
+
+    return game_try;
+}
 /*
     START and DEBUG auxiliar functions
 */
@@ -210,8 +253,7 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
     }
 
     // Creates the Date string
-    size_t timestr_len = YEAR_LEN + 1 + MONTH_LEN + 1 + DAY_LEN + 1 + HOUR_LEN + 1 + MINUTES_LEN + 1 + SECONDS_LEN;
-    char timestr[timestr_len + 1]; // + '\0'
+    char timestr[GAME_INFO_DATE_LEN + 1]; // + '\0'
     snprintf(timestr, sizeof(timestr), "%4d-%02d-%02d %02d:%02d:%02d",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
@@ -221,8 +263,7 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
                                         current_time->tm_sec);
 
     // Creates the first line complete string
-    size_t fullstr_len = PLID_DIGITS + 1 + MODE_LEN + 4*COLOR_LEN + 1 + TIME_DIGITS + 1 + timestr_len + NOW_TIME_LEN + 1;
-    char fullstr[fullstr_len + 1]; // + '\0'
+    char fullstr[GAME_INFO_MAX_LEN + 1]; // + '\0'
     snprintf(fullstr, sizeof(fullstr), "%s %c %c%c%c%c %s %s %ld\n", 
                                         PLID, mode, 
                                         game_solution->colours[0],
@@ -293,11 +334,8 @@ int create_score_file(const char *PLID) {
     struct tm *current_time = gmtime(&now);
 
     char *mode = extract_game_info(PLID, ARG_MODE);
-
-    GameTry *solution = malloc(sizeof(GameTry));
-    extract_game_colour(PLID, solution);
-
-    int score = calculateScore(PLID, 1);
+    GameTry *solution = extract_game_colour(PLID);
+    int score = calculate_score(PLID, 1);
 
     size_t file_path_len = strlen("./SCORES/") + SCORE_MAX_LEN + 1 + PLID_DIGITS +
                            DAY_LEN + MONTH_LEN + YEAR_LEN + 1 + HOUR_LEN + MINUTES_LEN +
@@ -338,4 +376,19 @@ int create_score_file(const char *PLID) {
     free(message);
 
     return 0;
+}
+
+int calculate_score(const char *PLID, const int turnsPlayed) {
+
+
+    float elapsed_time = get_elapsed_time(PLID);
+    float max_time = (float)atoi(extract_game_info(PLID, ARG_MAXTIME));
+
+    // Calcule o score
+    float score = 100.0f * (((float)MAX_ALLOWED_PLAYS - turnsPlayed) / (float)MAX_ALLOWED_PLAYS) * 
+                            (1.0f - (elapsed_time / (float)MAX_ALLOWED_TIME)) * 
+                            ((float)MAX_ALLOWED_TIME / max_time);
+
+    // Arredonde para 2 casas decimais
+    return round(score);
 }

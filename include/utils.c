@@ -44,53 +44,6 @@ int create_directory(const char *directory) {
 }
 
 
-int extract_game_colour(const char *PLID, GameTry *game) {
-
-    char *colours = extract_game_info(PLID, ARG_SOLUTION);
-    strncpy(game->colours, colours, 4);
-
-    return 0;
-}
-
-// Alocar dinamicamente o espaço para a string e retornar
-char* extract_game_info(const char *PLID, const char arg_type) {
-
-    char *file_path = get_game_folder_path(PLID);
-
-    FILE *file = fopen(file_path, "r");
-    if (file == NULL) {
-        perror("Erro ao abrir o ficheiro");
-        return NULL;
-    }
-
-    char line[256];
-    if (fgets(line, sizeof(line), file) == NULL) {
-        perror("Erro ao ler a linha do ficheiro");
-        fclose(file);
-        return NULL;
-    }
-
-    // Extrair o token correspondente
-    char *token = strtok(line, " ");
-    int i = 0;
-    while (token != NULL) {
-        if (i == arg_type) {
-            // Alocar dinamicamente a string para retornar
-            char *time = malloc(strlen(token) + 1);
-            if (time != NULL) {
-                strcpy(time, token);
-            }
-            fclose(file);
-            return time; // Retorna a string alocada dinamicamente
-        }
-        token = strtok(NULL, " ");
-        i++;
-    }
-
-    fclose(file);
-    return NULL;
-}
-
 
 int get_elapsed_time(const char *PLID) {
     return (int)time(NULL) - atoi(extract_game_info(PLID, ARG_ELAPSED_TIME));
@@ -239,20 +192,7 @@ int get_data_size(FILE *file) {
 
 }
 
-int calculateScore(const char *PLID, int turnsPlayed) {
 
-
-    float elapsed_time = get_elapsed_time(PLID);
-    float max_time = (float)atoi(extract_game_info(PLID, ARG_MAXTIME));
-
-    // Calcule o score
-    float score = 100.0f * (((float)MAX_ALLOWED_PLAYS - turnsPlayed) / (float)MAX_ALLOWED_PLAYS) * 
-                            (1.0f - (elapsed_time / (float)MAX_ALLOWED_TIME)) * 
-                            ((float)MAX_ALLOWED_TIME / max_time);
-
-    // Arredonde para 2 casas decimais
-    return round(score);
-}
 
 char* getScoreFileName(int score, char *PLID) {
     char *res = "77";

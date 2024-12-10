@@ -17,6 +17,9 @@
 #define BUFFER_SIZE 1024
 #define MAX_PLAYER_COMMAND  100
 
+#define GAME_INFO_DATE_LEN (YEAR_LEN + 1 + MONTH_LEN + 1 + DAY_LEN + 1 + HOUR_LEN + 1 + MINUTES_LEN + 1 + SECONDS_LEN)
+#define GAME_INFO_MAX_LEN (GAME_INFO_DATE_LEN + PLID_DIGITS + 1 + MODE_LEN + 4 * COLOR_LEN + 1 + TIME_DIGITS + 1 + GAME_INFO_DATE_LEN + NOW_TIME_LEN)
+
 #define PLID_DIGITS         6               // '\0'
 #define TIME_DIGITS         3               // '\0'
 

@@ -31,6 +31,11 @@ void write_game_line(const char *PLID, const char *message);
 // Builds the end game response with the Command and Status given
 char* build_end_game_response(const char* PLID, const char* Command, const char* Status);
 
+// Extracts the game info arguments from the current player game
+char* extract_game_info(const char *PLID, const char arg_type);
+
+// Extracts the colour and returns it into the GameTry structure
+GameTry* extract_game_colour(const char *PLID);
 
 /*
     START and DEBUG auxiliar functions
@@ -61,5 +66,8 @@ char* get_completed_game_name(char const type);
 
 // Creates the score file
 int create_score_file(const char *PLID);
+
+// Calculates the score of the game
+int calculate_score(const char *PLID, const int turnsPlayed);
 
 #endif

@@ -64,13 +64,6 @@ void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *clie
 
 
 
-
-// For a certain file, extract the game solution
-int extract_game_colour(const char *PLID, GameTry *game);
-
-// For a certain file, extract the game initial and max time
-char* extract_game_info(const char *PLID, const char arg_type);
-
 int get_elapsed_time(const char *PLID);
 
 
@@ -80,8 +73,6 @@ void write_try(const char *PLID, GameTry game_try, int *game_try_res);
 int line_size(FILE *fp);
 
 int get_data_size(FILE *file);
-
-int calculateScore(const char *PLID, int turnsPlayed);
 
 char* getScoreFileName(int score, char *PLID);
 
