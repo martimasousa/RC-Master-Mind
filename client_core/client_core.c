@@ -378,7 +378,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
     
     // Receive response from server
     // Example: RCT ACT\0
-    size_t response_len = RESPONSE_LEN + 1 + COMMAND_LEN + 1 + 1;
+    size_t response_len = RESPONSE_LEN + 1 + COMMAND_LEN + 1;
     char response[response_len];
     n = read(tcp_fd, response, response_len);
     if (n == ERROR) {
@@ -422,10 +422,9 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         }
         Fdata[Fsize] = '\0';
 
-        // Show content
-        printf("Fname: %s\nFsize: %d\nFdata:\n-----------------\n%s\n-----------------\n", Fname, Fsize, Fdata);
 
-        // Store as local file
+        // ########################################################################################
+        // ### Store as local file ################################################################
         char file_path[2048] = "./CLIENT_CACHE/"; // TODO: Change size to CONSTANT
 
         // Create the directory
@@ -444,6 +443,14 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
             close(tcp_fd);
             return 1;
         }
+
+
+        // ########################################################################################
+        // ### Show content #######################################################################
+        printf("------------- TRIES: -------------\n");
+        printf(Fdata);
+        printf("----------------------------------\n");
+
 
         free(Fname);
         close(tcp_fd);
@@ -551,10 +558,9 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
             return 1;
         }
 
-        // Show content
-        printf("Fname: %s\nFsize: %d\nFdata: \n--------\n%s\n---------\n", Fname, Fsize, Fdata);
 
-        // Store as local file
+        // ########################################################################################
+        // ### Store as local file ################################################################
         char file_path[2048] = "./CLIENT_CACHE/"; // TODO: Change size to CONSTANT
 
         // Create the directory
@@ -575,6 +581,28 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
             close(tcp_fd);
             return 1;
         }
+
+
+        // ########################################################################################
+        // ### Show content #######################################################################
+        int n_line = 1;
+        
+        printf("---------- SCOREBOARD: ----------\n");
+
+        // Tokenize by newline
+        char *line = strtok(Fdata, "\n");
+        while (line != NULL) {
+            // Process the line
+            printf("%d. %s\n", n_line, line);
+
+            // Get the next line
+            line = strtok(NULL, "\n");
+
+            n_line++;
+        }
+
+        printf("---------------------------------\n");
+
 
         free(Fdata);
         free(Fname);

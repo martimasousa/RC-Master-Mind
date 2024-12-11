@@ -142,7 +142,11 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Error: You already have an ongoing game.\n");
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
-            show_trials_function(tcp_res, cmd, type, lastPLID);
+            if (lastPLID != NOT_PLAYING) {
+                show_trials_function(tcp_res, cmd, type, lastPLID);
+            } else {
+                fprintf(stderr, "Error: You don't have an active/past game.\n");
+            }
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
             scoreboard_function(tcp_res, cmd, type);
         } else {
