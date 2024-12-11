@@ -13,6 +13,7 @@ TODO:
 - Add verbose option (-v) to GS
 - File name and size limitations
 - tcp_read_until_delimiter function (scoreboard 'EMPTY' error)
+- Show show_trials and scoreboard file (in player output cmd) properly.
 
 DONE:
 - 

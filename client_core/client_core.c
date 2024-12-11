@@ -410,7 +410,9 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         }
 
         int Fsize = atoi(Fsize_char);
+        free(Fsize_char);
         char Fdata[Fsize + 1];
+
         n = read(tcp_fd, Fdata, Fsize);
         if (n == -1) {
             fprintf(stderr, "Error while reading from TCP socket.\n");
@@ -420,8 +422,29 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         }
         Fdata[Fsize] = '\0';
 
+        // Show content
         printf("Fname: %s\nFsize: %d\nFdata:\n-----------------\n%s\n-----------------\n", Fname, Fsize, Fdata);
-        free(Fsize_char);
+
+        // Store as local file
+        char file_path[2048] = "./CLIENT_CACHE/"; // TODO: Change size to CONSTANT
+
+        // Create the directory
+        if (mkdir(file_path, 0755) != 0 && errno != EEXIST) { // Created successfully or already exists
+            fprintf(stderr, "Error while creating \'%s\' directory.\n", file_path);
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+
+        // Write Fdata into local file
+        strcat(file_path, Fname);
+        if (write_to_file(file_path, Fdata) == -1) {
+            fprintf(stderr, "Error while writing to local file.\n");
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+
         free(Fname);
         close(tcp_fd);
         return OK;
@@ -528,8 +551,30 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
             return 1;
         }
 
-        // Show file
+        // Show content
         printf("Fname: %s\nFsize: %d\nFdata: \n--------\n%s\n---------\n", Fname, Fsize, Fdata);
+
+        // Store as local file
+        char file_path[2048] = "./CLIENT_CACHE/"; // TODO: Change size to CONSTANT
+
+        // Create the directory
+        if (mkdir(file_path, 0755) != 0 && errno != EEXIST) { // Created successfully or already exists
+            fprintf(stderr, "Error while creating \'%s\' directory.\n", file_path);
+            free(Fdata);
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
+
+        // Write Fdata into local file
+        strcat(file_path, Fname);
+        if (write_to_file(file_path, Fdata) == -1) {
+            fprintf(stderr, "Error while writing to local file.\n");
+            free(Fdata);
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
 
         free(Fdata);
         free(Fname);

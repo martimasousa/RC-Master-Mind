@@ -81,6 +81,30 @@ int create_directory(const char *directory) {
     }
 }
 
+int write_to_file(const char *Fname, const char *Fdata) {
+    // Open the file for writing, overwriting if it exists
+    FILE *file = fopen(Fname, "w");
+    if (file == NULL) {
+        perror("Error opening file");
+        return -1;
+    }
+
+    // Write Fdata to the file
+    if (fputs(Fdata, file) == EOF) {
+        perror("Error writing to file");
+        fclose(file);
+        return -1;
+    }
+
+    // Close the file
+    if (fclose(file) == EOF) {
+        perror("Error closing file");
+        return -1;
+    }
+
+    return 0; // Success
+}
+
 
 /*
     MESSAGE sending and receiving functions

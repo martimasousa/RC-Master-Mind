@@ -39,6 +39,9 @@ char* get_player_folder_path(const char *PLID);
 // Creates the directory
 int create_directory(const char *directory);
 
+// This function creates or replaces a file named 'Fname' with the content defined as 'Fdata'.
+int write_to_file(const char *Fname, const char *Fdata);
+
 
 /*
     MESSAGE sending and receiving functions
