@@ -510,19 +510,28 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         free(Fsize_char);
 
         // Read file content
-        char Fdata[Fsize + 1];
-        n = read(tcp_fd, Fdata, Fsize);
-        if (n == -1) {
-            fprintf(stderr, "Error while reading from TCP socket.\n");
+        char *Fdata = malloc(Fsize);
+        if (Fdata == NULL) {
+            fprintf(stderr, "Error while allocationg memory.\n");
+            free(Fdata);
             free(Fname);
             close(tcp_fd);
             return 1;
         }
-        Fdata[Fsize] = '\0';
+
+        n = read(tcp_fd, Fdata, Fsize);
+        if (n == -1) {
+            fprintf(stderr, "Error while reading from TCP socket.\n");
+            free(Fdata);
+            free(Fname);
+            close(tcp_fd);
+            return 1;
+        }
 
         // Show file
-        printf("Fname: %s\nFsize: %d\nFdata: %s\n", Fname, Fsize, Fdata);
+        printf("Fname: %s\nFsize: %d\nFdata: \n--------\n%s\n---------\n", Fname, Fsize, Fdata);
 
+        free(Fdata);
         free(Fname);
         close(tcp_fd);
         return 0;
