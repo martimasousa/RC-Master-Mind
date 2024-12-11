@@ -45,7 +45,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     
     if (has_exceeded_time(PLID)) {
         char *response = build_end_game_response(PLID, "RTR", "ETM");
-        end_game(PLID, END_TIMEOUT);
+        end_game(PLID, END_TIMEOUT, NOT_NEEDED);
         send_udp_response(udp_fd, response, client_addr);
         return;
     } 
@@ -58,7 +58,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     
     if (has_exceeded_max_turn(nt)) {
         char *response = build_end_game_response(PLID, "RTR", "ENT");
-        end_game(PLID, END_FAIL);
+        end_game(PLID, END_FAIL, NOT_NEEDED);
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
@@ -70,7 +70,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     sprintf(response, "RTR OK %c %d %d\n", nt, player_try_res[0], player_try_res[1]);
 
     if (has_won(player_try_res)) {
-        end_game(PLID, END_WIN);
+        end_game(PLID, END_WIN, convert_char_to_int(nt));
     }
 
     send_udp_response(udp_fd, response, client_addr);
@@ -93,7 +93,7 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
     /* Get the solution and send the message */
     char *response = build_end_game_response(PLID, "RQT", "OK");
 
-    end_game(PLID, END_QUIT);
+    end_game(PLID, END_QUIT, NOT_NEEDED);
     send_udp_response(udp_fd, response, client_addr);
 }
 
@@ -177,6 +177,8 @@ void process_ssb_command(int client_fd, const char *command) {
         int notries = files->notries[i];
 
         sprintf(line, "%s %s %d\n", PLID, colcode, notries);
+
+        printf("%d\n", notries);
 
         Fsize += strlen(line);
         Fdata = realloc(Fdata, Fsize);

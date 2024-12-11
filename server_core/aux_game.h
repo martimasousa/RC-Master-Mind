@@ -108,7 +108,7 @@ int* get_try_results(const char *PLID, GameTry player_try);
 void write_try(const char *PLID, GameTry game_try, int *player_try_res);
 
 // Ends the game taking care of all the related procedures
-int end_game(const char *PLID, const char end_game_type);
+int end_game(const char *PLID, const char end_game_type, const int number_tries);
 
 // Relocates the game status file to the completed games directory of the player
 int relocate_completed_game(const char *PLID, const char endGameType);
@@ -117,7 +117,7 @@ int relocate_completed_game(const char *PLID, const char endGameType);
 char* get_completed_game_name(char const type);
 
 // Creates the score file
-int create_score_file(const char *PLID);
+int create_score_file(const char *PLID, const int number_tries);
 
 // Calculates the score of the game
 int calculate_score(const char *PLID, const int turnsPlayed);

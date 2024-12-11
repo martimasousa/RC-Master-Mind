@@ -363,8 +363,8 @@ void write_try(const char *PLID, GameTry game_try, int *player_try_res) {
     write_game_line(PLID, message);
 }
 
-int end_game(const char *PLID, const char end_game_type) {
-    if (end_game_type == END_WIN) create_score_file(PLID);
+int end_game(const char *PLID, const char end_game_type, const int number_tries) {
+    if (end_game_type == END_WIN) create_score_file(PLID, (number_tries - '0'));
     
     relocate_completed_game(PLID, end_game_type);
 
@@ -410,7 +410,7 @@ int relocate_completed_game(const char *PLID, const char endGameType) {
     }
 }
 
-int create_score_file(const char *PLID) {
+int create_score_file(const char *PLID, const int number_tries) {
 
     time_t now = time(NULL);
     struct tm *current_time = gmtime(&now);
@@ -444,10 +444,11 @@ int create_score_file(const char *PLID) {
     // Debug is the largest mode string
     size_t message_len = SCORE_MAX_LEN + 1 + PLID_DIGITS + 1 + 4*COLOR_LEN + 1 + TRIAL_MAX_LEN + 1 + strlen("DEBUG") + 1;
     char *message = malloc(sizeof(char) * message_len);
-    snprintf(message, message_len, "%d %s %c%c%c%c nt %s", score, PLID, solution->colours[0],
+    snprintf(message, message_len, "%d %s %c%c%c%c %d %s", score, PLID, solution->colours[0],
                                                                solution->colours[1],
                                                                solution->colours[2],
                                                                solution->colours[3],
+                                                               number_tries,
                                                                mode);
     FILE *file = fopen(file_path, "a");
 

@@ -52,8 +52,6 @@
 #define MAX_FILESIZE_DIGITS 4
 
 
-
-
 // MAIN COMMANDS
 #define SNG_CMD             "SNG"
 #define TRY_CMD             "TRY"
@@ -98,6 +96,9 @@
 // Game Modes
 #define DEBUG_MODE 'D'
 #define PLAY_MODE 'P'
+
+
+#define NOT_NEEDED 0
 
 
 // Simple Functions

@@ -105,7 +105,9 @@ int write_to_file(const char *Fname, const char *Fdata) {
     return 0; // Success
 }
 
-
+int convert_char_to_int(const char number) {
+    return number - '0';
+}
 /*
     MESSAGE sending and receiving functions
 */

@@ -42,6 +42,8 @@ int create_directory(const char *directory);
 // This function creates or replaces a file named 'Fname' with the content defined as 'Fdata'.
 int write_to_file(const char *Fname, const char *Fdata);
 
+// Converts a char into an integer
+int convert_char_to_int(const char number);
 
 /*
     MESSAGE sending and receiving functions
