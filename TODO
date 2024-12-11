@@ -1,19 +1,11 @@
-- Toda a lógica relacionada aos TCPs (ler, escrever ficheiros, criar diretórios)
-- Rever uma cena no try do player.c -> PASSA PARA O SERVER
-- Quando UDP falha ao enviar
-- Prováveis loops necessários nos sends e receives
-- SIGNAL (aquela cena de se escrever num socket quando um cliente desconecta do nada)
-- Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
-
-- No show_trials, ver o read() e substituir pela outra função que assegura o ciclo while
-- Substituir no show_trials e no show_scoreboard a função write por uma função com um ciclo while
-
 TODO:
-- Store files received by show_trials and scoreboard in client side?
 - Add verbose option (-v) to GS
 - File name and size limitations
 - tcp_read_until_delimiter function (scoreboard 'EMPTY' error)
 - Show show_trials and scoreboard file (in player output cmd) properly.
-
-DONE:
-- 
+- Function to create a name to the show_trials file (sent to the client)
+- Change score function
+- Verify INV (try function)
+- Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
+- Prováveis loops necessários nos sends e receives
+- SIGNAL (aquela cena de se escrever num socket quando um cliente desconecta do nada)

@@ -585,7 +585,7 @@ void execute_show_trials(const int client_fd, const char* filepath) {
 
     size_t message_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + MAX_FNAME + 1 + MAX_FILESIZE_DIGITS + 1 + file_data_size + 2;
     char message[message_len];
-    sprintf(message, "RST ACT Teste %d %s\n", file_data_size, filedata);
+    sprintf(message, "RST ACT MUDAR %d %s\n", file_data_size, filedata);
 
     tcp_write(client_fd, message);
 }
