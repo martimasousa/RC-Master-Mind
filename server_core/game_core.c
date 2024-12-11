@@ -135,12 +135,7 @@ void process_str_command(int client_fd, const char *command) {
     char *response;
     char *filepath;
 
-    // TODO: Verify arguments. In case they are wrongly formed return "RST NOK\n"
-    sscanf(command, "STR %s\n", PLID);
-
-
-    // APENAS PARA TESTE
-    if (atoi(PLID) < 0) {
+    if (validate_STR_command(command, PLID, SERVER_SIDE) == ERROR) {
         response = "RST NOK\n";
         tcp_write(client_fd, response);
         return;
