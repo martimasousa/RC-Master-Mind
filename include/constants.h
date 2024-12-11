@@ -98,6 +98,9 @@
 #define PLAY_MODE 'P'
 
 
+#define SERVER_SIDE 1
+#define PLAYER_SIDE 0
+
 #define NOT_NEEDED 0
 
 

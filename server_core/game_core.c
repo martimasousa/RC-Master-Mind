@@ -7,8 +7,11 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
     GameTry *game_solution = malloc(sizeof(GameTry));
     char *response;
 
-    sscanf(command, "SNG %s %s\n", PLID, time);
-    // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
+    if (validate_SNG_command(command, PLID, time, SERVER_SIDE) == ERROR) {
+        char *response = "RSG ERR\n";
+        send_udp_response(udp_fd, response, client_addr);
+        return;
+    }
 
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (has_ongoing_game(PLID)) {
@@ -22,7 +25,6 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     send_udp_response(udp_fd, response, client_addr);
 }
-
 
 void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
@@ -126,7 +128,6 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     send_udp_response(udp_fd, response, client_addr);
 }
-
 
 void process_str_command(int client_fd, const char *command) {
 
