@@ -112,7 +112,7 @@ int convert_char_to_int(const char number) {
     MESSAGE sending and receiving functions
 */
 
-int tcp_read_until_delimiter(int fd, char** word, char separator) {
+int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
     char c;
     size_t i = 0;  // Keep track of the current position in the word
 
@@ -129,7 +129,7 @@ int tcp_read_until_delimiter(int fd, char** word, char separator) {
             fprintf(stderr, "Error while reading from TCP socket.\n");
             return 1;
         }
-        if (n == 0) {  // End of stream (connection closed)
+        if (n == 0 && separator != '\0') {  // End of stream (connection closed)
             fprintf(stderr, "Unexpected end of stream while reading word.\n");
             return 1;
         }
@@ -144,15 +144,23 @@ int tcp_read_until_delimiter(int fd, char** word, char separator) {
             }
         }
 
-        // If we encounter a space or null character, stop reading
-        if (c == separator || c == '\0') {
+        // Desired end of file
+        if (n == 0 && separator == '\0') {
             break;
+        }
+
+        // If we encounter a space or null character, stop reading
+        if (c == separator) {
+            n_times--;
+
+            if (n_times == 0) break;
         }
 
         // Add the character to the word
         (*word)[i++] = c;
     }
     (*word)[i] = '\0';  // Null-terminate the word
+
     return 0;
 }
 

@@ -2,10 +2,12 @@ TODO:
 - Add verbose option (-v) to GS
 - File name and size limitations
 - tcp_read_until_delimiter function (scoreboard 'EMPTY' error)
-- Show show_trials and scoreboard file (in player output cmd) properly.
 - Function to create a name to the show_trials file (sent to the client)
 - Change score function
 - Verify INV (try function)
 - Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
 - Prováveis loops necessários nos sends e receives
 - SIGNAL (aquela cena de se escrever num socket quando um cliente desconecta do nada)
+
+DONE:
+- Show show_trials and scoreboard file (in player output cmd) properly.

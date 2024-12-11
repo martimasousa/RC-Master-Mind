@@ -49,8 +49,8 @@ int convert_char_to_int(const char number);
     MESSAGE sending and receiving functions
 */
 
-// Reads delimited string from the file descriptor.
-int tcp_read_until_delimiter(int fd, char** word, char separator);
+// Reads delimited string from the file descriptor. Variable word will contain n_times-1 delimiters.
+int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times);
 
 // Writes some string to a tcp file descriptor
 int tcp_write(int fd, char* to_write);

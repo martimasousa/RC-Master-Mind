@@ -363,26 +363,21 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
     // -------------------------------------------------------------------------------
 
     // Create message to send
-    // Example: STR 106324\0
-    size_t msg_len = COMMAND_LEN + PLID_DIGITS + 1 + 1;
+    // Example: STR 106324\n\0
+    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + 1;
     char msg[msg_len];
-    snprintf(msg, msg_len, "STR %d", PLID);
+    snprintf(msg, msg_len, "STR %d\n", PLID);
 
     // Send message to server
-    n = write(tcp_fd, msg, sizeof(msg));
-    if (n == ERROR) {
+    if (tcp_write(tcp_fd, msg)) {
         fprintf(stderr, "Error while writing to TCP socket.\n");
         close(tcp_fd);
         return ERROR;
     }
     
-    // Receive response from server
-    // Example: RCT ACT\0
-    size_t response_len = RESPONSE_LEN + 1 + COMMAND_LEN + 1;
-    char response[response_len];
-    n = read(tcp_fd, response, response_len);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while reading from TCP socket.\n");
+    // Receive response from server (just need to read the first 2 words)
+    char *response;
+    if (tcp_read_until_delimiter(tcp_fd, &response, ' ', 2)) {
         close(tcp_fd);
         return ERROR;
     }
@@ -394,42 +389,41 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         close(tcp_fd);
         return ERROR;
     } else if (!strcmp(response_status, "ACT") || !strcmp(response_status, "FIN")) {
+        // Read Fname
         char *Fname = NULL;
-        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1)) {
             free(Fname);
             close(tcp_fd);
             return ERROR;
         }
 
+        // Read Fsize
         char *Fsize_char = NULL;
-        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1)) {
             free(Fname);
             free(Fsize_char);
             close(tcp_fd);
             return 1;
         }
-
         int Fsize = atoi(Fsize_char);
         free(Fsize_char);
-        char Fdata[Fsize + 1];
 
-        n = read(tcp_fd, Fdata, Fsize);
-        if (n == -1) {
-            fprintf(stderr, "Error while reading from TCP socket.\n");
-            free(Fname);
+        // Read file content
+        char *Fdata;
+        if (tcp_read_until_delimiter(tcp_fd, &Fdata, '\0', 1)) {
             close(tcp_fd);
-            return 1;
+            return ERROR;
         }
-        Fdata[Fsize] = '\0';
 
 
         // ########################################################################################
         // ### Store as local file ################################################################
-        char file_path[2048] = "./CLIENT_CACHE/"; // TODO: Change size to CONSTANT
+        char file_path[BUFFER_SIZE] = "./CLIENT_CACHE/";
 
         // Create the directory
         if (mkdir(file_path, 0755) != 0 && errno != EEXIST) { // Created successfully or already exists
             fprintf(stderr, "Error while creating \'%s\' directory.\n", file_path);
+            free(Fdata);
             free(Fname);
             close(tcp_fd);
             return 1;
@@ -439,6 +433,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         strcat(file_path, Fname);
         if (write_to_file(file_path, Fdata) == -1) {
             fprintf(stderr, "Error while writing to local file.\n");
+            free(Fdata);
             free(Fname);
             close(tcp_fd);
             return 1;
@@ -452,6 +447,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         printf("----------------------------------\n");
 
 
+        free(Fdata);
         free(Fname);
         close(tcp_fd);
         return OK;
@@ -474,7 +470,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     if (tcp_fd == ERROR) {
         fprintf(stderr, "Error while creating TCP socket.");
         return ERROR;
-        }
+    }
 
     // Open a TCP connection with the server
     ssize_t n = connect(tcp_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
@@ -486,13 +482,12 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     // -------------------------------------------------------------------------------
 
     // Create message to send
-    size_t msg_len = COMMAND_LEN + 1;
+    size_t msg_len = COMMAND_LEN + 2;
     char msg[msg_len];
-    snprintf(msg, msg_len, "SSB");
+    snprintf(msg, msg_len, "SSB\n\0");
 
     // Send message to server
-    n = write(tcp_fd, msg, sizeof(msg));
-    if (n == ERROR) {
+    if (tcp_write(tcp_fd, msg)) {
         fprintf(stderr, "Error while writing to TCP socket.\n");
         close(tcp_fd);
         return ERROR;
@@ -500,7 +495,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     
     // Receive response from server
     char *response = NULL;
-    if (tcp_read_until_delimiter(tcp_fd, &response, ' ')) {
+    if (tcp_read_until_delimiter(tcp_fd, &response, ' ', 1)) {
         free(response);
         close(tcp_fd);
         return 1;
@@ -508,7 +503,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     free(response);
 
     char *response_status = NULL;
-    if (tcp_read_until_delimiter(tcp_fd, &response_status, ' ')) {
+    if (tcp_read_until_delimiter(tcp_fd, &response_status, ' ', 1)) {
         free(response_status);
         close(tcp_fd);
         return 1;
@@ -522,7 +517,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
 
         // Read Fname
         char *Fname = NULL;
-        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ')) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1)) {
             free(Fname);
             close(tcp_fd);
             return 1;
@@ -530,7 +525,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
 
         // Read Fsize
         char *Fsize_char = NULL;
-        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ')) {
+        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1)) {
             free(Fname);
             free(Fsize_char);
             close(tcp_fd);
@@ -540,33 +535,20 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         free(Fsize_char);
 
         // Read file content
-        char *Fdata = malloc(Fsize);
-        if (Fdata == NULL) {
-            fprintf(stderr, "Error while allocationg memory.\n");
-            free(Fdata);
-            free(Fname);
+        char *Fdata;
+        if (tcp_read_until_delimiter(tcp_fd, &Fdata, '\0', 1)) {
             close(tcp_fd);
-            return 1;
-        }
-
-        n = read(tcp_fd, Fdata, Fsize);
-        if (n == -1) {
-            fprintf(stderr, "Error while reading from TCP socket.\n");
-            free(Fdata);
-            free(Fname);
-            close(tcp_fd);
-            return 1;
+            return ERROR;
         }
 
 
         // ########################################################################################
         // ### Store as local file ################################################################
-        char file_path[2048] = "./CLIENT_CACHE/"; // TODO: Change size to CONSTANT
+        char file_path[BUFFER_SIZE] = "./CLIENT_CACHE/";
 
         // Create the directory
         if (mkdir(file_path, 0755) != 0 && errno != EEXIST) { // Created successfully or already exists
             fprintf(stderr, "Error while creating \'%s\' directory.\n", file_path);
-            free(Fdata);
             free(Fname);
             close(tcp_fd);
             return 1;
@@ -576,7 +558,6 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         strcat(file_path, Fname);
         if (write_to_file(file_path, Fdata) == -1) {
             fprintf(stderr, "Error while writing to local file.\n");
-            free(Fdata);
             free(Fname);
             close(tcp_fd);
             return 1;
@@ -604,7 +585,6 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         printf("---------------------------------\n");
 
 
-        free(Fdata);
         free(Fname);
         close(tcp_fd);
         return 0;
