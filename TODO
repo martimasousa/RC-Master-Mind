@@ -1,7 +1,6 @@
 TODO:
 - Add verbose option (-v) to GS
 - File name and size limitations
-- tcp_read_until_delimiter function (scoreboard 'EMPTY' error)
 - Function to create a name to the show_trials file (sent to the client)
 - Change score function
 - Verify INV (try function)
@@ -11,3 +10,4 @@ TODO:
 
 DONE:
 - Show show_trials and scoreboard file (in player output cmd) properly.
+- tcp_read_until_delimiter function (scoreboard 'EMPTY' error)
