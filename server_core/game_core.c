@@ -182,7 +182,7 @@ void process_ssb_command(int client_fd, const char *command) {
 
         sprintf(line, "%s %s %d\n", PLID, colcode, notries);
 
-        printf("%d\n", notries);
+        // printf("%d\n", notries);
 
         Fsize += strlen(line);
         Fdata = realloc(Fdata, Fsize);
@@ -228,7 +228,7 @@ void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char
         process_dbg_command(udp_fd, client_addr, command);
         return;
     } else {
-        printf("Error: %s\n", type);
+        fprintf(stderr, "Error: %s\n", type);
         return;
     }
 }
@@ -247,7 +247,7 @@ void process_command_tcp(int client_fd, const char *command) {
         return;
 
     } else {
-        printf("Error: %s\n", command);
+        fprintf(stderr, "Error: %s\n", command);
         return;
     }
 }

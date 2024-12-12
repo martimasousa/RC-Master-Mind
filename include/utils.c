@@ -67,16 +67,16 @@ int create_directory(const char *directory) {
     int result = mkdir(directory, 0777);
 
     if (result == 0) {
-        printf("Diretoria '%s' criada com sucesso.\n", directory);
+        // printf("Diretoria '%s' criada com sucesso.\n", directory);
         return 0; // Sucesso
     }
 
     // Se houver erro, verifica o valor de errno
     if (errno == EEXIST) {
-        printf("Diretoria '%s' já existe.\n", directory);
+        fprintf(stderr, "Diretoria '%s' já existe.\n", directory);
         return 0; // Não tratamos como erro, pois o diretório já existe
     } else {
-        perror("Erro ao criar diretoria"); // Mostra o erro apropriado
+        fprintf(stderr, "Erro ao criar diretoria"); // Mostra o erro apropriado
         return -1; // Falha
     }
 }

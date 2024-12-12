@@ -39,10 +39,11 @@ int main(int argc, char* argv[]) {
         GSIP = argv[2];
         GSport = argv[4];
     }
-    printf("[Arguments]\nGSIP: %s\nGSport: %s\n", GSIP, GSport); // TODO: REMOVE
+    // printf("[Arguments]\nGSIP: %s\nGSport: %s\n", GSIP, GSport); // TODO: REMOVE
 
 
-    // ######################################## UDP ############################################### //
+    // ############################################################################################
+    // ### UDP ####################################################################################
     // Create UDP socket
     int udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd == -1) {
@@ -52,7 +53,6 @@ int main(int argc, char* argv[]) {
 
     // Find Game Server address (UDP) -> Will be stored in res
     struct addrinfo udp_hints, *udp_res;
-
     memset(&udp_hints, 0, sizeof udp_hints);
     udp_hints.ai_family = AF_INET; //IPv4
     udp_hints.ai_socktype = SOCK_DGRAM; //UDP socket
@@ -61,13 +61,12 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Error while getting UDP Game Server address.");
         exit(1);   
     }
-    // ######################################################################################### //
 
 
-    // ######################################## TCP ############################################ //
+    // ############################################################################################
+    // ### UDP ####################################################################################
     // Find Game Server address (TCP) -> Will be stored in res
     struct addrinfo tcp_hints, *tcp_res;
-
     memset(&tcp_hints, 0, sizeof tcp_hints);
     tcp_hints.ai_family = AF_INET; //IPv4
     tcp_hints.ai_socktype = SOCK_STREAM; //TCP socket
@@ -76,8 +75,9 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Error while getting TCP Game Server address.");
         exit(1);   
     }
-    // ######################################################################################### //
 
+
+    // Stauts variables
     int running = TRUE;
     int PLID = NOT_PLAYING;
     int lastPLID = NOT_PLAYING;

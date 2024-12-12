@@ -9,9 +9,63 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include "constants.h"
 #include "utils.h"
 #include "game_core.h"
+
+
+typedef struct {
+    char ipv4[INET_ADDRSTRLEN];
+    int port;
+} IP_INFO;
+
+
+IP_INFO get_sender_info(int sock_fd, int is_udp) {
+    struct sockaddr_in addr;
+    socklen_t addr_len = sizeof(addr);
+    IP_INFO result;
+
+    // Initialize result with default "unknown" values
+    strcpy(result.ipv4, "Unknown");
+    result.port = -1;
+
+    // Set socket to non-blocking mode
+    int flags = fcntl(sock_fd, F_GETFL, 0);
+    fcntl(sock_fd, F_SETFL, flags | O_NONBLOCK);
+
+    if (is_udp) {
+        // For UDP, use recvfrom to get sender's address
+        char dummy_buffer[1]; // Minimal buffer to satisfy recvfrom
+        ssize_t bytes_received = recvfrom(sock_fd, dummy_buffer, sizeof(dummy_buffer), MSG_PEEK,
+                                           (struct sockaddr *)&addr, &addr_len);
+        if (bytes_received == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                // No data available, return default "unknown"
+                return result;
+            }
+            fprintf(stderr, "recvfrom failed");
+            return result;
+        }
+    } else {
+        // For TCP, use getpeername to get the peer's address
+        if (getpeername(sock_fd, (struct sockaddr *)&addr, &addr_len) == -1) {
+            fprintf(stderr, "getpeername failed");
+            return result;
+        }
+    }
+
+    // Convert the IP address to a human-readable string
+    if (inet_ntop(AF_INET, &addr.sin_addr, result.ipv4, sizeof(result.ipv4)) == NULL) {
+        fprintf(stderr, "inet_ntop failed");
+        return result;
+    }
+
+    // Convert the port from network byte order to host byte order
+    result.port = ntohs(addr.sin_port);
+
+    return result;
+}
 
 
 int handleServer(char *GSport, int is_verbose) {
@@ -19,7 +73,9 @@ int handleServer(char *GSport, int is_verbose) {
     struct sockaddr_in tcp_addr, udp_addr; //, client_addr;
     fd_set rfds, allfds;
 
-    // Creating and configuring TCP socket
+
+    // ############################################################################################
+    // ### TCP ####################################################################################
     tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_fd < 0) {
         perror("Error creating TCP socket");
@@ -34,7 +90,9 @@ int handleServer(char *GSport, int is_verbose) {
     }
     listen(tcp_fd, SOMAXCONN);
 
-    // Creating and configuring UDP socket
+
+    // ############################################################################################
+    // ### UDP ####################################################################################
     udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd < 0) {
         perror("Erro ao criar socket UDP");
@@ -47,6 +105,7 @@ int handleServer(char *GSport, int is_verbose) {
         perror("Erro ao associar socket UDP");
         exit(1);
     }
+
 
     // Configuring fd set
     FD_ZERO(&allfds);
@@ -78,10 +137,22 @@ int handleServer(char *GSport, int is_verbose) {
                 if (pid == 0) { // Child process
                     close(tcp_fd); // Close listening socket in child
 
+                    // Get sender information
+                    IP_INFO sender_info = get_sender_info(client_fd, FALSE);
+
                     // Read command (whole line)
                     char *command = NULL;
                     tcp_read_until_delimiter(client_fd, &command, '\n', 1);
-                    printf("Command line: %s\n", command);
+
+                    // If verbose option set, print request details
+                    if (is_verbose) {
+                        // Get values from command
+                        char req_type[COMMAND_LEN + 1];
+                        char req_PLID[PLID_DIGITS + 1];
+                        sscanf(command, "%s %s", req_type, req_PLID);
+
+                        printf("[NEW REQUEST] PLID: %s | TYPE: %s | SENDER: %s:%d\n", req_PLID, req_type, sender_info.ipv4, sender_info.port);
+                    }
 
                     // Handle client messages
                     process_command_tcp(client_fd, command);
@@ -105,10 +176,24 @@ int handleServer(char *GSport, int is_verbose) {
             struct sockaddr_in *client_addr = malloc(sizeof(struct sockaddr_in));
             char *command = malloc(sizeof(char) * BUFFER_SIZE);
 
+            // Get sender information
+            IP_INFO sender_info = get_sender_info(udp_fd, TRUE);
+
             if (recv_udp_message(udp_fd, command, BUFFER_SIZE, client_addr) == -1) {
                 perror("Error reading command");
                 exit(1); // TODO: ???
             }
+
+            // If verbose option set, print request details
+            if (is_verbose) {
+                // Get values from command
+                char req_type[COMMAND_LEN + 1];
+                char req_PLID[PLID_DIGITS + 1];
+                sscanf(command, "%s %s", req_type, req_PLID);
+
+                printf("[NEW REQUEST] PLID: %s | TYPE: %s | SENDER: %s:%d\n", req_PLID, req_type, sender_info.ipv4, sender_info.port);
+            }
+
             process_command_udp(udp_fd, client_addr, command);
 
             //printf("[gameLogic] Solution: %c %c %c %c\n", gameInfo->game_solution.colours[0], gameInfo->game_solution.colours[1], gameInfo->game_solution.colours[2], gameInfo->game_solution.colours[3]);
@@ -148,6 +233,6 @@ int main(int argc, char* argv[]) {
 
     handleServer(GSport, is_verbose);
 
-    printf("[Arguments]\nGSport: %s\nIs verbose: %d\n", GSport, is_verbose);
+    // printf("[Arguments]\nGSport: %s\nIs verbose: %d\n", GSport, is_verbose);
     return 0;
 }
