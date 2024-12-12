@@ -138,7 +138,6 @@ int validate_SNG_command(const char *cmd, char *PLID_arg, char *max_playtime_arg
 int validate_STR_command(const char *cmd, char *PLID, const int execution_side) {
 
     char *expected_end = cmd;
-
     char *token = strtok((char *)cmd, " ");
 
     if (execution_side == SERVER_SIDE) {
@@ -176,7 +175,32 @@ int validate_STR_command(const char *cmd, char *PLID, const int execution_side) 
     return OK;
 }
 
+int validate_SSB_command(const char *cmd, const int execution_side) {
 
+    char *token = strtok((char *)cmd, "\n");
+
+    if (execution_side == SERVER_SIDE) {
+        if (!strcmp(token, "SSB") == 0) {
+            fprintf(stderr, "Error: Command should start with 'SSB'.\n");
+            return ERROR;
+        }
+    } else if (execution_side == PLAYER_SIDE) {
+        if (!strcmp(token, "scoreboard") == 0 || !strcmp(token, "sb") == 0 ) {
+            fprintf(stderr, "Error: Command should start with 'scoreboard' or 'sb'.\n");
+            return ERROR;
+        }
+    }
+    const char *expected_end = cmd + strlen(token);
+    while (*expected_end == ' ') expected_end++;
+
+    // Verifica se o comando termina corretamente com '\n' ou '\0'
+    if (*expected_end != '\n' && *expected_end != '\0') {
+        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
+        return ERROR;
+    }
+
+    return OK;
+}
 /*
     GENERAL auxiliar functions
 */
@@ -448,7 +472,7 @@ void write_try(const char *PLID, GameTry game_try, int *player_try_res) {
 }
 
 int end_game(const char *PLID, const char end_game_type, const int number_tries) {
-    if (end_game_type == END_WIN) create_score_file(PLID, (number_tries - '0'));
+    if (end_game_type == END_WIN) create_score_file(PLID, number_tries);
     
     relocate_completed_game(PLID, end_game_type);
 
@@ -534,6 +558,7 @@ int create_score_file(const char *PLID, const int number_tries) {
                                                                solution->colours[3],
                                                                number_tries,
                                                                mode);
+
     FILE *file = fopen(file_path, "a");
 
     fprintf(file, "%s", message);

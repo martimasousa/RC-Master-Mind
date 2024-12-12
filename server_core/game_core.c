@@ -150,13 +150,19 @@ void process_str_command(int client_fd, const char *command) {
 }
 
 void process_ssb_command(int client_fd, const char *command) {
-    // TODO: Check for command errors
+    
+    char *response;
 
-    // Get scores list
+    if (validate_SSB_command(command, SERVER_SIDE) == ERROR) {
+        response = "RSS NOK\n";
+        tcp_write(client_fd, response);
+        return;
+    }
+
     SCORELIST *files = malloc(sizeof(SCORELIST));
     if (FindTopScores(files) <= 0) {
-        char res_init[20] = "RSS EMPTY\n";
-        if (tcp_write(client_fd, res_init)) {
+        response = "RSS EMPTY\n";
+        if (tcp_write(client_fd, response)) {
             return;
         }
     }

@@ -51,6 +51,7 @@ int directory_exists(const char *filepath);
 int are_equal_game_tries(const GameTry *input, const GameTry *line);
 int validate_SNG_command(const char *cmd, char *PLID_arg, char *max_playtime_arg, const int execution_side);
 int validate_STR_command(const char *cmd, char *PLID, const int execution_side);
+int validate_SSB_command(const char *cmd, const int execution_side);
 
 
 /*
