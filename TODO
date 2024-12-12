@@ -1,10 +1,8 @@
 TODO:
 - [CLIENT] Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
-- [SERVER+CLIENT] File name and size limitations
-- [SERVER+CLIENT] Prováveis loops necessários nos sends e receives
 - [SERVER+client] SIGNAL (aquela cena de se escrever num socket quando um cliente desconecta do nada)
+- [SERVER+CLIENT] Rever constantes
 - [SERVER] Check show_trials output (is it necessary to manipulate data???)
-- [SERVER] Limit SSB 10 results
 - [SERVER] Function to create a name to the show_trials file (sent to the client)
 - [SERVER] Change score function
 - [SERVER] Verify INV (try function)
