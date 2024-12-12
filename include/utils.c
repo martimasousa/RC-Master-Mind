@@ -129,9 +129,12 @@ int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
             fprintf(stderr, "Error while reading from TCP socket.\n");
             return 1;
         }
-        if (n == 0 && separator != '\0') {  // End of stream (connection closed)
-            fprintf(stderr, "Unexpected end of stream while reading word.\n");
-            return 1;
+        if (n == 0) {  // End of stream (either due to EOF or socket closed by other peer)
+            // Return content read until this point
+            break;
+
+            // fprintf(stderr, "Unexpected end of stream while reading word.\n");
+            // return 1;
         }
 
         // If the buffer is full, reallocate more memory
@@ -142,11 +145,6 @@ int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
                 fprintf(stderr, "Memory reallocation failed");
                 return 1;
             }
-        }
-
-        // Desired end of file
-        if (n == 0 && separator == '\0') {
-            break;
         }
 
         // If we encounter a space or null character, stop reading

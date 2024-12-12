@@ -338,14 +338,14 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 
 
 int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
-    
     // Syntax Validation
     if (validate_show_trials_command(cmd, type) == ERROR) {
         return ERROR;
     }
 
-    // -------------------------------------------------------------------------------
 
+    // ############################################################################################
+    // ### TCP CONNECTION #########################################################################
     // Create TCP socket
     int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_fd == ERROR) {
@@ -360,10 +360,8 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         return ERROR;
     }
 
-    // -------------------------------------------------------------------------------
 
-    // Create message to send
-    // Example: STR 106324\n\0
+    // Create message to send (ex: STR 106324\n\0)
     size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + 1;
     char msg[msg_len];
     snprintf(msg, msg_len, "STR %d\n", PLID);
@@ -381,10 +379,10 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
         close(tcp_fd);
         return ERROR;
     }
-
     char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RST %s", response_status);
 
+    // Evaluate responses
     if (!strcmp(response_status, "NOK")) {
         close(tcp_fd);
         return ERROR;
@@ -458,13 +456,12 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
 
 
 int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
-
     if (validate_scoreboard_command(cmd, type) == ERROR) {
         return ERROR;
     }
 
-    // -------------------------------------------------------------------------------
-
+    // ############################################################################################
+    // ### TCP CONNECTION #########################################################################
     // Create TCP socket
     int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_fd == ERROR) {
@@ -478,8 +475,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         fprintf(stderr, "Error while trying to establish a connection with GS.\n");
         return ERROR;
     }
-
-    // -------------------------------------------------------------------------------
+    
 
     // Create message to send
     size_t msg_len = COMMAND_LEN + 2;
@@ -508,10 +504,8 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         close(tcp_fd);
         return 1;
     }
-    // TODO: The problem here is that the server returns the messages terminated with \n so for an EMPTY status response there will be no ' ' and the function does not detect the end of file
 
-    // Evaluate responses that have '\n' after the status
-    // Evaluate responses that have ' ' after the status
+    // Evaluate responses
     if (!strcmp(response_status, "OK")) {
         free(response_status);
 
@@ -588,7 +582,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         free(Fname);
         close(tcp_fd);
         return 0;
-    } else if (!strcmp(response_status, "EMPTY\nRSS")) {
+    } else if (!strcmp(response_status, "EMPTY\n")) {
         free(response_status);
         printf("The scoreboard is still empty.\n");
         close(tcp_fd);

@@ -163,8 +163,10 @@ void process_ssb_command(int client_fd, const char *command) {
     if (FindTopScores(files) <= 0) {
         response = "RSS EMPTY\n";
         if (tcp_write(client_fd, response)) {
+            // Error handling
             return;
         }
+        return;
     }
 
     // Create a string (Fdata) containing all the scores returned

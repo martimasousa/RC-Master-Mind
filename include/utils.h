@@ -49,7 +49,14 @@ int convert_char_to_int(const char number);
     MESSAGE sending and receiving functions
 */
 
-// Reads delimited string from the file descriptor. Variable word will contain n_times-1 delimiters.
+/**
+ * This function reads content from a file until a certain delimiter. If reaches EOF or the socket
+ * is closed (by the other peer), all the characters read until that moment will be returned.
+ * @param fd TCP file descriptor to read data from.
+ * @param word Word to store read data.
+ * @param separator Char representing the character where we should stop reading (not inclusive).
+ * @param n_times Number of times we want to ignore the delimiter (word will contain n_times-1 delimiters).
+ */
 int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times);
 
 // Writes some string to a tcp file descriptor
