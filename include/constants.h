@@ -98,9 +98,14 @@
 #define DEBUG_MODE 'D'
 #define PLAY_MODE 'P'
 
+// Validation Contexts
+#define QUIT_CONTEXT 0
+#define EXIT_CONTEXT 1
+#define NONE -1
 
 #define SERVER_SIDE 1
 #define PLAYER_SIDE 0
+
 
 #define NOT_NEEDED 0
 

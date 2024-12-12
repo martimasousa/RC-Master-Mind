@@ -78,7 +78,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
     char C1, C2, C3, C4;
 
     // Validate command syntax
-    if (validate_try_command(cmd, &C1, &C2, &C3, &C4) == ERROR) {
+    if (validate_try_command(cmd, NULL, &C1, &C2, &C3, &C4, NULL, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
@@ -163,7 +163,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
  */
 int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
 
-    if (validate_quit_command(cmd) == ERROR) {
+    if (validate_quit_command(cmd, NULL, PLAYER_SIDE, QUIT_CONTEXT) == ERROR) {
         return ERROR;
     }
 
@@ -221,8 +221,7 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
  */
 int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
     
-    // Valida o comando "exit"
-    if (validate_exit_command(cmd) == ERROR) {
+    if (validate_quit_command(cmd, NULL, PLAYER_SIDE, EXIT_CONTEXT) == ERROR) {
         return ERROR;
     }
 

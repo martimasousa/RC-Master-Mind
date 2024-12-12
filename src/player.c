@@ -133,7 +133,9 @@ int main(int argc, char* argv[]) {
             if (PLID != NOT_PLAYING) {
                 exit_function(udp_fd, udp_res, cmd, PLID);
             }
-            running = FALSE;
+            if (validate_quit_command(cmd, NULL, PLAYER_SIDE, EXIT_CONTEXT) == OK) {
+                running = FALSE;
+            }
         } else if (!strcmp(type, "debug")) {
             if (PLID == NOT_PLAYING) {
                 PLID = debug_function(udp_fd, udp_res, cmd);

@@ -31,6 +31,14 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     GameTry player_try;
     char PLID[PLID_DIGITS + 1], nt;
 
+    if (validate_try_command(command, PLID, &player_try.colours[0], &player_try.colours[1], 
+                                            &player_try.colours[2], &player_try.colours[3], 
+                                            &nt, SERVER_SIDE)) {
+        char *response = "RTR ERR\n";
+        send_udp_response(udp_fd, response, client_addr);
+        return;
+    }
+
     sscanf(command, "TRY %s %c %c %c %c %c\n", PLID, &player_try.colours[0], &player_try.colours[1], 
                                                    &player_try.colours[2], &player_try.colours[3], &nt);
 
@@ -82,8 +90,11 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     char PLID[PLID_DIGITS + 1];
     
-    sscanf(command, "QUT %s\n", PLID);
-    // TODO: Verify arguments. In case they are wrongly formed return "RQT ERR\n"
+    if (validate_quit_command(command, PLID, SERVER_SIDE, NONE) == ERROR) {
+        char *response = "RQT ERR\n";
+        send_udp_response(udp_fd, response, client_addr);
+        return;
+    }
 
     /* If there is an ongoing game, respond with "RQT NOK" */
     if (!has_ongoing_game(PLID)) {
@@ -112,7 +123,7 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
                               &game_solution->colours[2],
                               &game_solution->colours[3], SERVER_SIDE)) {
 
-        response = "RDB NOK\n";
+        response = "RDB ERR\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
@@ -161,7 +172,7 @@ void process_ssb_command(int client_fd, const char *command) {
     char *response;
 
     if (validate_scoreboard_command(command, SERVER_SIDE) == ERROR) {
-        response = "RSS NOK\n";
+        response = "RSS ERR\n";
         tcp_write(client_fd, response);
         return;
     }
