@@ -26,6 +26,11 @@ int is_valid_color(char C);
 
 int file_exists(const char *path);
 
+int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_arg, const int execution_side);
+
+int validate_showtrials_command(const char *cmd, char *PLID, const int execution_side);
+
+int validate_scoreboard_command(const char *cmd, const int execution_side);
 /*
     GENERAL auxiliar functions
 */

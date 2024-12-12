@@ -34,6 +34,149 @@ int file_exists(const char *path) {
     return FALSE;
 }
 
+
+int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_arg, const int execution_side) {
+    char *expected_command_name;
+    char input_command[INPUT_ARGUMENT_LEN];
+    char temp_PLID[INPUT_ARGUMENT_LEN];
+    char temp_time[INPUT_ARGUMENT_LEN];
+
+    if (execution_side == SERVER_SIDE) expected_command_name = "SNG"; 
+    else if (execution_side == PLAYER_SIDE) expected_command_name = "start";
+    else {
+        fprintf(stderr, "Error: Invalid execution side.\n");
+        return ERROR;
+    }
+
+    // Usar sscanf para ler os valores da string cmd
+    int items_read = sscanf(cmd, "%s %s %s", input_command, temp_PLID, temp_time);
+    if (items_read < 3) {
+        fprintf(stderr, "Error: Command is malformed or missing arguments.\n");
+        return ERROR;
+    }
+
+    // Verificar se o comando corresponde ao esperado
+    if (strcmp(input_command, expected_command_name) != 0) {
+        fprintf(stderr, "Error: Command is malformed. It should start with '%s'.\n", expected_command_name);
+        return ERROR;
+    }
+
+    // Validar PLID
+    if (strlen(temp_PLID) != PLID_DIGITS || !is_integer(temp_PLID)) {
+        fprintf(stderr, "Error: PLID must be an integer with 6 digits.\n");
+        return ERROR;
+    }
+
+    // Validar max_playtime
+    if (strlen(temp_time) > TIME_DIGITS || !is_integer(temp_time)) {
+        fprintf(stderr, "Error: Time must be an integer with less or equal than 3 digits.\n");
+        return ERROR;
+    }
+
+    int max_playtime = atoi(temp_time);
+    if (max_playtime > 600 || max_playtime <= 0) {
+        fprintf(stderr, "Error: max_playtime must be a value between 1 and 600 seconds.\n");
+        return ERROR;
+    }
+
+    // Verificar se há argumentos extras
+    const char *remaining = cmd + strlen(input_command) + 1 + strlen(temp_PLID) + 1 + strlen(temp_time);
+    while (*remaining == ' ') remaining++;
+    if (*remaining != '\0' && *remaining != '\n') {
+        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
+        return ERROR;
+    }
+
+    // Copiar valores para as variáveis de saída
+    strcpy(PLID_arg, temp_PLID);
+    strcpy(max_playtime_arg, temp_time);
+
+    return OK;
+}
+
+int validate_showtrials_command(const char *cmd, char *PLID, const int execution_side) {
+    
+    char input_command[INPUT_ARGUMENT_LEN];
+    char temp_PLID[INPUT_ARGUMENT_LEN];
+
+
+    // Usar sscanf para ler os valores da string cmd
+    int items_read = sscanf(cmd, "%s %s", input_command, temp_PLID);
+    if (items_read < 1) {
+        fprintf(stderr, "Error: Command is malformed or missing arguments.\n");
+        return ERROR;
+    }
+
+    // Verificar se o comando corresponde ao esperado
+    if (execution_side == SERVER_SIDE) {
+        if (strcmp(input_command, "STR") != 0) {
+            fprintf(stderr, "Error: Command should start with 'STR'.\n");
+            return ERROR;
+        }
+
+        if (items_read != 2 || strlen(temp_PLID) != PLID_DIGITS || !is_integer(temp_PLID)) {
+            fprintf(stderr, "Error: PLID must be an integer with 6 digits.\n");
+            return ERROR;
+        }
+
+        strcpy(PLID, temp_PLID);
+    } else if (execution_side == PLAYER_SIDE) {
+        if (strcmp(input_command, "show_trials") != 0 && strcmp(input_command, "st") != 0) {
+            fprintf(stderr, "Error: Command should start with 'show_trials' or 'st'.\n");
+            return ERROR;
+        }
+    }
+
+    // Verificar se há argumentos extras
+    const char *remaining = cmd + strlen(input_command) + 1;
+    if (execution_side == SERVER_SIDE) {
+        remaining += strlen(temp_PLID) + 1;
+    }
+    while (*remaining == ' ') remaining++;
+    if (*remaining != '\0' && *remaining != '\n') {
+        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
+        return ERROR;
+    }
+
+    return OK;
+}
+
+int validate_scoreboard_command(const char *cmd, const int execution_side) {
+
+    char input_command[INPUT_ARGUMENT_LEN];
+
+    // Usar sscanf para ler o comando
+    int items_read = sscanf(cmd, "%s", input_command);
+    if (items_read < 1) {
+        fprintf(stderr, "Error: Command is malformed or missing.\n");
+        return ERROR;
+    }
+
+    // Verificar se o comando corresponde ao esperado
+    if (execution_side == SERVER_SIDE) {
+        if (strcmp(input_command, "SSB") != 0) {
+            fprintf(stderr, "Error: Command should start with 'SSB'.\n");
+            return ERROR;
+        }
+    } else if (execution_side == PLAYER_SIDE) {
+        if (strcmp(input_command, "scoreboard") != 0 && strcmp(input_command, "sb") != 0) {
+            fprintf(stderr, "Error: Command should start with 'scoreboard' or 'sb'.\n");
+            return ERROR;
+        }
+    }
+
+    // Verificar se há argumentos extras
+    const char *remaining = cmd + strlen(input_command);
+    while (*remaining == ' ') remaining++;
+    if (*remaining != '\0' && *remaining != '\n') {
+        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
+        return ERROR;
+    }
+
+    return OK;
+}
+
+
 /*
     GENERAL auxiliar functions
 */

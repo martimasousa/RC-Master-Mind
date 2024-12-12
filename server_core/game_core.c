@@ -7,7 +7,7 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
     GameTry *game_solution = malloc(sizeof(GameTry));
     char *response;
 
-    if (validate_SNG_command(command, PLID, time, SERVER_SIDE) == ERROR) {
+    if (validate_start_command(command, PLID, time, SERVER_SIDE) == ERROR) {
         char *response = "RSG ERR\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
@@ -135,7 +135,7 @@ void process_str_command(int client_fd, const char *command) {
     char *response;
     char *filepath;
 
-    if (validate_STR_command(command, PLID, SERVER_SIDE) == ERROR) {
+    if (validate_showtrials_command(command, PLID, SERVER_SIDE) == ERROR) {
         response = "RST NOK\n";
         tcp_write(client_fd, response);
         return;
@@ -158,7 +158,7 @@ void process_ssb_command(int client_fd, const char *command) {
     
     char *response;
 
-    if (validate_SSB_command(command, SERVER_SIDE) == ERROR) {
+    if (validate_scoreboard_command(command, SERVER_SIDE) == ERROR) {
         response = "RSS NOK\n";
         tcp_write(client_fd, response);
         return;

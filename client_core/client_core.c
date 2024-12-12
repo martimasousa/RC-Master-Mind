@@ -19,7 +19,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     char max_playtime_arg[TIME_DIGITS + 1];
 
     // Validate command syntax
-    if (validate_start_command(cmd, PLID_arg, max_playtime_arg) == ERROR) {
+    if (validate_start_command(cmd, PLID_arg, max_playtime_arg, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
@@ -338,8 +338,9 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 
 
 int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
+    
     // Syntax Validation
-    if (validate_show_trials_command(cmd, type) == ERROR) {
+    if (validate_showtrials_command(cmd, NULL, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
@@ -456,7 +457,8 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
 
 
 int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
-    if (validate_scoreboard_command(cmd, type) == ERROR) {
+    
+    if (validate_scoreboard_command(cmd, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
