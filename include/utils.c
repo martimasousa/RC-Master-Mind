@@ -94,6 +94,78 @@ int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_a
     return OK;
 }
 
+int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_arg, char *C1, char *C2, char *C3, char *C4, const int execution_side) {
+    
+    char *expected_command_name;
+    char input_command[INPUT_ARGUMENT_LEN];
+    char temp_PLID[INPUT_ARGUMENT_LEN];
+    char temp_max_playtime[INPUT_ARGUMENT_LEN];
+
+    // Determinar o comando esperado com base no lado de execução
+    if (execution_side == SERVER_SIDE) expected_command_name = "DBG";
+    else if (execution_side == PLAYER_SIDE) expected_command_name = "debug";
+    else {
+        fprintf(stderr, "Error: Invalid execution side.\n");
+        return ERROR;
+    }
+
+    // Usar sscanf para extrair os valores da string cmd
+    int items_read = sscanf(cmd, "%s %s %s %c %c %c %c",
+                            input_command, temp_PLID, temp_max_playtime, C1, C2, C3, C4);
+
+    // Verificar se os argumentos foram lidos corretamente
+    if (items_read != 7) {
+        fprintf(stderr, "Error: Command format should be '%s PLID max_playtime C1 C2 C3 C4'.\n", expected_command_name);
+        return ERROR;
+    }
+
+    // Verificar se o comando inicial corresponde ao esperado
+    if (strcmp(input_command, expected_command_name) != 0) {
+        fprintf(stderr, "Error: Command is malformed. It should start with '%s'.\n", expected_command_name);
+        return ERROR;
+    }
+
+    // Verificar se PLID é válido
+    if (strlen(temp_PLID) != PLID_DIGITS || !is_integer(temp_PLID)) {
+        fprintf(stderr, "Error: PLID must be an integer with 6 digits.\n");
+        return ERROR;
+    }
+
+    // Verificar se max_playtime é válido
+    if (strlen(temp_max_playtime) > TIME_DIGITS || !is_integer(temp_max_playtime)) {
+        fprintf(stderr, "Error: max_playtime must be an integer with less or equal than 3 digits.\n");
+        return ERROR;
+    }
+
+    int max_playtime = atoi(temp_max_playtime);
+    if (max_playtime > 600 || max_playtime <= 0) {
+        fprintf(stderr, "Error: max_playtime must be a value between 1 and 600 seconds.\n");
+        return ERROR;
+    }
+
+    // Verificar se as cores são válidas
+    if (!is_valid_color(*C1) || !is_valid_color(*C2) || !is_valid_color(*C3) || !is_valid_color(*C4)) {
+        fprintf(stderr, "Error: The valid colors are: {red (R), green (G), blue (B), yellow (Y), orange (O), purple (P)}.\n");
+        return ERROR;
+    }
+
+    // Verificar se há argumentos extras
+    const char *remaining = cmd + strlen(input_command) + 1 + strlen(temp_PLID) + 1 +
+                            strlen(temp_max_playtime) + 1 + 1 + 1 + 1 + 1;
+    while (*remaining == ' ') remaining++;
+    if (*remaining != '\0' && *remaining != '\n') {
+        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
+        return ERROR;
+    }
+
+    // Copiar valores para as variáveis de saída
+    strcpy(PLID_arg, temp_PLID);
+    strcpy(max_playtime_arg, temp_max_playtime);
+
+    return OK;
+}
+
+
 int validate_showtrials_command(const char *cmd, char *PLID, const int execution_side) {
     
     char input_command[INPUT_ARGUMENT_LEN];

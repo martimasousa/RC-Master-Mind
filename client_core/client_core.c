@@ -283,7 +283,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     char C1, C2, C3, C4;
 
     // Valida o comando "debug"
-    if (validate_debug_command(cmd, PLID_arg, max_playtime_arg, &C1, &C2, &C3, &C4) == ERROR) {
+    if (validate_debug_command(cmd, PLID_arg, max_playtime_arg, &C1, &C2, &C3, &C4, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 

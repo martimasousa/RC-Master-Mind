@@ -106,14 +106,16 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
     GameTry *game_solution = malloc(sizeof(GameTry));
     char *response;
 
-    // Informação não está a ser bem guardada na estrutura
-    sscanf(command, "DBG  %s %s %c %c %c %c\n", PLID, time,
-                                              &game_solution->colours[0],
-                                              &game_solution->colours[1],
-                                              &game_solution->colours[2],
-                                              &game_solution->colours[3]);
+    if (validate_debug_command(command, PLID, time,  
+                              &game_solution->colours[0],
+                              &game_solution->colours[1],
+                              &game_solution->colours[2],
+                              &game_solution->colours[3], SERVER_SIDE)) {
 
-    // TODO: Verify arguments. In case they are wrongly formed return "RSG ERR\n"
+        response = "RDB NOK\n";
+        send_udp_response(udp_fd, response, client_addr);
+        return;
+    }
 
 
     /* If there is an ongoing game, respond with "RSG NOK" */
@@ -235,7 +237,6 @@ void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 }
-
 
 void process_command_tcp(int client_fd, const char *command) { 
     char type[3];
