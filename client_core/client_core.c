@@ -563,19 +563,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
         int n_line = 1;
         
         printf("---------- SCOREBOARD: ----------\n");
-
-        // Tokenize by newline
-        char *line = strtok(Fdata, "\n");
-        while (line != NULL) {
-            // Process the line
-            printf("%d. %s\n", n_line, line);
-
-            // Get the next line
-            line = strtok(NULL, "\n");
-
-            n_line++;
-        }
-
+        printf(Fdata);
         printf("---------------------------------\n");
 
 

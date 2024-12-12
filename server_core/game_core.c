@@ -141,12 +141,17 @@ void process_str_command(int client_fd, const char *command) {
         return;
     }
 
+    char *PLID_to_send = NULL;
     if (!has_ongoing_game(PLID)) {
         filepath = malloc(sizeof(char) * BUFFER_SIZE);
         FindLastGame(PLID, filepath);
-    } else filepath = get_game_folder_path(PLID);
+    } else {
+        filepath = get_game_folder_path(PLID);
+        PLID_to_send = PLID;
+    }
 
-    execute_show_trials(client_fd, filepath);
+    // Send PLID as NULL if game not active (to avoid returning remaining time)
+    execute_show_trials(client_fd, filepath, PLID_to_send);
 }
 
 void process_ssb_command(int client_fd, const char *command) {
@@ -180,9 +185,7 @@ void process_ssb_command(int client_fd, const char *command) {
         char *colcode = files->colcode[i];
         int notries = files->notries[i];
 
-        sprintf(line, "%s %s %d\n", PLID, colcode, notries);
-
-        // printf("%d\n", notries);
+        sprintf(line, "%d: %s %s %d\n", i+1, PLID, colcode, notries);
 
         Fsize += strlen(line);
         Fdata = realloc(Fdata, Fsize);

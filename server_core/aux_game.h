@@ -139,6 +139,6 @@ int FindLastGame(const char *PLID, char *fname);
 // -----------------------------------------------------------------------------
 
 // Executes the functionality of the show_trials
-void execute_show_trials(const int client_fd, const char* filepath);
+void execute_show_trials(const int client_fd, const char* filepath, char* PLID);
 
 #endif

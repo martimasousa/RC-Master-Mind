@@ -671,7 +671,7 @@ int FindLastGame(const char *PLID, char *fname) {
 
 // -----------------------------------------------------------------------------
 
-void execute_show_trials(const int client_fd, const char* filepath) {
+void execute_show_trials(const int client_fd, const char* filepath, char* PLID) {
 
     FILE* file = fopen(filepath, "r");
     if (!file) {
@@ -684,13 +684,43 @@ void execute_show_trials(const int client_fd, const char* filepath) {
 
     int total_size = 0;
 
-    char filedata[MAX_FSIZE];
     char line[GAME_INFO_MAX_LEN];
+    char filedata[MAX_FSIZE];
+    // int n_try = 1;
     while (fgets(line, sizeof(line), file)) {
+        // Get only necessary data
+        // char c1, c2, c3, c4;
+        // int nB, nW;
+        // sscanf(line, "T: %c%c%c%c %d %d", &c1, &c2, &c3, &c4, &nB, &nW);
+
+        // char to_send[GAME_INFO_MAX_LEN];
+        // sprintf(to_send, "T%d: %c %c %c %c %d %d\n", n_try, c1, c2, c3, c4, nB, nW);
+
+        size_t len = strlen(line);
+        memcpy(filedata + total_size, line, len);
+        total_size += len;
+
+        // n_try++;
+    }
+
+    // If game is active, send remaining time
+    if (PLID != NULL) {
+        // Get remaining time
+        char *time_start_char = extract_game_info(PLID, ARG_ELAPSED_TIME);
+        char *time_max_char = extract_game_info(PLID, ARG_MAXTIME);
+        time_t time_start = (time_t)strtol(time_start_char, NULL, 10);
+        time_t time_max = (time_t)strtol(time_max_char, NULL, 10);
+        time_t time_limit = time_start + time_max;
+
+        time_t remaining_time = time_limit - time(NULL);
+
+        // Add remaining time at the end of the file
+        sprintf(line, "Remaining time: %ld seconds\n", remaining_time);
         size_t len = strlen(line);
         memcpy(filedata + total_size, line, len);
         total_size += len;
     }
+
     filedata[total_size] = '\0';
     
 
