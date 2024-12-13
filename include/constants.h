@@ -12,6 +12,11 @@
 #define GAME_ENDED 1
 #define OK 0
 
+#define SERVER_SIDE 1
+#define PLAYER_SIDE 0
+
+#define NOT_NEEDED 0
+
 
 // Memory Related Constants
 #define BUFFER_SIZE 1024
@@ -47,13 +52,14 @@
 #define MODE_LEN 1
 #define NOW_TIME_LEN 19 // MAX len a number from function "now" can have
 
+
 // Show Trials Constants
 #define MAX_FNAME 24
 #define MAX_FSIZE 2048
 #define MAX_FILESIZE_DIGITS 4
 
 
-// MAIN COMMANDS
+// Server Protocol Commands
 #define SNG_CMD             "SNG"
 #define TRY_CMD             "TRY"
 #define QUT_CMD             "QUT"
@@ -62,7 +68,7 @@
 #define SSB_CMD             "SSB"
 
 
-// Connection related variables
+// Connection Related Variables
 #define localhost           "127.0.0.1"
 #define GSPORT              "58000"
 #define GROUP_NUMBER        28
@@ -102,12 +108,6 @@
 #define QUIT_CONTEXT 0
 #define EXIT_CONTEXT 1
 #define NONE -1
-
-#define SERVER_SIDE 1
-#define PLAYER_SIDE 0
-
-
-#define NOT_NEEDED 0
 
 
 // Simple Functions

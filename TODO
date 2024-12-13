@@ -1,5 +1,5 @@
 TODO:
 - [CLIENT] Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
-- [SERVER+CLIENT] Rever constantes
+- [SERVER+CLIENT] Rever constantes e organizar código
 - [SERVER] Verify INV (try function), start and debug. Problem related to UDP failing...
-- [CLIENT] Verificar função exit, quando recebe NOK o que fazer?
+- [ALL] Adicionar verificações em funções que podem falhar tipo sscanf, etc etc
