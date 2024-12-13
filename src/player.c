@@ -8,11 +8,30 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "constants.h"
 #include "utils.h"
 #include "game_core.h"
 #include "client_core.h"
+
+int udp_fd = NOT_PLAYING;
+struct addrinfo *udp_res = NULL;
+
+// Stauts variables
+int running = TRUE;
+int PLID = NOT_PLAYING;
+int lastPLID = NOT_PLAYING;
+int nT = 1;
+
+
+void signal_handler(int signum) {
+    if (udp_fd != NOT_PLAYING && udp_res != NULL && PLID != NOT_PLAYING) {
+        quit_function(udp_fd, udp_res, "quit", PLID);
+    }
+
+    exit(0);
+}
 
 
 int main(int argc, char* argv[]) {
@@ -45,14 +64,14 @@ int main(int argc, char* argv[]) {
     // ############################################################################################
     // ### UDP ####################################################################################
     // Create UDP socket
-    int udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd == -1) {
         fprintf(stderr, "Error while creating UDP socket.");
         exit(1);
     }
 
     // Find Game Server address (UDP) -> Will be stored in res
-    struct addrinfo udp_hints, *udp_res;
+    struct addrinfo udp_hints /*, *udp_res*/;
     memset(&udp_hints, 0, sizeof udp_hints);
     udp_hints.ai_family = AF_INET; //IPv4
     udp_hints.ai_socktype = SOCK_DGRAM; //UDP socket
@@ -76,12 +95,8 @@ int main(int argc, char* argv[]) {
         exit(1);   
     }
 
-
-    // Stauts variables
-    int running = TRUE;
-    int PLID = NOT_PLAYING;
-    int lastPLID = NOT_PLAYING;
-    int nT = 1;
+    // Set up the SIGINT handler
+    signal(SIGINT, signal_handler);
 
     // Process commands
     while (running) {
