@@ -163,13 +163,13 @@ void process_str_command(int client_fd, const char *command) {
         return;
     }
 
-    int game_ended = FALSE;
+    int game_ended = TRUE;
     if (has_ongoing_game(PLID)) {
         if (has_exceeded_time(PLID))
         {
             end_game(PLID, END_TIMEOUT, NULL);
-            game_ended = TRUE;
         } else {
+            game_ended = FALSE;
             filepath = get_game_folder_path(PLID);
             PLID_to_send = PLID;
         }
