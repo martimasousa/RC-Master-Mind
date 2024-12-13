@@ -40,9 +40,9 @@ int main(int argc, char* argv[]) {
 
     // Read command-line arguments
     if (!((argc == 1) || 
-        (argc == 3 && ((strcmp(argv[1], "-n") == 0 && is_valid_ip(argv[2])) || 
+        (argc == 3 && ((strcmp(argv[1], "-n") == 0 /*&& is_valid_ip(argv[2])*/) || 
                         (strcmp(argv[1], "-p") == 0 && is_integer(argv[2])))) || 
-        (argc == 5 && strcmp(argv[1], "-n") == 0 && is_valid_ip(argv[2]) && 
+        (argc == 5 && strcmp(argv[1], "-n") == 0 && /*is_valid_ip(argv[2]) &&*/ 
                         strcmp(argv[3], "-p") == 0 && is_integer(argv[4])))) {
         fprintf(stderr, "Error while reading arguments.\nUsage: ./player [-n GSIP] [-p GSport]\n");
         return 0;
@@ -58,8 +58,6 @@ int main(int argc, char* argv[]) {
         GSIP = argv[2];
         GSport = argv[4];
     }
-    // printf("[Arguments]\nGSIP: %s\nGSport: %s\n", GSIP, GSport); // TODO: REMOVE
-
 
     // ############################################################################################
     // ### UDP ####################################################################################
@@ -78,7 +76,7 @@ int main(int argc, char* argv[]) {
 
     if (getaddrinfo(GSIP, GSport, &udp_hints, &udp_res) != 0) {
         fprintf(stderr, "Error while getting UDP Game Server address.");
-        exit(1);   
+        exit(1); 
     }
 
 
@@ -90,7 +88,7 @@ int main(int argc, char* argv[]) {
     tcp_hints.ai_family = AF_INET; //IPv4
     tcp_hints.ai_socktype = SOCK_STREAM; //TCP socket
 
-    if (getaddrinfo(GSIP, GSPORT, &tcp_hints, &tcp_res) != 0) {
+    if (getaddrinfo(GSIP, GSport, &tcp_hints, &tcp_res) != 0) {
         fprintf(stderr, "Error while getting TCP Game Server address.");
         exit(1);   
     }

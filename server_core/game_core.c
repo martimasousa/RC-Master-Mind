@@ -48,7 +48,6 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     // TODO: Verify INV!
 
-
     if (!has_ongoing_game(PLID)) {
         char *response =  "RTR NOK\n";
         send_udp_response(udp_fd, response, client_addr);

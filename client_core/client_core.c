@@ -49,7 +49,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
         return ERROR;
     }
 
-    // Example: ERR\0
+    // Example: RSG ERR\0
     char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RSG %s\n", response_status);
 
