@@ -234,7 +234,7 @@ int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_a
 
     // Verificar se há argumentos extras
     const char *remaining = cmd + strlen(input_command) + 1 + strlen(temp_PLID) + 1 +
-                            strlen(temp_max_playtime) + 1 + 1 + 1 + 1 + 1;
+                            strlen(temp_max_playtime) + 4*COLOR_LEN*2;
     while (*remaining == ' ') remaining++;
     if (*remaining != '\0' && *remaining != '\n') {
         fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");

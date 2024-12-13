@@ -15,10 +15,14 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (has_ongoing_game(PLID)) {
-        char *response = "RSG NOK\n";
-        send_udp_response(udp_fd, response, client_addr);
-        return;
+        if (!has_exceeded_time(PLID)) {
+            response = "RSG NOK\n";
+            send_udp_response(udp_fd, response, client_addr);
+            return;
+        }
+        end_game(PLID, END_TIMEOUT, NOT_NEEDED);
     }
+    
 
     if (start_game(PLID, time, PLAY_MODE, game_solution) == OK) response = "RSG OK\n";
     else response = "RSG NOK\n";
@@ -41,8 +45,6 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     sscanf(command, "TRY %s %c %c %c %c %c\n", PLID, &player_try.colours[0], &player_try.colours[1], 
                                                    &player_try.colours[2], &player_try.colours[3], &nt);
-
-    // TODO: Verify Sintaxe!
 
     // TODO: Verify INV!
 
@@ -89,19 +91,13 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
     char PLID[PLID_DIGITS + 1];
+    int end_type;
     
     if (validate_quit_command(command, PLID, SERVER_SIDE, NONE) == ERROR) {
         char *response = "RQT ERR\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
-
-    // if (has_exceeded_time(PLID)) {
-    //     char *response = build_end_game_response(PLID, "RQT", "OK");
-    //     end_game(PLID, END_TIMEOUT, NOT_NEEDED);
-    //     send_udp_response(udp_fd, response, client_addr);
-    //     return;
-    // }
 
     /* If there is an ongoing game, respond with "RQT NOK" */
     if (!has_ongoing_game(PLID)) {
@@ -113,7 +109,10 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
     /* Get the solution and send the message */
     char *response = build_end_game_response(PLID, "RQT", "OK");
 
-    end_game(PLID, END_QUIT, NOT_NEEDED);
+    if (has_exceeded_time(PLID)) end_type = END_TIMEOUT;
+    else end_type = END_QUIT;
+
+    end_game(PLID, end_type, NOT_NEEDED);
     send_udp_response(udp_fd, response, client_addr);
 }
 
@@ -135,12 +134,14 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
-
     /* If there is an ongoing game, respond with "RSG NOK" */
     if (has_ongoing_game(PLID)) {
-        char *response = "RDB NOK\n";
-        send_udp_response(udp_fd, response, client_addr);
-        return;
+        if (!has_exceeded_time(PLID)) {
+            response = "RDB NOK\n";
+            send_udp_response(udp_fd, response, client_addr);
+            return;
+        }
+        end_game(PLID, END_TIMEOUT, NOT_NEEDED);
     }
 
     if (start_game(PLID, time, DEBUG_MODE, game_solution) == OK) response = "RDB OK\n";
@@ -154,6 +155,7 @@ void process_str_command(int client_fd, const char *command) {
     char PLID[PLID_DIGITS + 1];
     char *response;
     char *filepath;
+    char *PLID_to_send = NULL;
 
     if (validate_showtrials_command(command, PLID, SERVER_SIDE) == ERROR) {
         response = "RST NOK\n";
@@ -161,23 +163,23 @@ void process_str_command(int client_fd, const char *command) {
         return;
     }
 
-    // if (has_exceeded_time(PLID)) {
-    //     char *response = build_end_game_response(PLID, "RTR", "ETM");
-    //     end_game(PLID, END_TIMEOUT, NOT_NEEDED);
-    //     send_udp_response(udp_fd, response, client_addr);
-    //     return;
-    // }
-
-    char *PLID_to_send = NULL;
-    if (!has_ongoing_game(PLID)) {
+    int game_ended = FALSE;
+    if (has_ongoing_game(PLID)) {
+        if (has_exceeded_time(PLID))
+        {
+            end_game(PLID, END_TIMEOUT, NULL);
+            game_ended = TRUE;
+        } else {
+            filepath = get_game_folder_path(PLID);
+            PLID_to_send = PLID;
+        }
+    }
+    
+    if (game_ended) {
         filepath = malloc(sizeof(char) * BUFFER_SIZE);
         FindLastGame(PLID, filepath);
-    } else {
-        filepath = get_game_folder_path(PLID);
-        PLID_to_send = PLID;
     }
-
-    // Send PLID as NULL if game not active (to avoid returning remaining time)
+    
     execute_show_trials(client_fd, filepath, PLID_to_send);
 }
 

@@ -3,3 +3,4 @@ TODO:
 - [SERVER+CLIENT] Rever constantes
 - [SERVER] Verify INV (try function), start and debug. Problem related to UDP failing...
 - [SERVER] Time verifications
+- [CLIENT] Verificar função exit, quando recebe NOK o que fazer?
