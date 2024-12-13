@@ -460,19 +460,21 @@ int create_score_file(const char *PLID, const int number_tries) {
     return 0;
 }
 
-int calculate_score(const char *PLID, const int turnsPlayed) {
 
+int calculate_score(const char *PLID, const int turns_played) {
 
-    float elapsed_time = get_elapsed_time(PLID);
-    float max_time = (float)atoi(extract_game_info(PLID, ARG_MAXTIME));
+    int elapsed_time = get_elapsed_time(PLID);
 
-    // Calcule o score
-    float score = 100.0f * (((float)MAX_ALLOWED_PLAYS - turnsPlayed) / (float)MAX_ALLOWED_PLAYS) * 
-                            (1.0f - (elapsed_time / (float)MAX_ALLOWED_TIME)) * 
-                            ((float)MAX_ALLOWED_TIME / max_time);
-
-    // Arredonde para 2 casas decimais
-    return round(score);
+    double turns_penalty = ((double)(turns_played - 1) / (MAX_ALLOWED_PLAYS - 1)) * 50;
+    double time_penalty = pow((double)elapsed_time / MAX_ALLOWED_TIME, 0.3) * 50;
+    
+    int score = (int)(100 - (turns_penalty + time_penalty));
+    
+    if (score < 0) {
+        score = 0; // Garante que não será negativo
+    }
+    
+    return score;
 }
 
 
