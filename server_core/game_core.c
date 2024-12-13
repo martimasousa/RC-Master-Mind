@@ -58,7 +58,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
         end_game(PLID, END_TIMEOUT, NOT_NEEDED);
         send_udp_response(udp_fd, response, client_addr);
         return;
-    } 
+    }
     
     if (is_duplicated(PLID, &player_try)) {
         char *response = "RTR DUP\n";
@@ -95,6 +95,13 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
+
+    // if (has_exceeded_time(PLID)) {
+    //     char *response = build_end_game_response(PLID, "RQT", "OK");
+    //     end_game(PLID, END_TIMEOUT, NOT_NEEDED);
+    //     send_udp_response(udp_fd, response, client_addr);
+    //     return;
+    // }
 
     /* If there is an ongoing game, respond with "RQT NOK" */
     if (!has_ongoing_game(PLID)) {
@@ -154,6 +161,13 @@ void process_str_command(int client_fd, const char *command) {
         return;
     }
 
+    // if (has_exceeded_time(PLID)) {
+    //     char *response = build_end_game_response(PLID, "RTR", "ETM");
+    //     end_game(PLID, END_TIMEOUT, NOT_NEEDED);
+    //     send_udp_response(udp_fd, response, client_addr);
+    //     return;
+    // }
+
     char *PLID_to_send = NULL;
     if (!has_ongoing_game(PLID)) {
         filepath = malloc(sizeof(char) * BUFFER_SIZE);
@@ -205,9 +219,14 @@ void process_ssb_command(int client_fd, const char *command) {
         strcat(Fdata, line); // Append line to the end of Fdata
     }
 
+    // Create filename
+    char filename[MAX_FNAME];
+    time_t now = time(NULL);
+    sprintf(filename, "SCOREBOARD_%ld", now);
+
     // Write Fname and Fsize
     char res_init[20];
-    sprintf(res_init, "RSS OK Fname %ld ", Fsize);
+    sprintf(res_init, "RSS OK %s %ld ", filename, Fsize);
     if (tcp_write(client_fd, res_init)) {
         free(Fdata);
         return;

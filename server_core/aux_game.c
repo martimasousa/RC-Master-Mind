@@ -576,21 +576,10 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
 
     char line[GAME_INFO_MAX_LEN];
     char filedata[MAX_FSIZE];
-    // int n_try = 1;
     while (fgets(line, sizeof(line), file)) {
-        // Get only necessary data
-        // char c1, c2, c3, c4;
-        // int nB, nW;
-        // sscanf(line, "T: %c%c%c%c %d %d", &c1, &c2, &c3, &c4, &nB, &nW);
-
-        // char to_send[GAME_INFO_MAX_LEN];
-        // sprintf(to_send, "T%d: %c %c %c %c %d %d\n", n_try, c1, c2, c3, c4, nB, nW);
-
         size_t len = strlen(line);
         memcpy(filedata + total_size, line, len);
         total_size += len;
-
-        // n_try++;
     }
 
     // If game is active, send remaining time
@@ -612,12 +601,21 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
     }
 
     filedata[total_size] = '\0';
+
+    // Get the file name
+    const char *filename = strrchr(filepath, '/'); // Find the last occurrence of the directory separator
     
+    // If no '/' is found, the file name is the whole path
+    if (!filename) {
+        filename = filepath;
+    } else {
+        // Move past the last '/'
+        filename++;
+    }
 
     size_t message_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + MAX_FNAME + 1 + MAX_FILESIZE_DIGITS + 1 + file_data_size + 2;
     char message[message_len];
-    sprintf(message, "RST ACT MUDAR %d %s", file_data_size, filedata);
-    // printf("%s\n", message);
+    sprintf(message, "RST ACT %s %d %s", filename, file_data_size, filedata);
 
     tcp_write(client_fd, message);
 }
