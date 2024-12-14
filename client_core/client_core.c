@@ -30,26 +30,20 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
 
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while sending message.\n");
-        return ERROR;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
     // Receive server response
     // Example: SNG ERR\n\0
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + 1;
     char response[resp_len];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while receiving message.\n");
+
+    if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
         return ERROR;
     }
 
+    if (!strcmp(response, "ERR")) {
+        fprintf(stderr, "Error: Not recognized command.\n");
+        return ERROR;
+    }
+    
     // Example: RSG ERR\0
     char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RSG %s\n", response_status);
@@ -93,23 +87,17 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
 
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while sending message.\n");
-        return ERROR;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
     // Receive server response
     // Example: RTR ENT C1 C2 C3 C4\n\0 
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
     char response[resp_len];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while receiving message.\n");
+
+    if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
+        return ERROR;
+    }
+
+    if (!strcmp(response, "ERR")) {
+        fprintf(stderr, "Error: Not recognized command.\n");
         return ERROR;
     }
 
@@ -174,28 +162,22 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
     }
 
     // Create message to send
-    // Example: quit 106324\n\0
+    // Example: QUT 106324\n\0
     const char *components[] = {QUT_CMD, SPACE, PLID_arg, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
 
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while sending message.\n");
-        return ERROR;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
     // Receive server response
     // Example: RQT OK C1 C2 C3 C4\n\0
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
     char response[resp_len];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while receiving message.\n");
+    
+    if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
+        return ERROR;
+    }
+
+    if (!strcmp(response, "ERR")) {
+        fprintf(stderr, "Error: Not recognized command.\n");
         return ERROR;
     }
 
@@ -234,28 +216,22 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
     }
 
     // Create message to send
-    // Example: quit 106324
+    // Example: QUT 106324\n\0
     const char *components[] = {QUT_CMD, SPACE, PLID_arg, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
 
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while sending message.\n");
-        return ERROR;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
     // Receive server response
     // Example: RQT OK C1 C2 C3 C4\n\0
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
     char response[resp_len];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while receiving message.\n");
+
+    if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
+        return ERROR;
+    }
+
+    if (!strcmp(response, "ERR")) {
+        fprintf(stderr, "Error: Not recognized command.\n");
         return ERROR;
     }
 
@@ -301,23 +277,17 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
 
-    // Send message to server
-    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while sending message.\n");
-        return ERROR;
-    }
-
-    // Receive response from server
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(addr);
     // Receive server response
     // Example: SNG ERR\n\0
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + 1;
     char response[resp_len];
-    n = recvfrom(udp_fd, response, sizeof(response), 0, (struct sockaddr*)&addr, &addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while receiving message.\n");
+
+    if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
+        return ERROR;
+    }
+
+    if (!strcmp(response, "ERR")) {
+        fprintf(stderr, "Error: Not recognized command.\n");
         return ERROR;
     }
 
@@ -342,130 +312,88 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
 }
 
 
-
+/**
+ * Handles show_trials command.
+ */
 int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
-    
     char PLID_arg[PLID_DIGITS + 1];
     int_to_string(PLID, PLID_arg);
 
-    // Syntax Validation
+    // Validação do comando
     if (validate_showtrials_command(cmd, NULL, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
-
-    // ############################################################################################
-    // ### TCP CONNECTION #########################################################################
-    // Create TCP socket
-    int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (tcp_fd == ERROR) {
-        fprintf(stderr, "Error while creating TCP socket.");
-        return ERROR;
-    }
-
-    // Set timeout to file descriptor
-    struct timeval timeout;
-    timeout.tv_sec = 5; // TODO: Get this value from constants
-    timeout.tv_usec = 0;
-    if (setsockopt(tcp_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        fprintf(stderr, "setsockopt(SO_SNDTIMEO) failed");
-    }
-
-    // Open a TCP connection with the server
-    ssize_t n = connect(tcp_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while trying to establish a connection with GS.\n");
-        return ERROR;
-    }
-
-
-    // Create message to send (ex: STR 106324\n\0)
+    // Criar a mensagem para enviar (exemplo: "STR 106324\n")
     const char *components[] = {STR_CMD, SPACE, PLID_arg, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
 
-    // Send message to server
-    if (tcp_write(tcp_fd, msg)) {
-        fprintf(stderr, "Error while writing to TCP socket.\n");
+    // Criar o socket TCP e configurar o timeout
+    int tcp_fd;
+    if (create_tcp_socket(&tcp_fd) == ERROR) {
+        fprintf(stderr, "Failed to create TCP socket.\n");
+        return ERROR;
+    }
+
+    // Estabelecer a conexão com o servidor
+    if (connect_to_server(tcp_fd, tcp_res) == ERROR) {
+        fprintf(stderr, "Failed to connect to the server.\n");
         close(tcp_fd);
         return ERROR;
     }
-    
-    // Receive response from server (just need to read the first 2 words)
-    char *response;
-    if (tcp_read_until_delimiter(tcp_fd, &response, ' ', 2)) {
+
+    // Enviar a mensagem
+    if (send_message(tcp_fd, msg) == ERROR) {
+        fprintf(stderr, "Failed to send message.\n");
         close(tcp_fd);
         return ERROR;
     }
+    // Liberar mensagem apenas após ela ter sido enviada
+    free(msg);
+
+    // Receber resposta
+    char *response = NULL;
+    if (receive_response(tcp_fd, &response) == ERROR) {
+        fprintf(stderr, "Failed to receive response.\n");
+        close(tcp_fd);
+        return ERROR;
+    }
+
+    // Processar a resposta
     char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RST %s", response_status);
+    free(response);
 
-    // Evaluate responses
     if (!strcmp(response_status, "NOK")) {
-        close(tcp_fd);
         return ERROR;
     } else if (!strcmp(response_status, "ACT") || !strcmp(response_status, "FIN")) {
-        // Read Fname
-        char *Fname = NULL;
-        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1)) {
-            free(Fname);
-            close(tcp_fd);
-            return ERROR;
-        }
+        // Processar "ACT" ou "FIN"
+        char *Fname = NULL, *Fsize_char = NULL, *Fdata = NULL;
 
-        // Read Fsize
-        char *Fsize_char = NULL;
-        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1)) {
+        // Usando a subfunção para ler até o delimitador
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1) ||
+            tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1) ||
+            tcp_read(tcp_fd, &Fdata, atoi(Fsize_char)) == ERROR) {
             free(Fname);
             free(Fsize_char);
-            close(tcp_fd);
-            return 1;
-        }
-        int Fsize = atoi(Fsize_char);
-        free(Fsize_char);
-
-        // Read file content
-        char *Fdata;
-        if (tcp_read_until_delimiter(tcp_fd, &Fdata, '\0', 1)) {
-            close(tcp_fd);
+            free(Fdata);
             return ERROR;
         }
 
-
-        // ########################################################################################
-        // ### Store as local file ################################################################
-        char file_path[BUFFER_SIZE] = "./CLIENT_CACHE/";
-
-        // Create the directory
-        if (mkdir(file_path, 0755) != 0 && errno != EEXIST) { // Created successfully or already exists
-            fprintf(stderr, "Error while creating \'%s\' directory.\n", file_path);
-            free(Fdata);
+        // Armazenar dados como arquivo local
+        if (store_file_local(Fname, Fdata) == ERROR) {
             free(Fname);
-            close(tcp_fd);
-            return 1;
+            free(Fdata);
+            return ERROR;
         }
 
-        // Write Fdata into local file
-        strcat(file_path, Fname);
-        if (write_to_file(file_path, Fdata) == -1) {
-            fprintf(stderr, "Error while writing to local file.\n");
-            free(Fdata);
-            free(Fname);
-            close(tcp_fd);
-            return 1;
-        }
+        // Exibir conteúdo
+        show_content(Fdata);
 
-
-        // ########################################################################################
-        // ### Show content #######################################################################
-        printf("------------- TRIES: -------------\n");
-        printf(Fdata);
-        printf("----------------------------------\n");
-
-
-        free(Fdata);
         free(Fname);
-        close(tcp_fd);
+        free(Fsize_char);
+        free(Fdata);
         return OK;
     }
 

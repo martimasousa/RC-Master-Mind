@@ -485,6 +485,8 @@ char *create_string(const char *components[], size_t count) {
 
     return result;
 }
+
+
 /*
     MESSAGE sending and receiving functions
 */
@@ -552,6 +554,50 @@ int tcp_write(int fd, char* to_write) {
     }
 
     return 0;
+}
+
+int tcp_read(int fd, char **buffer, size_t n) {
+    if (!buffer) {
+        fprintf(stderr, "Invalid buffer pointer.\n");
+        return ERROR;
+    }
+
+    // Alocar memória para o buffer
+    *buffer = (char *)malloc(n + 1); // +1 para potencial terminador nulo
+    if (!(*buffer)) {
+        perror("Failed to allocate memory for buffer");
+        return ERROR;
+    }
+
+    size_t total_read = 0;
+    ssize_t bytes_read;
+
+    // Loop para ler até `n` bytes ou erro
+    while (total_read < n) {
+        bytes_read = read(fd, *buffer + total_read, n - total_read);
+
+        if (bytes_read < 0) {
+            perror("Error reading from file descriptor");
+            free(*buffer); // Liberar memória em caso de erro
+            *buffer = NULL; // Prevenir dangling pointers
+            return ERROR;
+        }
+
+        if (bytes_read == 0) {
+            // EOF encontrado antes de ler `n` bytes
+            fprintf(stderr, "Unexpected EOF encountered.\n");
+            free(*buffer);
+            *buffer = NULL;
+            return ERROR;
+        }
+
+        total_read += bytes_read;
+    }
+
+    // Garantir que o buffer seja nulo-terminado, caso seja usado como string
+    (*buffer)[n] = '\0';
+
+    return OK; // Sucesso
 }
 
 ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr) {

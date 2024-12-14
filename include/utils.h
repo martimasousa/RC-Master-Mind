@@ -73,6 +73,16 @@ int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times);
 // Writes some string to a tcp file descriptor
 int tcp_write(int fd, char* to_write);
 
+/**
+ * Reads exactly `n` characters from the given file descriptor (fd).
+ * 
+ * @param fd The file descriptor to read from.
+ * @param buffer A buffer where the read data will be stored.
+ * @param n The exact number of characters to read.
+ * @return 0 if successful, -1 if an error occurs (e.g., EOF or read failure).
+ */
+int tcp_read(int fd, char **buffer, size_t n);
+
 // Função que recebe uma mensagem UDP e retorna o número de bytes lidos.
 // Modifica o buffer com os dados recebidos.
 ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr);
