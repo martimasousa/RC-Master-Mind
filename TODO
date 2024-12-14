@@ -2,7 +2,7 @@ TODO:
 - [SERVER+CLIENT] Rever constantes e organizar código
 - [SERVER] Verify INV (try function), start and debug. Problem related to UDP failing...
 - [ALL] Adicionar verificações em funções que podem falhar tipo sscanf, etc etc
-- [ALL] Substituir os snprintf for memcpy porque dá merda com o tejo!
+- [ALL] Substituir os snprintf for memcpy porque dá merda com o tejo! (FALTA NO SERVER)
 - [ALL] Verificar quando coisas erradas foram enviadas para o servidor, tipo sem ser comando
 - [CLIENT] Ver aquela verificação dos argumentos "is_ip"
 - Do we need a special treatment if receive error was caused by a timeout???
