@@ -32,6 +32,7 @@ int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_s
 int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_arg, char *C1, char *C2, char *C3, char *C4, const int execution_side);
 int validate_showtrials_command(const char *cmd, char *PLID, const int execution_side);
 int validate_scoreboard_command(const char *cmd, const int execution_side);
+
 /*
     GENERAL auxiliar functions
 */
@@ -50,6 +51,10 @@ int write_to_file(const char *Fname, const char *Fdata);
 
 // Converts a char into an integer
 int convert_char_to_int(const char number);
+
+void int_to_string(int number, char *buffer);
+
+char *create_string(const char *components[], size_t count);
 
 /*
     MESSAGE sending and receiving functions

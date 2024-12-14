@@ -67,6 +67,10 @@
 #define STR_CMD             "STR"
 #define SSB_CMD             "SSB"
 
+// Usefull Strings 
+#define SPACE " "
+#define NEWLINE "\n"
+
 
 // Connection Related Variables
 #define localhost           "127.0.0.1"

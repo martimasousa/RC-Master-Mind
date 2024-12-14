@@ -14,7 +14,7 @@
 /**
  * Handles start command.
  */
-int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
+int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
 
     char PLID_arg[PLID_DIGITS + 1];
     char max_playtime_arg[TIME_DIGITS + 1];
@@ -26,12 +26,12 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 
     // Create message to send
     // Example: SNG 106324 100\n\0
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + TIME_DIGITS + 1 + 1;
-    char msg[msg_len];
-    snprintf(msg, msg_len, "SNG %s %s\n", PLID_arg, max_playtime_arg);
+    const char *components[] = {SNG_CMD, SPACE, PLID_arg, SPACE, max_playtime_arg, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *msg = create_string(components, count);
 
     // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
+    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while sending message.\n");
         return ERROR;
@@ -75,22 +75,26 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 /**
  * Handles try command.
  */
-int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID, int nT) {
-    char C1, C2, C3, C4;
+int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int nT) {
+    char C1[COLOR_LEN + 1], C2[COLOR_LEN + 1], C3[COLOR_LEN + 1], 
+         C4[COLOR_LEN + 1], number_tries[TRIAL_MAX_LEN + 1], PLID_arg[PLID_DIGITS + 1];
+
+    int_to_string(nT, number_tries);
+    int_to_string(PLID, PLID_arg);
 
     // Validate command syntax
-    if (validate_try_command(cmd, NULL, &C1, &C2, &C3, &C4, NULL, PLAYER_SIDE) == ERROR) {
+    if (validate_try_command(cmd, NULL, C1, C2, C3, C4, NULL, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
     // Create message to send
     // Example: TRY 106324 Y Y Y Y 1\n\0
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 4*2 + 1 + 1 + 1 + 1;
-    char msg[msg_len];
-    snprintf(msg, msg_len, "TRY %d %c %c %c %c %d\n", PLID, C1, C2, C3, C4, nT);
+    const char *components[] = {TRY_CMD, SPACE, PLID_arg, SPACE, C1, SPACE, C2, SPACE, C3, SPACE, C4, SPACE, number_tries, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *msg = create_string(components, count);
 
     // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
+    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while sending message.\n");
         return ERROR;
@@ -139,13 +143,11 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
         return ERROR;
     } else if (!strcmp(response_status, "ENT")) {
         char C1, C2, C3, C4;
-        printf("%s\n", response);
         sscanf(response, "RTR ENT %c %c %c %c\n", &C1, &C2, &C3, &C4);
         printf("You have no more attempts available!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
     } else if (!strcmp(response_status, "ETM")) {
         char C1, C2, C3, C4;
-        printf("%s\n", response);
         sscanf(response, "RTR ETM %c %c %c %c\n", &C1, &C2, &C3, &C4);
         printf("You have exceed the play time!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
@@ -162,7 +164,10 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMA
 /**
  * Handles quit command.
  */
-int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
+int quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
+
+    char PLID_arg[PLID_DIGITS + 1];
+    int_to_string(PLID, PLID_arg);
 
     if (validate_quit_command(cmd, NULL, PLAYER_SIDE, QUIT_CONTEXT) == ERROR) {
         return ERROR;
@@ -170,13 +175,12 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
 
     // Create message to send
     // Example: quit 106324\n\0
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + 1;
-    char msg[msg_len];
-    snprintf(msg, msg_len, "QUT %d\n", PLID);
-
+    const char *components[] = {QUT_CMD, SPACE, PLID_arg, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *msg = create_string(components, count);
 
     // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
+    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while sending message.\n");
         return ERROR;
@@ -220,20 +224,23 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
 /**
  * Handles exit command.
  */
-int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND], int PLID) {
+int exit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
     
+    char PLID_arg[PLID_DIGITS + 1];
+    int_to_string(PLID, PLID_arg);
+
     if (validate_quit_command(cmd, NULL, PLAYER_SIDE, EXIT_CONTEXT) == ERROR) {
         return ERROR;
     }
 
     // Create message to send
     // Example: quit 106324
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + 1;
-    char msg[msg_len];
-    snprintf(msg, msg_len, "QUT %d\n", PLID);
+    const char *components[] = {QUT_CMD, SPACE, PLID_arg, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *msg = create_string(components, count);
 
     // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
+    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while sending message.\n");
         return ERROR;
@@ -277,28 +284,25 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMM
 /**
  * Handles debug command.
  */
-int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COMMAND]) {
-    char PLID_arg[PLID_DIGITS + 1];
-    char max_playtime_arg[TIME_DIGITS + 1];
-    char C1, C2, C3, C4;
+int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
+    char C1[COLOR_LEN + 1], C2[COLOR_LEN + 1], C3[COLOR_LEN + 1], 
+         C4[COLOR_LEN + 1], max_playtime_arg[TIME_DIGITS + 1], PLID_arg[PLID_DIGITS + 1];
+
 
     // Valida o comando "debug"
-    if (validate_debug_command(cmd, PLID_arg, max_playtime_arg, &C1, &C2, &C3, &C4, PLAYER_SIDE) == ERROR) {
+    if (validate_debug_command(cmd, PLID_arg, max_playtime_arg, C1, C2, C3, C4, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
-    // Converte argumentos para inteiros
-    int PLID = atoi(PLID_arg);
-    int max_playtime = atoi(max_playtime_arg);
 
     // Create message to send
     // Example: DBG 106324 100 Y Y Y Y\n\0
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + TIME_DIGITS + 4*2 + 1 + 1;
-    char msg[msg_len];
-    snprintf(msg, msg_len, "DBG %d %d %c %c %c %c\n", PLID, max_playtime, C1, C2, C3, C4);
+    const char *components[] = {DBG_CMD, SPACE, PLID_arg, SPACE, max_playtime_arg, C1, SPACE, C2, SPACE, C3, SPACE, C4, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *msg = create_string(components, count);
 
     // Send message to server
-    ssize_t n = sendto(udp_fd, msg, sizeof(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
+    ssize_t n = sendto(udp_fd, msg, strlen(msg), 0, udp_res->ai_addr, udp_res->ai_addrlen);
     if (n == ERROR) {
         fprintf(stderr, "Error while sending message.\n");
         return ERROR;
@@ -320,6 +324,8 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
     char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RDB %s", response_status);
 
+    int PLID = atoi(PLID_arg);
+
     // Deal with response
     if (!strcmp(response_status, "OK")) {
         return PLID;
@@ -337,8 +343,11 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char cmd[MAX_PLAYER_COM
 
 
 
-int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND], int PLID) {
+int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
     
+    char PLID_arg[PLID_DIGITS + 1];
+    int_to_string(PLID, PLID_arg);
+
     // Syntax Validation
     if (validate_showtrials_command(cmd, NULL, PLAYER_SIDE) == ERROR) {
         return ERROR;
@@ -371,9 +380,9 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
 
 
     // Create message to send (ex: STR 106324\n\0)
-    size_t msg_len = COMMAND_LEN + 1 + PLID_DIGITS + 1 + 1;
-    char msg[msg_len];
-    snprintf(msg, msg_len, "STR %d\n", PLID);
+    const char *components[] = {STR_CMD, SPACE, PLID_arg, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *msg = create_string(components, count);
 
     // Send message to server
     if (tcp_write(tcp_fd, msg)) {
@@ -464,7 +473,7 @@ int show_trials_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND],
 }
 
 
-int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], char type[MAX_PLAYER_COMMAND]) {
+int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
     
     if (validate_scoreboard_command(cmd, PLAYER_SIDE) == ERROR) {
         return ERROR;
@@ -496,9 +505,9 @@ int scoreboard_function(struct addrinfo *tcp_res, char cmd[MAX_PLAYER_COMMAND], 
     
 
     // Create message to send
-    size_t msg_len = COMMAND_LEN + 2;
-    char msg[msg_len];
-    snprintf(msg, msg_len, "SSB\n\0");
+    const char *components[] = {SSB_CMD, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *msg = create_string(components, count);
 
     // Send message to server
     if (tcp_write(tcp_fd, msg)) {

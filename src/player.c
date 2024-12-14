@@ -9,7 +9,6 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <signal.h>
-#include <sys/time.h>
 
 #include "constants.h"
 #include "utils.h"
@@ -28,7 +27,7 @@ int nT = 1;
 
 void signal_handler(int signum) {
     if (udp_fd != NOT_PLAYING && udp_res != NULL && PLID != NOT_PLAYING) {
-        quit_function(udp_fd, udp_res, "quit", PLID);
+        quit_function(udp_fd, udp_res, "quit\n", PLID);
     }
 
     exit(0);
@@ -69,14 +68,6 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    // Set timeout to file descriptor
-    struct timeval timeout;
-    timeout.tv_sec = 5; // TODO: Get this value from constants
-    timeout.tv_usec = 0;
-    if (setsockopt(udp_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        fprintf(stderr, "setsockopt(SO_SNDTIMEO) failed");
-    }
-
     // Find Game Server address (UDP) -> Will be stored in res
     struct addrinfo udp_hints /*, *udp_res*/;
     memset(&udp_hints, 0, sizeof udp_hints);
@@ -90,7 +81,7 @@ int main(int argc, char* argv[]) {
 
 
     // ############################################################################################
-    // ### TCP ####################################################################################
+    // ### UDP ####################################################################################
     // Find Game Server address (TCP) -> Will be stored in res
     struct addrinfo tcp_hints, *tcp_res;
     memset(&tcp_hints, 0, sizeof tcp_hints);
@@ -167,12 +158,12 @@ int main(int argc, char* argv[]) {
             }
         } else if (!strcmp(type, "show_trials") || !strcmp(type, "st")) {
             if (lastPLID != NOT_PLAYING) {
-                show_trials_function(tcp_res, cmd, type, lastPLID);
+                show_trials_function(tcp_res, cmd, lastPLID);
             } else {
                 fprintf(stderr, "Error: You don't have an active/past game.\n");
             }
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
-            scoreboard_function(tcp_res, cmd, type);
+            scoreboard_function(tcp_res, cmd);
         } else {
             fprintf(stderr, "Error: Please provide a valid command.\n");
         }

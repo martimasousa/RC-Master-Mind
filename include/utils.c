@@ -34,7 +34,6 @@ int file_exists(const char *path) {
     return FALSE;
 }
 
-
 int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_arg, const int execution_side) {
     char *expected_command_name;
     char input_command[INPUT_ARGUMENT_LEN];
@@ -111,7 +110,7 @@ int validate_try_command(const char *cmd, char *PLID_arg, char *C1, char *C2, ch
     // Verificar os comandos do cliente e do servidor
     if (execution_side == SERVER_SIDE) {
         // Para o lado do servidor, o comando esperado é "TRY PLID C1 C2 C3 C4 nT"
-        int items_read = sscanf(cmd, "%s %s %c %c %c %c %c",
+        int items_read = sscanf(cmd, "%s %s %s %s %s %s %s",
                                 input_command, temp_PLID, C1, C2, C3, C4, nT);
 
         if (items_read != 7) {
@@ -141,7 +140,7 @@ int validate_try_command(const char *cmd, char *PLID_arg, char *C1, char *C2, ch
 
     } else if (execution_side == PLAYER_SIDE) {
         // Para o lado do cliente, o comando esperado é "try C1 C2 C3 C4"
-        int items_read = sscanf(cmd, "%s %c %c %c %c", input_command, C1, C2, C3, C4);
+        int items_read = sscanf(cmd, "%s %s %s %s %s", input_command, C1, C2, C3, C4);
 
         if (items_read != 5) {
             fprintf(stderr, "Error: Command format should be '%s C1 C2 C3 C4'.\n", expected_command_name);
@@ -161,11 +160,15 @@ int validate_try_command(const char *cmd, char *PLID_arg, char *C1, char *C2, ch
     }
 
     // Verificar se há argumentos extras
-    const char *remaining = cmd + strlen(input_command) + 1;
+    int total = 0;
+    total += strlen(input_command) + 1;
+
+    const char *remaining = cmd + strlen(input_command);
     if (execution_side == SERVER_SIDE) {
-        remaining += strlen(temp_PLID) + 1 + 4 * 2 + 1;
+        remaining += 1 + strlen(temp_PLID) + 1 + (4 * COLOR_LEN* 2) + 1;
     } else if (execution_side == PLAYER_SIDE) {
-        remaining += 4 * 2;
+        total += (4 * COLOR_LEN * 2);
+        remaining += (4 * COLOR_LEN * 2);
     }
 
     while (*remaining == ' ') remaining++;
@@ -448,6 +451,39 @@ int write_to_file(const char *Fname, const char *Fdata) {
 
 int convert_char_to_int(const char number) {
     return number - '0';
+}
+
+void int_to_string(int number, char *buffer) {
+    sprintf(buffer, "%d", number);
+}
+
+char *create_string(const char *components[], size_t count) {
+
+    // Calcular o tamanho total da string
+    size_t total_length = 0;
+    for (size_t i = 0; i < count; i++) {
+        total_length += strlen(components[i]);
+    }
+    // Alocar memória para a string resultante
+    char *result = (char *)malloc(total_length + 1); // +1 para o terminador nulo
+    if (!result) {
+        perror("Erro ao alocar memória");
+        return NULL;
+    }
+
+    size_t offset = 0;
+
+    // Construir a string usando memcpy
+    for (size_t i = 0; i < count; i++) {
+        size_t len = strlen(components[i]);
+        memcpy(result + offset, components[i], len);
+        offset += len;
+    }
+
+    // Adicionar terminador nulo
+    result[offset] = '\0';
+
+    return result;
 }
 /*
     MESSAGE sending and receiving functions
