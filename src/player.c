@@ -9,6 +9,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #include "constants.h"
 #include "utils.h"
@@ -68,6 +69,14 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    // Set timeout to file descriptor
+    struct timeval timeout;
+    timeout.tv_sec = 5; // TODO: Get this value from constants
+    timeout.tv_usec = 0;
+    if (setsockopt(udp_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
+        fprintf(stderr, "setsockopt(SO_SNDTIMEO) failed");
+    }
+
     // Find Game Server address (UDP) -> Will be stored in res
     struct addrinfo udp_hints /*, *udp_res*/;
     memset(&udp_hints, 0, sizeof udp_hints);
@@ -81,7 +90,7 @@ int main(int argc, char* argv[]) {
 
 
     // ############################################################################################
-    // ### UDP ####################################################################################
+    // ### TCP ####################################################################################
     // Find Game Server address (TCP) -> Will be stored in res
     struct addrinfo tcp_hints, *tcp_res;
     memset(&tcp_hints, 0, sizeof tcp_hints);

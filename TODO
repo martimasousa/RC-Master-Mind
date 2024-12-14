@@ -1,8 +1,9 @@
 TODO:
-- [CLIENT] Timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
 - [SERVER+CLIENT] Rever constantes e organizar código
 - [SERVER] Verify INV (try function), start and debug. Problem related to UDP failing...
 - [ALL] Adicionar verificações em funções que podem falhar tipo sscanf, etc etc
 - [ALL] Substituir os snprintf for memcpy porque dá merda com o tejo!
 - [ALL] Verificar quando coisas erradas foram enviadas para o servidor, tipo sem ser comando
 - [CLIENT] Ver aquela verificação dos argumentos "is_ip"
+- Do we need a special treatment if receive error was caused by a timeout???
+- [CLIENT] TESTAR timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
