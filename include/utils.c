@@ -545,7 +545,11 @@ int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
     while (1) {
         ssize_t n = read(fd, &c, 1);  // Read one byte at a time
         if (n == -1) {
-            fprintf(stderr, "Error while reading from TCP socket.\n");
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                fprintf(stderr, "Read operation timed out.\n");
+            } else {
+                fprintf(stderr, "Error while reading from TCP socket.\n");
+            }
             return 1;
         }
         if (n == 0) {  // End of stream (either due to EOF or socket closed by other peer)

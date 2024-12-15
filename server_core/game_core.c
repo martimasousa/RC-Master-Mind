@@ -281,7 +281,7 @@ void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char
     }
 }
 
-void process_command_tcp(int client_fd, const char *command) { 
+void process_command_tcp(int client_fd, const char *command) {
     char type[3];
     sscanf(command, "%s", type);
 
