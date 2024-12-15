@@ -233,7 +233,7 @@ int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_a
     }
 
     // Usar sscanf para extrair os valores da string cmd
-    int items_read = sscanf(cmd, "%s %s %s %c %c %c %c",
+    int items_read = sscanf(cmd, "%s %s %s %s %s %s %s",
                             input_command, temp_PLID, temp_max_playtime, C1, C2, C3, C4);
 
     // Verificar se os argumentos foram lidos corretamente

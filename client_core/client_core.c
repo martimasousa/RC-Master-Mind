@@ -260,16 +260,14 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     char C1[COLOR_LEN + 1], C2[COLOR_LEN + 1], C3[COLOR_LEN + 1], 
          C4[COLOR_LEN + 1], max_playtime_arg[TIME_DIGITS + 1], PLID_arg[PLID_DIGITS + 1];
 
-
     // Valida o comando "debug"
     if (validate_debug_command(cmd, PLID_arg, max_playtime_arg, C1, C2, C3, C4, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
-
     // Create message to send
     // Example: DBG 106324 100 Y Y Y Y\n\0
-    const char *components[] = {DBG_CMD, SPACE, PLID_arg, SPACE, max_playtime_arg, C1, SPACE, C2, SPACE, C3, SPACE, C4, NEWLINE};
+    const char *components[] = {DBG_CMD, SPACE, PLID_arg, SPACE, max_playtime_arg, SPACE, C1, SPACE, C2, SPACE, C3, SPACE, C4, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
 
