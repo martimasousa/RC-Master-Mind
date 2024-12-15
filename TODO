@@ -4,5 +4,3 @@ TODO:
 - [ALL] Adicionar verificações em funções que podem falhar tipo sscanf, etc etc
 - [ALL] Substituir os snprintf for memcpy porque dá merda com o tejo! (FALTA NOS COMANDOS TCP)
 - [CLIENT] Ver aquela verificação dos argumentos "is_ip"
-- Do we need a special treatment if receive error was caused by a timeout???
-- [CLIENT] TESTAR timeout no receive do UDP para o caso de não ser bem sucedida a comunicação com o server -> setsockpt()
