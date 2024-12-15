@@ -95,6 +95,7 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
 /*
     TRY and QUIT auxiliar functions
 */
+char *generate_try_result_message(char *PLID, int *player_try_res, int nt);
 
 // Executes the try logic and returns the result
 int* make_try(const char *PLID, const GameTry player_try);

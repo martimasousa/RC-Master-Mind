@@ -75,10 +75,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     }
 
     int* player_try_res = make_try(PLID, player_try);
-
-    size_t response_len = COMMAND_LEN + 1 + RESPONSE_LEN + TRIAL_MAX_LEN*3*2 + 2;
-    char response[response_len];
-    sprintf(response, "RTR OK %c %d %d\n", nt, player_try_res[0], player_try_res[1]);
+    char *response = generate_try_result_message(PLID, player_try_res, nt);
 
     if (has_won(player_try_res)) {
         end_game(PLID, END_WIN, convert_char_to_int(nt));

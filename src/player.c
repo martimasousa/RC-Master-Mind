@@ -34,38 +34,15 @@ void signal_handler(int signum) {
 }
 
 
-int main(int argc, char* argv[]) {
-    char *GSIP = localhost;
-    char *GSport = GSPORT;
+void handleClient(char *GSIP, char *GSport) {
 
-    // Read command-line arguments
-    if (!((argc == 1) || 
-        (argc == 3 && ((strcmp(argv[1], "-n") == 0 /*&& is_valid_ip(argv[2])*/) || 
-                        (strcmp(argv[1], "-p") == 0 && is_integer(argv[2])))) || 
-        (argc == 5 && strcmp(argv[1], "-n") == 0 && /*is_valid_ip(argv[2]) &&*/ 
-                        strcmp(argv[3], "-p") == 0 && is_integer(argv[4])))) {
-        fprintf(stderr, "Error while reading arguments.\nUsage: ./player [-n GSIP] [-p GSport]\n");
-        return 0;
-    }
-
-    if (argc == 3) {
-        if (strcmp(argv[1], "-n") == 0) {
-            GSIP = argv[2];
-        } else {
-            GSport = argv[2];
-        }
-    } else if (argc == 5) {
-        GSIP = argv[2];
-        GSport = argv[4];
-    }
-
-    // ############################################################################################
+        // ############################################################################################
     // ### UDP ####################################################################################
     // Create UDP socket
     udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd == -1) {
         fprintf(stderr, "Error while creating UDP socket.");
-        exit(1);
+        return;
     }
 
     // Find Game Server address (UDP) -> Will be stored in res
@@ -76,12 +53,12 @@ int main(int argc, char* argv[]) {
 
     if (getaddrinfo(GSIP, GSport, &udp_hints, &udp_res) != 0) {
         fprintf(stderr, "Error while getting UDP Game Server address.");
-        exit(1); 
+        return; 
     }
 
 
     // ############################################################################################
-    // ### UDP ####################################################################################
+    // ### TCP ####################################################################################
     // Find Game Server address (TCP) -> Will be stored in res
     struct addrinfo tcp_hints, *tcp_res;
     memset(&tcp_hints, 0, sizeof tcp_hints);
@@ -90,7 +67,7 @@ int main(int argc, char* argv[]) {
 
     if (getaddrinfo(GSIP, GSport, &tcp_hints, &tcp_res) != 0) {
         fprintf(stderr, "Error while getting TCP Game Server address.");
-        exit(1);   
+        return;   
     }
 
     // Set up the SIGINT handler
@@ -172,5 +149,34 @@ int main(int argc, char* argv[]) {
     freeaddrinfo(udp_res);
     close(udp_fd);
 
-    return 0;
+    return;
+}
+
+
+int main(int argc, char* argv[]) {
+    char *GSIP = localhost;
+    char *GSport = GSPORT;
+
+    // Read command-line arguments
+    if (!((argc == 1) || 
+        (argc == 3 && ((strcmp(argv[1], "-n") == 0 /*&& is_valid_ip(argv[2])*/) || 
+                        (strcmp(argv[1], "-p") == 0 && is_integer(argv[2])))) || 
+        (argc == 5 && strcmp(argv[1], "-n") == 0 && /*is_valid_ip(argv[2]) &&*/ 
+                        strcmp(argv[3], "-p") == 0 && is_integer(argv[4])))) {
+        fprintf(stderr, "Error while reading arguments.\nUsage: ./player [-n GSIP] [-p GSport]\n");
+        return 0;
+    }
+
+    if (argc == 3) {
+        if (strcmp(argv[1], "-n") == 0) {
+            GSIP = argv[2];
+        } else {
+            GSport = argv[2];
+        }
+    } else if (argc == 5) {
+        GSIP = argv[2];
+        GSport = argv[4];
+    }
+
+    handleClient(GSIP, GSport);
 }

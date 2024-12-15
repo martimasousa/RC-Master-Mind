@@ -70,11 +70,9 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
  * Handles try command.
  */
 int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int nT) {
-    char C1[COLOR_LEN + 1], C2[COLOR_LEN + 1], C3[COLOR_LEN + 1], 
-         C4[COLOR_LEN + 1], number_tries[TRIAL_MAX_LEN + 1], PLID_arg[PLID_DIGITS + 1];
-
-    int_to_string(nT, number_tries);
-    int_to_string(PLID, PLID_arg);
+    char C1[COLOR_LEN + 1], C2[COLOR_LEN + 1], C3[COLOR_LEN + 1], C4[COLOR_LEN + 1];
+    char *number_tries = int_to_string(nT);
+    char *PLID_arg = int_to_string(PLID);
 
     // Validate command syntax
     if (validate_try_command(cmd, NULL, C1, C2, C3, C4, NULL, PLAYER_SIDE) == ERROR) {
@@ -154,8 +152,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
  */
 int quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
 
-    char PLID_arg[PLID_DIGITS + 1];
-    int_to_string(PLID, PLID_arg);
+    char *PLID_arg = int_to_string(PLID);
 
     if (validate_quit_command(cmd, NULL, PLAYER_SIDE, QUIT_CONTEXT) == ERROR) {
         return ERROR;
@@ -208,8 +205,7 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
  */
 int exit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
     
-    char PLID_arg[PLID_DIGITS + 1];
-    int_to_string(PLID, PLID_arg);
+    char *PLID_arg = int_to_string(PLID);
 
     if (validate_quit_command(cmd, NULL, PLAYER_SIDE, EXIT_CONTEXT) == ERROR) {
         return ERROR;
@@ -316,8 +312,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
  * Handles show_trials command.
  */
 int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
-    char PLID_arg[PLID_DIGITS + 1];
-    int_to_string(PLID, PLID_arg);
+    char *PLID_arg = int_to_string(PLID);
 
     // Validação do comando
     if (validate_showtrials_command(cmd, NULL, PLAYER_SIDE) == ERROR) {

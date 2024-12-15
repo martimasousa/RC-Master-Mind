@@ -113,17 +113,31 @@ void write_game_line(const char *PLID, const char *message) {
 }
 
 char* build_end_game_response(const char* PLID, const char* Command, const char* Status) {
+
     GameTry *game_solution = extract_game_colour(PLID);
 
-    size_t response_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*COLOR_LEN*2 + 1 + 1;
-    char *response = malloc(sizeof(char) * response_len);
-    snprintf(response, response_len, "%s %s %c %c %c %c\n", Command, Status, 
-                                                   game_solution->colours[0],
-                                                   game_solution->colours[1],
-                                                   game_solution->colours[2],
-                                                   game_solution->colours[3]);
+     // Buffer para converter cada cor em uma string
+    char colour_0[COLOR_LEN + 1] = {game_solution->colours[0], '\0'};
+    char colour_1[COLOR_LEN + 1] = {game_solution->colours[1], '\0'};
+    char colour_2[COLOR_LEN + 1] = {game_solution->colours[2], '\0'};
+    char colour_3[COLOR_LEN + 1] = {game_solution->colours[3], '\0'};
 
-    return response;
+    // Componentes da mensagem
+    const char *components[] = {
+        Command, SPACE, 
+        Status, SPACE, 
+        colour_0, SPACE, 
+        colour_1, SPACE, 
+        colour_2, SPACE, 
+        colour_3, NEWLINE
+    };
+
+    size_t count = sizeof(components) / sizeof(components[0]);
+
+    // Criar a mensagem final
+    char *msg = create_string(components, count);
+
+    return msg;
 }
 
 char* get_completed_game_name(char const type) {
@@ -293,6 +307,18 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
 /*
     TRY and QUIT auxiliar functions
 */
+char *generate_try_result_message(char *PLID, int *player_try_res, int nt) {
+
+    char number_tries[TRIAL_MAX_LEN + 1] = {nt, '\0'};
+    char *nB = int_to_string(player_try_res[0]);
+    char *nW = int_to_string(player_try_res[1]);
+
+    const char *components[] = {"RTR", SPACE, "OK", SPACE, number_tries, SPACE, nB, SPACE, nW, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *response = create_string(components, count);
+
+    return response;
+}
 
 int* make_try(const char *PLID, const GameTry player_try) {
     int *player_try_res = get_try_results(PLID, player_try);

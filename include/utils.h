@@ -52,7 +52,7 @@ int write_to_file(const char *Fname, const char *Fdata);
 // Converts a char into an integer
 int convert_char_to_int(const char number);
 
-void int_to_string(int number, char *buffer);
+char *int_to_string(int number);
 
 char *create_string(const char *components[], size_t count);
 

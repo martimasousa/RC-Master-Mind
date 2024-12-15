@@ -453,8 +453,48 @@ int convert_char_to_int(const char number) {
     return number - '0';
 }
 
-void int_to_string(int number, char *buffer) {
-    sprintf(buffer, "%d", number);
+char *int_to_string(int number) {
+    int len = 0, temp = number, is_negative = 0;
+
+    // Tratar o número zero como caso especial
+    if (number == 0) {
+        char *result = malloc(2); // Um dígito + '\0'
+        if (!result) return NULL; // Verificar alocação
+        result[0] = '0';
+        result[1] = '\0';
+        return result;
+    }
+
+    // Lidar com números negativos
+    if (number < 0) {
+        is_negative = 1;
+        number = -number;
+    }
+
+    // Contar o número de dígitos no número
+    while (temp != 0) {
+        len++;
+        temp /= 10;
+    }
+
+    // Alocar memória para os dígitos e o terminador nulo
+    char *result = malloc(len + is_negative + 1); // +1 para sinal e +1 para '\0'
+    if (!result) return NULL; // Verificar alocação
+
+    result[len + is_negative] = '\0'; // Terminar a string
+
+    // Converter os dígitos para caracteres
+    for (int i = len + is_negative - 1; i >= is_negative; i--) {
+        result[i] = (number % 10) + '0';
+        number /= 10;
+    }
+
+    // Adicionar o sinal negativo, se necessário
+    if (is_negative) {
+        result[0] = '-';
+    }
+
+    return result;
 }
 
 char *create_string(const char *components[], size_t count) {

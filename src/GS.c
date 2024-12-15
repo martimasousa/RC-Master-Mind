@@ -181,7 +181,7 @@ int handleServer(char *GSport, int is_verbose) {
 
             if (recv_udp_message(udp_fd, command, BUFFER_SIZE, client_addr) == -1) {
                 perror("Error reading command");
-                exit(1); // TODO: ???
+                exit(1);
             }
 
             // If verbose option set, print request details
@@ -196,19 +196,16 @@ int handleServer(char *GSport, int is_verbose) {
 
             process_command_udp(udp_fd, client_addr, command);
 
-            //printf("[gameLogic] Solution: %c %c %c %c\n", gameInfo->game_solution.colours[0], gameInfo->game_solution.colours[1], gameInfo->game_solution.colours[2], gameInfo->game_solution.colours[3]);
-
             free(command);
             free(client_addr);
             
-            //gameLogic(&gameInfo);
-            //printf("[MAIN] Solution: %c %c %c %c\n", gameInfo->game_solution.colours[0], gameInfo->game_solution.colours[1], gameInfo->game_solution.colours[2], gameInfo->game_solution.colours[3]);
         }
     }
     close(tcp_fd);
     close(udp_fd);
     return 0;
 }
+
 
 int main(int argc, char* argv[]) {
 
