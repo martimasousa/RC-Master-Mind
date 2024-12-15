@@ -1,7 +1,17 @@
 #ifndef CLIENT_CORE_H
 #define CLIENT_CORE_H
 
+#include <string.h>
+#include <stdio.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/time.h>
+
 #include "constants.h"
+#include "aux_client.h"
+#include "utils.h"
 
 int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd);
 int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int nT);

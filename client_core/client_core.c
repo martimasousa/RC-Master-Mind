@@ -1,15 +1,5 @@
-#include <string.h>
-#include <stdio.h>
-#include <netdb.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/time.h>
-
-#include "constants.h"
 #include "client_core.h"
-#include "aux_client.h"
-#include "utils.h"
+
 
 /**
  * Handles start command.
@@ -50,7 +40,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     int result = sscanf(response, "RSG %s\n", response_status);
 
     if (result != 1) {
-        printf("Error: Failed to parse the response string.\n");
+        fprintf(stderr, "Error: Failed to parse the response string.\n");
         return ERROR;
     }
 
@@ -112,7 +102,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
     int result = sscanf(response, "RTR %s", response_status);
 
     if (result != 1) {
-        printf("Error: Failed to parse the response string.\n");
+        fprintf(stderr, "Error: Failed to parse the response string.\n");
         return ERROR;
     }
 
@@ -123,7 +113,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
         int result = sscanf(response, "RTR OK %d %d %d\n", &nT, &nB, &nW);
 
         if (result != 3) {
-            printf("Error: Failed to parse the response string.\n");
+            fprintf(stderr, "Error: Failed to parse the response string.\n");
             return ERROR;
         }
 
@@ -148,7 +138,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
         int result = sscanf(response, "RTR ENT %c %c %c %c\n", &C1, &C2, &C3, &C4);
 
         if (result != 4) {
-            printf("Error: Failed to parse the response string.\n");
+            fprintf(stderr, "Error: Failed to parse the response string.\n");
             return ERROR;
         }
 
@@ -159,7 +149,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
         int result = sscanf(response, "RTR ETM %c %c %c %c\n", &C1, &C2, &C3, &C4);
 
         if (result != 4) {
-            printf("Error: Failed to parse the response string.\n");
+            fprintf(stderr, "Error: Failed to parse the response string.\n");
             return ERROR;
         }
 
@@ -214,7 +204,7 @@ int exit_quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID
     int result = sscanf(response, "RQT %s", response_status);
 
     if (result != 1) {
-        printf("Error: Failed to parse the response string.\n");
+        fprintf(stderr, "Error: Failed to parse the response string.\n");
         return ERROR;
     }
 
@@ -224,7 +214,7 @@ int exit_quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID
         int result = sscanf(response, "RQT OK %c %c %c %c\n", &C1, &C2, &C3, &C4);
         
         if (result != 4) {
-            printf("Error: Failed to parse the response string.\n");
+            fprintf(stderr, "Error: Failed to parse the response string.\n");
             return ERROR;
         
         }
@@ -279,7 +269,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     int result = sscanf(response, "RDB %s", response_status);
     
     if (result != 1) {
-        printf("Error: Failed to parse the response string.\n");
+        fprintf(stderr, "Error: Failed to parse the response string.\n");
         return ERROR;
     }
 
@@ -359,12 +349,12 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
     int result = sscanf(response, "RST %s", response_status);
 
     if (result != 1) {
-        printf("Error: Failed to parse the response string.\n");
+        fprintf(stderr, "Error: Failed to parse the response string.\n");
         free(response);
         close(tcp_fd);
         return ERROR;
     }
-    
+
     free(response);
 
     // Deal with response
@@ -462,7 +452,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
     int result = sscanf(response, "RSS %s", response_status);
     
     if (result != 1) {
-        printf("Error: Failed to parse the response string.\n");
+        fprintf(stderr, "Error: Failed to parse the response string.\n");
         free(response);
         close(tcp_fd);
         return ERROR;

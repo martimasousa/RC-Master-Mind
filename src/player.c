@@ -1,15 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdbool.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
 #include <signal.h>
-#include <sys/time.h>
 
 #include "constants.h"
 #include "utils.h"
@@ -19,7 +8,7 @@
 int udp_fd = NOT_PLAYING;
 struct addrinfo *udp_res = NULL;
 
-// Stauts variables
+// Status variables
 int running = TRUE;
 int PLID = NOT_PLAYING;
 int lastPLID = NOT_PLAYING;
@@ -42,7 +31,7 @@ void handleClient(char *GSIP, char *GSport) {
     // Create UDP socket
     udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd == -1) {
-        fprintf(stderr, "Error while creating UDP socket.");
+        fprintf(stderr, "Error: Error while creating UDP socket.");
         return;
     }
 
@@ -51,17 +40,17 @@ void handleClient(char *GSIP, char *GSport) {
     timeout.tv_sec = TIMEOUT_SECONDS;
     timeout.tv_usec = 0;
     if (setsockopt(udp_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-        fprintf(stderr, "setsockopt(SO_RCVTIMEO) failed");
+        fprintf(stderr, "Error: setsockopt(SO_RCVTIMEO) failed");
     }
 
     // Find Game Server address (UDP) -> Will be stored in res
-    struct addrinfo udp_hints /*, *udp_res*/;
+    struct addrinfo udp_hints;
     memset(&udp_hints, 0, sizeof udp_hints);
     udp_hints.ai_family = AF_INET; //IPv4
     udp_hints.ai_socktype = SOCK_DGRAM; //UDP socket
 
     if (getaddrinfo(GSIP, GSport, &udp_hints, &udp_res) != 0) {
-        fprintf(stderr, "Error while getting UDP Game Server address.");
+        fprintf(stderr, "Error: Error while getting UDP Game Server address.");
         return; 
     }
 
@@ -75,7 +64,7 @@ void handleClient(char *GSIP, char *GSport) {
     tcp_hints.ai_socktype = SOCK_STREAM; //TCP socket
 
     if (getaddrinfo(GSIP, GSport, &tcp_hints, &tcp_res) != 0) {
-        fprintf(stderr, "Error while getting TCP Game Server address.");
+        fprintf(stderr, "Error: Error while getting TCP Game Server address.");
         return;   
     }
 
@@ -94,8 +83,13 @@ void handleClient(char *GSIP, char *GSport) {
 
         // Get command type
         char type[MAX_PLAYER_COMMAND];
-        sscanf(cmd, "%s", type);
+        int result = sscanf(cmd, "%s", type);
 
+        if (result != 1) {
+            fprintf(stderr, "Error: Failed to parse the response string.\n");
+            return;
+        }
+        
         // Execute respective function
         if (!strcmp(type, "start")) {
             if (PLID == NOT_PLAYING) {

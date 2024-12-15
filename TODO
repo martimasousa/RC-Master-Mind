@@ -5,3 +5,4 @@ TODO:
 - [ALL] Adicionar verificações em funções que podem falhar tipo sscanf, etc etc
 - [SERVER] Verificar aquela parte do REMAINING TIME (não entra no cálculo do Fsize) e no scoreboard, começar a variavel Fsize a 0 e não a 1
 - [SERVER] Alterar para terminar logo o jogo após a 8ª Guess e não esperar para verificar isso depois na 9ª Guess
+- [ALL] Ver os segundos do timeout (tá no 0?)
