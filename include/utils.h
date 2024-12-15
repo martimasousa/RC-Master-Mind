@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <dirent.h>
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -101,6 +102,6 @@ ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct so
 // Função que envia uma resposta UDP para o cliente especificado.
 void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr);
 
-
+int FindLastGame(const char *PLID, char *fname);
 
 #endif

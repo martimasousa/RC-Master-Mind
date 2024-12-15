@@ -5,14 +5,28 @@
 */
 
 int has_ongoing_game(const char *PLID) {
+    size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
 
-    char *file_path = get_game_folder_path(PLID);
+    char *file_path = malloc(sizeof(char) * BUFFER_SIZE);
+    if (file_path == NULL) {
+        perror("Error allocating memory for the path!\n");
+        return NOT_FOUND;
+    }
+    snprintf(file_path, path_length, "./GAMES/GAME_%s", PLID);
 
     if (access(file_path, F_OK) == 0) {
         return FOUND;
     } else {
         return NOT_FOUND;
     }
+
+    //char *file_path = get_game_folder_path(PLID);
+
+    //if (access(file_path, F_OK) == 0) {
+    //    return FOUND;
+    //} else {
+    //    return NOT_FOUND;
+    //}
 }
 
 int has_exceeded_max_turn(const char trial_number) {
@@ -71,6 +85,28 @@ int is_duplicated(const char *PLID, GameTry *game_try) {
     }
     fclose(file);
     return FALSE;
+}
+
+int get_expected_nt(const char *PLID) {
+    // Count the PLID's file number of lines (to get the expected nt)
+    char *file_path = get_game_folder_path(PLID);
+
+    FILE *file = fopen(file_path, "r"); // Open file for reading
+    if (file == NULL) {
+        fprintf(stderr, "Error opening file");
+        return -1;
+    }
+
+    int line_count = 0;
+    char ch;
+    
+    // Read file character by character
+    while ((ch = fgetc(file)) != EOF) if (ch == '\n') line_count++;
+
+    free(file_path);
+    fclose(file); // Close the file
+
+    return (has_ongoing_game(PLID)) ? line_count : line_count - 1;
 }
 
 int has_won(const int *player_try_res) {
@@ -200,6 +236,51 @@ GameTry* extract_game_colour(const char *PLID) {
     GameTry *game_try = malloc(sizeof(GameTry));
     char *colours = extract_game_info(PLID, ARG_SOLUTION);
     strncpy(game_try->colours, colours, sizeof(game_try->colours));
+
+    return game_try;
+}
+
+GameTry* extract_last_colour(const char *PLID) {
+    // Build the lines array needed (to store the last n_lines lines of the file)
+    char **lines;
+    size_t last_line_n;
+    
+    if (has_ongoing_game(PLID)) last_line_n = 0;
+    else last_line_n = 1;
+
+    lines = malloc(sizeof(char*) * last_line_n);
+
+    for (size_t i = 0; i <= last_line_n; i++) lines[i] = malloc(1024);
+
+
+    // Read the file and populate the lines array
+    char *file_path = get_game_folder_path(PLID);
+
+    FILE *file = fopen(file_path, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Error openning the file");
+        return NULL;
+    }
+
+    char line_temp[1024];
+    while (fgets(line_temp, sizeof(line_temp), file)) {
+        if (last_line_n == 1) strcpy(lines[0], lines[1]); // 1 -> 0
+        strcpy(lines[last_line_n], line_temp); // read -> last_line_n
+    }
+
+    fclose(file);
+
+
+    // Extract game_try from last line
+    GameTry *game_try = malloc(sizeof(GameTry));
+
+    char c1, c2, c3, c4;
+    sscanf(lines[0], "T: %c%c%c%c", &c1, &c2, &c3, &c4);
+
+    game_try->colours[0] = c1;
+    game_try->colours[1] = c2;
+    game_try->colours[2] = c3;
+    game_try->colours[3] = c4;
 
     return game_try;
 }
@@ -551,41 +632,41 @@ int FindTopScores(SCORELIST *list) {
     return (ifile);
 }
 
-int FindLastGame(const char *PLID, char *fname) {
-    struct dirent **filelist;
-    int nentries, found;
-    char dirname[256]; // Buffer para armazenar o diretório
-
-    // Construir o caminho do diretório com base no PLID
-    snprintf(dirname, sizeof(dirname), "GAMES/%s/", PLID);
-
-    // Ler as entradas do diretório, usando alphasort para ordenar os arquivos
-    nentries = scandir(dirname, &filelist, NULL, alphasort);
-    found = 0;
-
-    // Se não há entradas no diretório ou ocorreu um erro
-    if (nentries <= 0) {
-        return 0;
-    } else {
-        // Percorrer as entradas do diretório de trás para frente
-        while (nentries--) {
-            // Ignorar arquivos ocultos (nomes que começam com '.')
-            if (filelist[nentries]->d_name[0] != '.' && !found) {
-                // Construir o caminho completo do arquivo
-                snprintf(fname, BUFFER_SIZE, "GAMES/%s/%s", PLID, filelist[nentries]->d_name);
-                found = 1; // Marca como encontrado
-            }
-
-            // Liberar a entrada de diretório
-            free(filelist[nentries]);
-        }
-
-        // Liberar a lista de entradas
-        free(filelist);
-    }
-
-    return found;
-}
+// int FindLastGame(const char *PLID, char *fname) {
+//     struct dirent **filelist;
+//     int nentries, found;
+//     char dirname[256]; // Buffer para armazenar o diretório
+// 
+//     // Construir o caminho do diretório com base no PLID
+//     snprintf(dirname, sizeof(dirname), "GAMES/%s/", PLID);
+// 
+//     // Ler as entradas do diretório, usando alphasort para ordenar os arquivos
+//     nentries = scandir(dirname, &filelist, NULL, alphasort);
+//     found = 0;
+// 
+//     // Se não há entradas no diretório ou ocorreu um erro
+//     if (nentries <= 0) {
+//         return 0;
+//     } else {
+//         // Percorrer as entradas do diretório de trás para frente
+//         while (nentries--) {
+//             // Ignorar arquivos ocultos (nomes que começam com '.')
+//             if (filelist[nentries]->d_name[0] != '.' && !found) {
+//                 // Construir o caminho completo do arquivo
+//                 snprintf(fname, BUFFER_SIZE, "GAMES/%s/%s", PLID, filelist[nentries]->d_name);
+//                 found = 1; // Marca como encontrado
+//             }
+// 
+//             // Liberar a entrada de diretório
+//             free(filelist[nentries]);
+//         }
+// 
+//         // Liberar a lista de entradas
+//         free(filelist);
+//     }
+// 
+//     return found;
+// }
 
 // -----------------------------------------------------------------------------
 

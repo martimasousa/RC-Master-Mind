@@ -422,13 +422,18 @@ int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_s
 char* get_game_folder_path(const char *PLID) {
     size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
 
-    char *file_path = malloc(path_length);
+    char *file_path = malloc(sizeof(char) * BUFFER_SIZE);
     if (file_path == NULL) {
         perror("Error allocating memory for the path!\n");
         return NULL;
     }
     snprintf(file_path, path_length, "./GAMES/GAME_%s", PLID);
 
+    if (access(file_path, F_OK) == 0) {
+        return file_path;
+    }
+
+    FindLastGame(PLID, file_path);
     return file_path;
 }
 
@@ -695,4 +700,42 @@ ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct so
 void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr) {
     socklen_t client_len = sizeof(*client_addr);
     sendto(udp_fd, message, strlen(message) + 1, 0, (struct sockaddr *)client_addr, client_len);
+}
+
+
+
+int FindLastGame(const char *PLID, char *fname) {
+    struct dirent **filelist;
+    int nentries, found;
+    char dirname[256]; // Buffer para armazenar o diretório
+
+    // Construir o caminho do diretório com base no PLID
+    snprintf(dirname, sizeof(dirname), "GAMES/%s/", PLID);
+
+    // Ler as entradas do diretório, usando alphasort para ordenar os arquivos
+    nentries = scandir(dirname, &filelist, NULL, alphasort);
+    found = 0;
+
+    // Se não há entradas no diretório ou ocorreu um erro
+    if (nentries <= 0) {
+        return 0;
+    } else {
+        // Percorrer as entradas do diretório de trás para frente
+        while (nentries--) {
+            // Ignorar arquivos ocultos (nomes que começam com '.')
+            if (filelist[nentries]->d_name[0] != '.' && !found) {
+                // Construir o caminho completo do arquivo
+                snprintf(fname, BUFFER_SIZE, "GAMES/%s/%s", PLID, filelist[nentries]->d_name);
+                found = 1; // Marca como encontrado
+            }
+
+            // Liberar a entrada de diretório
+            free(filelist[nentries]);
+        }
+
+        // Liberar a lista de entradas
+        free(filelist);
+    }
+
+    return found;
 }

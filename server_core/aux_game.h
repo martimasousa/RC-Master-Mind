@@ -46,6 +46,8 @@ int has_ongoing_game(const char *PLID);
 int has_exceeded_max_turn(const char trial_number);
 int has_exceeded_time(const char *PLID);
 int is_duplicated(const char *PLID, GameTry *game_try);
+// Get's expected PLID's game number of trials
+int get_expected_nt(const char *PLID);
 int has_won(const int *player_try_res);
 int directory_exists(const char *filepath);
 int are_equal_game_tries(const GameTry *input, const GameTry *line);
@@ -68,6 +70,9 @@ char* extract_game_info(const char *PLID, const char arg_type);
 
 // Extracts the colour and returns it into the GameTry structure
 GameTry* extract_game_colour(const char *PLID);
+
+// Extract last play's try colour
+GameTry* extract_last_colour(const char *PLID);
 
 // Returns the current game elapsed time
 int get_elapsed_time(const char *PLID);
@@ -131,7 +136,7 @@ int calculate_score(const char *PLID, const int turnsPlayed);
 
 int FindTopScores(SCORELIST *list);
 
-int FindLastGame(const char *PLID, char *fname);
+//int FindLastGame(const char *PLID, char *fname);
 
 // -----------------------------------------------------------------------------
 
