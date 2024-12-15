@@ -35,7 +35,7 @@
 #define PLID_DIGITS 6
 #define TIME_DIGITS 3
 
-#define RESPONSE_LEN 3
+#define RESPONSE_LEN 5
 #define COMMAND_LEN 3
 
 #define ELAPSED_TIME_LEN 3

@@ -450,7 +450,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
     }
 
     // Processar a resposta
-    char response_status[10];
+    char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RSS %s", response_status);
     free(response);
 
