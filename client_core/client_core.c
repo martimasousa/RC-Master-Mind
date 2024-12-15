@@ -39,8 +39,8 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
         return ERROR;
     }
 
-    if (!strcmp(response, "ERR")) {
-        fprintf(stderr, "Error: Not recognized command.\n");
+    if (!strcmp(response, "ERR\n")) {
+        fprintf(stderr, "Error: Command not recognized\n");
         return ERROR;
     }
     
@@ -96,8 +96,8 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
         return ERROR;
     }
 
-    if (!strcmp(response, "ERR")) {
-        fprintf(stderr, "Error: Not recognized command.\n");
+    if (!strcmp(response, "ERR\n")) {
+        fprintf(stderr, "Error: Command not recognized\n");
         return ERROR;
     }
 
@@ -176,8 +176,8 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
         return ERROR;
     }
 
-    if (!strcmp(response, "ERR")) {
-        fprintf(stderr, "Error: Not recognized command.\n");
+    if (!strcmp(response, "ERR\n")) {
+        fprintf(stderr, "Error: Command not recognized\n");
         return ERROR;
     }
 
@@ -230,8 +230,8 @@ int exit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
         return ERROR;
     }
 
-    if (!strcmp(response, "ERR")) {
-        fprintf(stderr, "Error: Not recognized command.\n");
+    if (!strcmp(response, "ERR\n")) {
+        fprintf(stderr, "Error: Command not recognized\n");
         return ERROR;
     }
 
@@ -286,8 +286,8 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
         return ERROR;
     }
 
-    if (!strcmp(response, "ERR")) {
-        fprintf(stderr, "Error: Not recognized command.\n");
+    if (!strcmp(response, "ERR\n")) {
+        fprintf(stderr, "Error: Command not recognized\n");
         return ERROR;
     }
 
@@ -357,6 +357,11 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
     if (receive_response(tcp_fd, &response) == ERROR) {
         fprintf(stderr, "Failed to receive response.\n");
         close(tcp_fd);
+        return ERROR;
+    }
+
+    if (!strcmp(response, "ERR\n")) {
+        fprintf(stderr, "Error: Command not recognized\n");
         return ERROR;
     }
 

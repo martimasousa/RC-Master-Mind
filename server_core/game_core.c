@@ -149,6 +149,14 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
     send_udp_response(udp_fd, response, client_addr);
 }
 
+void process_udp_uknown_command(int udp_fd, struct sockaddr_in *client_addr) {
+
+    char *response = "ERR\n";
+    send_udp_response(udp_fd, response, client_addr);
+    
+    return;
+}
+
 void process_str_command(int client_fd, const char *command) {
 
     char PLID[PLID_DIGITS + 1];
@@ -243,6 +251,13 @@ void process_ssb_command(int client_fd, const char *command) {
     return;
 }
 
+void process_tcp_uknown_command(int client_fd) {
+
+    char *response = "ERR\n";
+    tcp_write(client_fd, response);
+
+    return;
+}
 
 void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
     char type[3];
@@ -264,7 +279,7 @@ void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char
         process_dbg_command(udp_fd, client_addr, command);
         return;
     } else {
-        fprintf(stderr, "Error: %s\n", type);
+        process_udp_uknown_command(udp_fd, client_addr);
         return;
     }
 }
@@ -282,7 +297,7 @@ void process_command_tcp(int client_fd, const char *command) {
         return;
 
     } else {
-        fprintf(stderr, "Error: %s\n", command);
+        process_tcp_uknown_command(client_fd);
         return;
     }
 }

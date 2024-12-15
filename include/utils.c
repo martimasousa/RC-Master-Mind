@@ -548,12 +548,12 @@ int tcp_write(int fd, char* to_write) {
         int n = write(fd, to_write + total, len - total);
         if (n < 0) {
             fprintf(stderr, "Error while writing to tcp fd");
-            return 1;
+            return ERROR;
         }
         total += n;  // Increment total by the number of bytes written
     }
 
-    return 0;
+    return OK;
 }
 
 int tcp_read(int fd, char **buffer, size_t n) {
