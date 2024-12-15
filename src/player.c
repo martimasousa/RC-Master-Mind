@@ -168,10 +168,10 @@ int main(int argc, char* argv[]) {
 
     // Read command-line arguments
     if (!((argc == 1) || 
-        (argc == 3 && ((strcmp(argv[1], "-n") == 0 /*&& is_valid_ip(argv[2])*/) || 
-                        (strcmp(argv[1], "-p") == 0 && is_integer(argv[2])))) || 
-        (argc == 5 && strcmp(argv[1], "-n") == 0 && /*is_valid_ip(argv[2]) &&*/ 
-                        strcmp(argv[3], "-p") == 0 && is_integer(argv[4])))) {
+        (argc == 3 && ((strcmp(argv[1], "-n") == 0 && is_valid_address(argv[2])) || 
+                        (strcmp(argv[1], "-p") == 0 && is_valid_port(argv[2])))) || 
+        (argc == 5 && strcmp(argv[1], "-n") == 0 && is_valid_address(argv[2]) && 
+                        strcmp(argv[3], "-p") == 0 && is_valid_port(argv[4])))) {
         fprintf(stderr, "Error while reading arguments.\nUsage: ./player [-n GSIP] [-p GSport]\n");
         return 0;
     }

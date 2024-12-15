@@ -472,7 +472,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
             close(tcp_fd);
             return 1;
         }
-        int Fsize = atoi(Fsize_char);
+        //int Fsize = atoi(Fsize_char);
         free(Fsize_char);
 
         // Read file content
@@ -507,10 +507,8 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
 
         // ########################################################################################
         // ### Show content #######################################################################
-        int n_line = 1;
-        
         printf("---------- SCOREBOARD: ----------\n");
-        printf(Fdata);
+        printf("%s", Fdata);
         printf("---------------------------------\n");
 
 

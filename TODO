@@ -1,6 +1,5 @@
 TODO:
-- [SERVER+CLIENT] Rever constantes e organizar código
 - [SERVER] Verify INV (try function), start and debug. Problem related to UDP failing...
-- [ALL] Adicionar verificações em funções que podem falhar tipo sscanf, etc etc
 - [ALL] Substituir os snprintf for memcpy porque dá merda com o tejo! (FALTA NOS COMANDOS TCP)
-- [CLIENT] Ver aquela verificação dos argumentos "is_ip"
+- [SERVER+CLIENT] Rever constantes e organizar código
+- [ALL] Adicionar verificações em funções que podem falhar tipo sscanf, etc etc

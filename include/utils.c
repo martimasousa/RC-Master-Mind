@@ -12,9 +12,46 @@ int is_integer(const char *str) {
     return TRUE;
 }
 
+int is_valid_port(const char *str) {
+    if (!is_integer(str)) {
+        return FALSE;
+    }
+
+    int port = atoi(str);
+
+    return port >= 0 && port <= 65535;
+}
+
+int is_valid_hostname(const char *hostname) {
+    struct addrinfo hints, *res;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC; // Allow IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM; // Any socket type
+
+    // Use getaddrinfo to resolve the hostname
+    int status = getaddrinfo(hostname, NULL, &hints, &res);
+    if (status == 0) {
+        freeaddrinfo(res); // Free the linked list
+        return 1;          // Valid hostname
+    }
+
+    return 0; // Invalid hostname
+}
+
 int is_valid_ip(const char *ip) {
     struct sockaddr_in sa;
     return inet_pton(AF_INET, ip, &(sa.sin_addr)) != 0;
+}
+
+int is_valid_address(const char *input) {
+    if (is_valid_ip(input)) {
+        return 1; // It's a valid IP address
+    }
+    if (is_valid_hostname(input)) {
+        return 1; // It's a valid hostname
+    }
+    return 0; // Neither valid IP nor hostname
 }
 
 int is_valid_color(char C) {

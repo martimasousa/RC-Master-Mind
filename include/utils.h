@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -18,8 +20,17 @@
 // Função para verificar se a string é um número inteiro
 int is_integer(const char *str);
 
-// Função para verificar se a string é um IP válido
+// Check if the string is a valid PORT
+int is_valid_port(const char *str);
+
+// Check if the string is a valid hostname
+int is_valid_hostname(const char *hostname);
+
+// Check if the string is a valid IP
 int is_valid_ip(const char *ip);
+
+// Check if the string is a either a valid IP or hostname.
+int is_valid_address(const char *input);
 
 // Função para verificar se é uma cor válida
 int is_valid_color(char C);
