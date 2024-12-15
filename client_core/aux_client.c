@@ -97,8 +97,14 @@ int store_file_local(char *Fname, char *Fdata) {
     return OK;
 }
 
-void show_content(char *Fdata) {
+void show_show_trials_content(char *Fdata) {
     printf("------------- TRIES: -------------\n");
     printf("%s", Fdata);
     printf("----------------------------------\n");
+}
+
+void show_scoreboard_content(char *Fdata) {
+    printf("---------- SCOREBOARD: ----------\n");
+    printf("%s", Fdata);
+    printf("---------------------------------\n");
 }

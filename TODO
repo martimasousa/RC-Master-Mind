@@ -3,3 +3,4 @@ TODO:
 - [ALL] Substituir os snprintf for memcpy porque dá merda com o tejo! (FALTA NOS COMANDOS TCP)
 - [SERVER+CLIENT] Rever constantes e organizar código
 - [ALL] Adicionar verificações em funções que podem falhar tipo sscanf, etc etc
+- [SERVER] Verificar aquela parte do REMAINING TIME (não entra no cálculo do Fsize) e no scoreboard, começar a variavel Fsize a 0 e não a 1

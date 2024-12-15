@@ -23,6 +23,7 @@ int create_tcp_socket(int *tcp_fd);
 int connect_to_server(int tcp_fd, struct addrinfo *tcp_res);
 int send_message(int tcp_fd, char *msg);
 int receive_response(int tcp_fd, char **response);
-void show_content(char *Fdata);
+void show_show_trials_content(char *Fdata);
+void show_scoreboard_content(char *Fdata);
 int store_file_local(char *Fname, char *Fdata);
 #endif

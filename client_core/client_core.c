@@ -389,7 +389,7 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
         }
 
         // Exibir conteúdo
-        show_content(Fdata);
+        show_show_trials_content(Fdata);
 
         free(Fname);
         free(Fsize_char);
@@ -401,129 +401,94 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
 }
 
 
+/**
+ * Handles scoreboard command.
+*/
 int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
-    
+
+    // Validar comando
     if (validate_scoreboard_command(cmd, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
-    // ############################################################################################
-    // ### TCP CONNECTION #########################################################################
-    // Criar o socket TCP e configurar o timeout
+    // Criar mensagem para enviar (exemplo: "SSB\n")
+    const char *components[] = {SSB_CMD, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *msg = create_string(components, count);
+
+    // Criar socket TCP e configurar timeout
     int tcp_fd;
     if (create_tcp_socket(&tcp_fd) == ERROR) {
         fprintf(stderr, "Failed to create TCP socket.\n");
         return ERROR;
     }
 
-    // Estabelecer a conexão com o servidor
+    // Estabelecer conexão com o servidor
     if (connect_to_server(tcp_fd, tcp_res) == ERROR) {
         fprintf(stderr, "Failed to connect to the server.\n");
         close(tcp_fd);
         return ERROR;
     }
-    
 
-    // Create message to send
-    const char *components[] = {SSB_CMD, NEWLINE};
-    size_t count = sizeof(components) / sizeof(components[0]);
-    char *msg = create_string(components, count);
+    // Enviar mensagem ao servidor
+    if (send_message(tcp_fd, msg) == ERROR) {
+        close(tcp_fd);
+        free(msg);
+        return ERROR;
+    }
+    free(msg);
 
-    // Send message to server
-    if (tcp_write(tcp_fd, msg)) {
-        fprintf(stderr, "Error while writing to TCP socket.\n");
+    // Receber primeira parte da resposta
+    char *response = NULL;
+    if (receive_response(tcp_fd, &response) == ERROR) {
+        fprintf(stderr, "Failed to receive response.\n");
         close(tcp_fd);
         return ERROR;
     }
-    
-    // Receive response from server
-    char *response = NULL;
-    if (tcp_read_until_delimiter(tcp_fd, &response, ' ', 1)) {
-        free(response);
-        close(tcp_fd);
-        return 1;
+
+    if (!strcmp(response, "ERR\n")) {
+        fprintf(stderr, "Error: Command not recognized\n");
+        return ERROR;
     }
+
+    // Processar a resposta
+    char response_status[10];
+    sscanf(response, "RSS %s", response_status);
     free(response);
 
-    char *response_status = NULL;
-    if (tcp_read_until_delimiter(tcp_fd, &response_status, ' ', 1)) {
-        free(response_status);
-        close(tcp_fd);
-        return 1;
-    }
-
     // Evaluate responses
-    if (!strcmp(response_status, "OK")) {
-        free(response_status);
+    if (!strcmp(response_status, "EMPTY")) {
+        printf("The scoreboard is still empty.\n");
+        close(tcp_fd);
+        return ERROR;
+    } else if (!strcmp(response_status, "OK")) {
 
-        // Read Fname
-        char *Fname = NULL;
-        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1)) {
-            free(Fname);
-            close(tcp_fd);
-            return 1;
-        }
+        char *Fname = NULL, *Fsize_char = NULL, *Fdata = NULL;
 
-        // Read Fsize
-        char *Fsize_char = NULL;
-        if (tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1)) {
+        // Usando a subfunção para ler até o delimitador
+        if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1) ||
+            tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1) ||
+            tcp_read(tcp_fd, &Fdata, atoi(Fsize_char)) == ERROR) {
             free(Fname);
             free(Fsize_char);
-            close(tcp_fd);
-            return 1;
-        }
-        //int Fsize = atoi(Fsize_char);
-        free(Fsize_char);
-
-        // Read file content
-        char *Fdata;
-        if (tcp_read_until_delimiter(tcp_fd, &Fdata, '\0', 1)) {
-            close(tcp_fd);
+            free(Fdata);
             return ERROR;
         }
 
-
-        // ########################################################################################
-        // ### Store as local file ################################################################
-        char file_path[BUFFER_SIZE] = "./CLIENT_CACHE/";
-
-        // Create the directory
-        if (mkdir(file_path, 0755) != 0 && errno != EEXIST) { // Created successfully or already exists
-            fprintf(stderr, "Error while creating \'%s\' directory.\n", file_path);
+        // Armazenar dados como arquivo local
+        if (store_file_local(Fname, Fdata) == ERROR) {
             free(Fname);
-            close(tcp_fd);
-            return 1;
+            free(Fdata);
+            return ERROR;
         }
 
-        // Write Fdata into local file
-        strcat(file_path, Fname);
-        if (write_to_file(file_path, Fdata) == -1) {
-            fprintf(stderr, "Error while writing to local file.\n");
-            free(Fname);
-            close(tcp_fd);
-            return 1;
-        }
-
-
-        // ########################################################################################
-        // ### Show content #######################################################################
-        printf("---------- SCOREBOARD: ----------\n");
-        printf("%s", Fdata);
-        printf("---------------------------------\n");
-
+        show_scoreboard_content(Fdata);
 
         free(Fname);
-        close(tcp_fd);
-        return 0;
-    } else if (!strcmp(response_status, "EMPTY\n")) {
-        free(response_status);
-        printf("The scoreboard is still empty.\n");
-        close(tcp_fd);
-        return 0;
-    } else {
-        free(response_status);
-        fprintf(stderr, "Error: Response format/status not known.\n");
-        close(tcp_fd);
-        return 1;
-    }
+        free(Fsize_char);
+        free(Fdata);
+        return OK;
+    } 
+
+    return ERROR;
 }
