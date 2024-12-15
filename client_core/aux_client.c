@@ -16,7 +16,11 @@ ssize_t send_receive_udp(int udp_fd, struct addrinfo *udp_res, const char *msg, 
     socklen_t addrlen = sizeof(addr);
     n = recvfrom(udp_fd, response, resp_len, 0, (struct sockaddr*)&addr, &addrlen);
     if (n == ERROR) {
-        fprintf(stderr, "Error while receiving UDP message.\n");
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            fprintf(stderr, "Receive operation timed out.\n");
+        } else {
+            fprintf(stderr, "Error while receiving UDP message.\n");
+        }
         return ERROR;
     }
 
@@ -36,10 +40,10 @@ int create_tcp_socket(int *tcp_fd) {
 
     // Configurar o timeout para o socket
     struct timeval timeout;
-    timeout.tv_sec = 5;  // Segundos
+    timeout.tv_sec = TIMEOUT_SECONDS;  // Segundos
     timeout.tv_usec = 0; // Microsegundos
-    if (setsockopt(*tcp_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        fprintf(stderr, "setsockopt(SO_SNDTIMEO) failed");
+    if (setsockopt(*tcp_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+        fprintf(stderr, "setsockopt(SO_RCVTIMEO) failed");
         return ERROR;
     }
 

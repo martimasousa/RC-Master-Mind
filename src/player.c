@@ -9,6 +9,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #include "constants.h"
 #include "utils.h"
@@ -36,13 +37,21 @@ void signal_handler(int signum) {
 
 void handleClient(char *GSIP, char *GSport) {
 
-        // ############################################################################################
+    // ############################################################################################
     // ### UDP ####################################################################################
     // Create UDP socket
     udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd == -1) {
         fprintf(stderr, "Error while creating UDP socket.");
         return;
+    }
+
+    // Set timeout to file descriptor
+    struct timeval timeout;
+    timeout.tv_sec = TIMEOUT_SECONDS;
+    timeout.tv_usec = 0;
+    if (setsockopt(udp_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+        fprintf(stderr, "setsockopt(SO_RCVTIMEO) failed");
     }
 
     // Find Game Server address (UDP) -> Will be stored in res

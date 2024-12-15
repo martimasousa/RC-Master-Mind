@@ -114,6 +114,10 @@
 #define NONE -1
 
 
+// TIMEOUT
+#define TIMEOUT_SECONDS 5
+
+
 // Simple Functions
 #define max(A,B) ((A)>=(B)?(A):(B))
 

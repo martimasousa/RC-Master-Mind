@@ -409,25 +409,17 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
 
     // ############################################################################################
     // ### TCP CONNECTION #########################################################################
-    // Create TCP socket
-    int tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (tcp_fd == ERROR) {
-        fprintf(stderr, "Error while creating TCP socket.");
+    // Criar o socket TCP e configurar o timeout
+    int tcp_fd;
+    if (create_tcp_socket(&tcp_fd) == ERROR) {
+        fprintf(stderr, "Failed to create TCP socket.\n");
         return ERROR;
     }
 
-    // Set timeout to file descriptor
-    struct timeval timeout;
-    timeout.tv_sec = 5; // TODO: Get this value from constants
-    timeout.tv_usec = 0;
-    if (setsockopt(tcp_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        fprintf(stderr, "setsockopt(SO_SNDTIMEO) failed");
-    }
-
-    // Open a TCP connection with the server
-    ssize_t n = connect(tcp_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
-    if (n == ERROR) {
-        fprintf(stderr, "Error while trying to establish a connection with GS.\n");
+    // Estabelecer a conexão com o servidor
+    if (connect_to_server(tcp_fd, tcp_res) == ERROR) {
+        fprintf(stderr, "Failed to connect to the server.\n");
+        close(tcp_fd);
         return ERROR;
     }
     
