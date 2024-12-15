@@ -58,7 +58,7 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
                 last_player_try->colours[1] == player_try.colours[1] &&
                 last_player_try->colours[2] == player_try.colours[2] &&
                 last_player_try->colours[3] == player_try.colours[3])
-            {                
+            {
                 // Treat as a new message (but don't add a new line)
                 int *player_try_res = get_try_results(PLID, player_try);
                 char *response = generate_try_result_message(PLID, player_try_res, nt);

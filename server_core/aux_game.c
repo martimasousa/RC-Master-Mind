@@ -89,7 +89,9 @@ int is_duplicated(const char *PLID, GameTry *game_try) {
 
 int get_expected_nt(const char *PLID) {
     // Count the PLID's file number of lines (to get the expected nt)
-    char *file_path = get_game_folder_path(PLID);
+    char *file_path = special_inv_function(PLID);
+
+    printf("file_path_nt: %s\n", file_path);
 
     FILE *file = fopen(file_path, "r"); // Open file for reading
     if (file == NULL) {
@@ -195,7 +197,7 @@ char* get_completed_game_name(char const type) {
 
 char* extract_game_info(const char *PLID, const char arg_type) {
 
-    char *file_path = get_game_folder_path(PLID);
+    char *file_path = special_inv_function(PLID);
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {
@@ -255,6 +257,8 @@ GameTry* extract_last_colour(const char *PLID) {
 
     // Read the file and populate the lines array
     char *file_path = special_inv_function(PLID);
+
+    printf("file_path_last_color: %s\n", file_path);
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {

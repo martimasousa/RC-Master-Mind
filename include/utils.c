@@ -425,6 +425,7 @@ char *special_inv_function(const char *PLID) {
         return file_path;
     }
     
+    file_path = realloc(file_path, sizeof(char) * BUFFER_SIZE);
     FindLastGame(PLID, file_path);
     return file_path;
 }
