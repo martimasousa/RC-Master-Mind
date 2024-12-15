@@ -572,7 +572,7 @@ int FindLastGame(const char *PLID, char *fname) {
             // Ignorar arquivos ocultos (nomes que começam com '.')
             if (filelist[nentries]->d_name[0] != '.' && !found) {
                 // Construir o caminho completo do arquivo
-                snprintf(fname, 256, "GAMES/%s/%s", PLID, filelist[nentries]->d_name);
+                snprintf(fname, BUFFER_SIZE, "GAMES/%s/%s", PLID, filelist[nentries]->d_name);
                 found = 1; // Marca como encontrado
             }
 

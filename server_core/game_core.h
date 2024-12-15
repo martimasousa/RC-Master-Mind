@@ -24,7 +24,6 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
 void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 void process_udp_uknown_command(int udp_fd, struct sockaddr_in *client_addr);
 
-
 void process_str_command(int client_fd, const char *command);
 void process_ssb_command(int client_fd, const char *command);
 void process_tcp_uknown_command(int client_fd);
