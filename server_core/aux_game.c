@@ -254,7 +254,7 @@ GameTry* extract_last_colour(const char *PLID) {
 
 
     // Read the file and populate the lines array
-    char *file_path = get_game_folder_path(PLID);
+    char *file_path = special_inv_function(PLID);
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {
@@ -707,6 +707,7 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
         size_t len = strlen(line);
         memcpy(filedata + total_size, line, len);
         total_size += len;
+        file_data_size += len;
     }
 
     filedata[total_size] = '\0';

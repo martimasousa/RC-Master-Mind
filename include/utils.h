@@ -49,6 +49,8 @@ int validate_scoreboard_command(const char *cmd, const int execution_side);
     GENERAL auxiliar functions
 */
 
+char *special_inv_function(const char *PLID);
+
 // Generate the path of the file that contains the player's game information
 char* get_game_folder_path(const char *PLID);
 

@@ -240,7 +240,7 @@ void process_ssb_command(int client_fd, const char *command) {
     // Create a string (Fdata) containing all the scores returned
     char *Fdata = malloc(1);
     Fdata[0] = '\0';
-    size_t Fsize = 1;
+    size_t Fsize = 0;
     for (int i = 0; i < files->nscores; i++) {
         char line[6 + 1 + 4 + 1 + 1 + 1 + 1]; // PLID + SPACE + CODE + SPACE + N_PLAYS + \n
 

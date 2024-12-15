@@ -418,22 +418,27 @@ int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_s
 /*
     GENERAL auxiliar functions
 */
+char *special_inv_function(const char *PLID) {
+    char *file_path = get_game_folder_path(PLID);
+
+    if (access(file_path, F_OK) == 0) {
+        return file_path;
+    }
+    
+    FindLastGame(PLID, file_path);
+    return file_path;
+}
 
 char* get_game_folder_path(const char *PLID) {
     size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
 
-    char *file_path = malloc(sizeof(char) * BUFFER_SIZE);
+    char *file_path = malloc(sizeof(char) * path_length);
     if (file_path == NULL) {
         perror("Error allocating memory for the path!\n");
         return NULL;
     }
     snprintf(file_path, path_length, "./GAMES/GAME_%s", PLID);
 
-    if (access(file_path, F_OK) == 0) {
-        return file_path;
-    }
-
-    FindLastGame(PLID, file_path);
     return file_path;
 }
 

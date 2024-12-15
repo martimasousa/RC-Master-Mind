@@ -28,7 +28,7 @@ int nT = 1;
 
 void signal_handler(int signum) {
     if (udp_fd != NOT_PLAYING && udp_res != NULL && PLID != NOT_PLAYING) {
-        quit_function(udp_fd, udp_res, "quit\n", PLID);
+        exit_quit_function(udp_fd, udp_res, "quit\n", PLID, QUIT_CONTEXT);
     }
 
     exit(0);
@@ -121,7 +121,7 @@ void handleClient(char *GSIP, char *GSport) {
             if (PLID == NOT_PLAYING) {
                 fprintf(stderr, "Error: There is no active game.\n");
             } else {
-                int quit_res = quit_function(udp_fd, udp_res, cmd, PLID);
+                int quit_res = exit_quit_function(udp_fd, udp_res, cmd, PLID, QUIT_CONTEXT);
 
                 if (quit_res == GAME_ENDED) {
                     PLID = NOT_PLAYING;
@@ -130,7 +130,7 @@ void handleClient(char *GSIP, char *GSport) {
             }
         } else if (!strcmp(type, "exit")) {
             if (PLID != NOT_PLAYING) {
-                exit_function(udp_fd, udp_res, cmd, PLID);
+                exit_quit_function(udp_fd, udp_res, cmd, PLID, EXIT_CONTEXT);
             }
             if (validate_quit_command(cmd, NULL, PLAYER_SIDE, EXIT_CONTEXT) == OK) {
                 running = FALSE;

@@ -102,10 +102,6 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
     char response_status[RESPONSE_LEN + 1];
     sscanf(response, "RTR %s", response_status);
 
-    // TODO: ADD return constants to deal with dup, inv etc etc
-    // Verify server message sending, receiving: "RTR OK 0 0 2="
-    // Prints when the game ends are coming with bugs
-
     // Deal with response
     if (!strcmp(response_status, "OK")) {
 
@@ -148,13 +144,13 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
 
 
 /**
- * Handles quit command.
+ * Handles quit and exit command.
  */
-int quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
+int exit_quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int game_context) {
 
     char *PLID_arg = int_to_string(PLID);
 
-    if (validate_quit_command(cmd, NULL, PLAYER_SIDE, QUIT_CONTEXT) == ERROR) {
+    if (validate_quit_command(cmd, NULL, PLAYER_SIDE, game_context) == ERROR) {
         return ERROR;
     }
 
@@ -166,7 +162,7 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
 
     // Receive server response
     // Example: RQT OK C1 C2 C3 C4\n\0
-    size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
+    size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*COLOR_LEN*2 + 1 + 1;
     char response[resp_len];
     
     if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
@@ -187,69 +183,15 @@ int quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
         sscanf(response, "RQT OK %c %c %c %c\n", &C1, &C2, &C3, &C4);
         printf("The secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
-    } else if (!strcmp(response_status, "NOK")) {
+    } else if (!strcmp(response_status, "NOK") && game_context == QUIT_CONTEXT) {
         fprintf(stderr, "Error: PLID does not have an ongoing game.\n");
         return ERROR;
     } else if (!strcmp(response_status, "ERR")) {
         fprintf(stderr, "Error: Incorrect request syntax.\n");
         return ERROR;
-    } else {
-        fprintf(stderr, "Error: Response format/status not known.\n");
-        return ERROR;
-    }
-}
-
-
-/**
- * Handles exit command.
- */
-int exit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID) {
-    
-    char *PLID_arg = int_to_string(PLID);
-
-    if (validate_quit_command(cmd, NULL, PLAYER_SIDE, EXIT_CONTEXT) == ERROR) {
-        return ERROR;
     }
 
-    // Create message to send
-    // Example: QUT 106324\n\0
-    const char *components[] = {QUT_CMD, SPACE, PLID_arg, NEWLINE};
-    size_t count = sizeof(components) / sizeof(components[0]);
-    char *msg = create_string(components, count);
-
-    // Receive server response
-    // Example: RQT OK C1 C2 C3 C4\n\0
-    size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
-    char response[resp_len];
-
-    if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
-        return ERROR;
-    }
-
-    if (!strcmp(response, "ERR\n")) {
-        fprintf(stderr, "Error: Command not recognized\n");
-        return ERROR;
-    }
-
-    char response_status[RESPONSE_LEN + 1];
-    sscanf(response, "RQT %s", response_status);
-
-    // Deal with response
-    if (!strcmp(response_status, "OK")) {
-        char C1, C2, C3, C4;
-        sscanf(response, "RQT OK %c %c %c %c", &C1, &C2, &C3, &C4);
-        printf("The secret key is: %c %c %c %c\n", C1, C2, C3, C4);
-        return GAME_ENDED;
-    } else if (!strcmp(response_status, "NOK")) {
-        fprintf(stderr, "Error: PLID does not have an ongoing game.\n");
-        return ERROR;
-    } else if (!strcmp(response_status, "ERR")) {
-        fprintf(stderr, "Error: Incorrect request syntax.\n");
-        return ERROR;
-    } else {
-        fprintf(stderr, "Error: Response format/status not known.\n");
-        return ERROR;
-    }
+    return OK;
 }
 
 
