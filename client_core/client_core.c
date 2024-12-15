@@ -29,7 +29,8 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     const char *components[] = {SNG_CMD, SPACE, PLID_arg, SPACE, max_playtime_arg, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
-
+    if (msg == NULL) return ERROR;
+    
     // Receive server response
     // Example: SNG ERR\n\0
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + 1;
@@ -46,7 +47,12 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     
     // Example: RSG ERR\0
     char response_status[RESPONSE_LEN + 1];
-    sscanf(response, "RSG %s\n", response_status);
+    int result = sscanf(response, "RSG %s\n", response_status);
+
+    if (result != 1) {
+        printf("Error: Failed to parse the response string.\n");
+        return ERROR;
+    }
 
     int PLID = atoi(PLID_arg);
 
@@ -74,6 +80,8 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
     char *number_tries = int_to_string(nT);
     char *PLID_arg = int_to_string(PLID);
 
+    if (PLID_arg == NULL || number_tries == NULL) return ERROR;
+
     // Validate command syntax
     if (validate_try_command(cmd, NULL, C1, C2, C3, C4, NULL, PLAYER_SIDE) == ERROR) {
         return ERROR;
@@ -84,6 +92,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
     const char *components[] = {TRY_CMD, SPACE, PLID_arg, SPACE, C1, SPACE, C2, SPACE, C3, SPACE, C4, SPACE, number_tries, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
+    if (msg == NULL) return ERROR;
 
     // Receive server response
     // Example: RTR ENT C1 C2 C3 C4\n\0 
@@ -100,18 +109,29 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
     }
 
     char response_status[RESPONSE_LEN + 1];
-    sscanf(response, "RTR %s", response_status);
+    int result = sscanf(response, "RTR %s", response_status);
+
+    if (result != 1) {
+        printf("Error: Failed to parse the response string.\n");
+        return ERROR;
+    }
 
     // Deal with response
     if (!strcmp(response_status, "OK")) {
 
         int nT, nB, nW;
-        sscanf(response, "RTR OK %d %d %d\n", &nT, &nB, &nW);
+        int result = sscanf(response, "RTR OK %d %d %d\n", &nT, &nB, &nW);
+
+        if (result != 3) {
+            printf("Error: Failed to parse the response string.\n");
+            return ERROR;
+        }
 
         if (nB == 4) {
             printf("Congratulations! You won the game!\n");
             return GAME_ENDED;
         }
+
         printf("nT: %d\nnB: %d\nnW: %d\n", nT, nB, nW);        
         return OK;
     } else if (!strcmp(response_status, "DUP")) {
@@ -125,12 +145,24 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
         return ERROR;
     } else if (!strcmp(response_status, "ENT")) {
         char C1, C2, C3, C4;
-        sscanf(response, "RTR ENT %c %c %c %c\n", &C1, &C2, &C3, &C4);
+        int result = sscanf(response, "RTR ENT %c %c %c %c\n", &C1, &C2, &C3, &C4);
+
+        if (result != 4) {
+            printf("Error: Failed to parse the response string.\n");
+            return ERROR;
+        }
+
         printf("You have no more attempts available!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
     } else if (!strcmp(response_status, "ETM")) {
         char C1, C2, C3, C4;
-        sscanf(response, "RTR ETM %c %c %c %c\n", &C1, &C2, &C3, &C4);
+        int result = sscanf(response, "RTR ETM %c %c %c %c\n", &C1, &C2, &C3, &C4);
+
+        if (result != 4) {
+            printf("Error: Failed to parse the response string.\n");
+            return ERROR;
+        }
+
         printf("You have exceed the play time!\nThe secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
     } else if (!strcmp(response_status, "ERR")) {
@@ -149,7 +181,10 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
 int exit_quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int game_context) {
 
     char *PLID_arg = int_to_string(PLID);
+    if (PLID_arg == NULL) return ERROR;
+    
 
+    // Validate command syntax
     if (validate_quit_command(cmd, NULL, PLAYER_SIDE, game_context) == ERROR) {
         return ERROR;
     }
@@ -159,6 +194,7 @@ int exit_quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID
     const char *components[] = {QUT_CMD, SPACE, PLID_arg, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
+    if (msg == NULL) return ERROR;
 
     // Receive server response
     // Example: RQT OK C1 C2 C3 C4\n\0
@@ -175,12 +211,23 @@ int exit_quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID
     }
 
     char response_status[RESPONSE_LEN + 1];
-    sscanf(response, "RQT %s", response_status);
+    int result = sscanf(response, "RQT %s", response_status);
+
+    if (result != 1) {
+        printf("Error: Failed to parse the response string.\n");
+        return ERROR;
+    }
 
     // Deal with response
     if (!strcmp(response_status, "OK")) {
         char C1, C2, C3, C4;
-        sscanf(response, "RQT OK %c %c %c %c\n", &C1, &C2, &C3, &C4);
+        int result = sscanf(response, "RQT OK %c %c %c %c\n", &C1, &C2, &C3, &C4);
+        
+        if (result != 4) {
+            printf("Error: Failed to parse the response string.\n");
+            return ERROR;
+        
+        }
         printf("The secret key is: %c %c %c %c\n", C1, C2, C3, C4);
         return GAME_ENDED;
     } else if (!strcmp(response_status, "NOK") && game_context == QUIT_CONTEXT) {
@@ -202,7 +249,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     char C1[COLOR_LEN + 1], C2[COLOR_LEN + 1], C3[COLOR_LEN + 1], 
          C4[COLOR_LEN + 1], max_playtime_arg[TIME_DIGITS + 1], PLID_arg[PLID_DIGITS + 1];
 
-    // Valida o comando "debug"
+    // Validate command syntax
     if (validate_debug_command(cmd, PLID_arg, max_playtime_arg, C1, C2, C3, C4, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
@@ -212,6 +259,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     const char *components[] = {DBG_CMD, SPACE, PLID_arg, SPACE, max_playtime_arg, SPACE, C1, SPACE, C2, SPACE, C3, SPACE, C4, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
+    if (msg == NULL) return ERROR;
 
     // Receive server response
     // Example: SNG ERR\n\0
@@ -228,7 +276,12 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     }
 
     char response_status[RESPONSE_LEN + 1];
-    sscanf(response, "RDB %s", response_status);
+    int result = sscanf(response, "RDB %s", response_status);
+    
+    if (result != 1) {
+        printf("Error: Failed to parse the response string.\n");
+        return ERROR;
+    }
 
     int PLID = atoi(PLID_arg);
 
@@ -254,64 +307,74 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
 int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
     char *PLID_arg = int_to_string(PLID);
 
-    // Validação do comando
+    // Validate command syntax
     if (validate_showtrials_command(cmd, NULL, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
-    // Criar a mensagem para enviar (exemplo: "STR 106324\n")
+    // Create message to send
+    // Example: STR 106324\n\0
     const char *components[] = {STR_CMD, SPACE, PLID_arg, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
+    if (msg == NULL) return ERROR;
 
-    // Criar o socket TCP e configurar o timeout
+    // Create the TCP socket and configure the timeout
     int tcp_fd;
     if (create_tcp_socket(&tcp_fd) == ERROR) {
-        fprintf(stderr, "Failed to create TCP socket.\n");
+        fprintf(stderr, "Error: Failed to create TCP socket.\n");
         return ERROR;
     }
 
-    // Estabelecer a conexão com o servidor
+    // Establish the server connection
     if (connect_to_server(tcp_fd, tcp_res) == ERROR) {
-        fprintf(stderr, "Failed to connect to the server.\n");
+        fprintf(stderr, "Error: Failed to connect to the server.\n");
         close(tcp_fd);
         return ERROR;
     }
 
-    // Enviar a mensagem
+    // Send message
     if (send_message(tcp_fd, msg) == ERROR) {
-        fprintf(stderr, "Failed to send message.\n");
+        fprintf(stderr, "Error: Failed to send message.\n");
         close(tcp_fd);
         return ERROR;
     }
-    // Liberar mensagem apenas após ela ter sido enviada
     free(msg);
 
-    // Receber resposta
+    // Receive response
     char *response = NULL;
     if (receive_response(tcp_fd, &response) == ERROR) {
-        fprintf(stderr, "Failed to receive response.\n");
+        fprintf(stderr, "Error: Failed to receive response.\n");
         close(tcp_fd);
         return ERROR;
     }
 
     if (!strcmp(response, "ERR\n")) {
         fprintf(stderr, "Error: Command not recognized\n");
+        close(tcp_fd);
         return ERROR;
     }
 
-    // Processar a resposta
     char response_status[RESPONSE_LEN + 1];
-    sscanf(response, "RST %s", response_status);
+    int result = sscanf(response, "RST %s", response_status);
+
+    if (result != 1) {
+        printf("Error: Failed to parse the response string.\n");
+        free(response);
+        close(tcp_fd);
+        return ERROR;
+    }
+    
     free(response);
 
+    // Deal with response
     if (!strcmp(response_status, "NOK")) {
         return ERROR;
     } else if (!strcmp(response_status, "ACT") || !strcmp(response_status, "FIN")) {
-        // Processar "ACT" ou "FIN"
+
         char *Fname = NULL, *Fsize_char = NULL, *Fdata = NULL;
 
-        // Usando a subfunção para ler até o delimitador
+        // Read the complete response
         if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1) ||
             tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1) ||
             tcp_read(tcp_fd, &Fdata, atoi(Fsize_char)) == ERROR) {
@@ -321,14 +384,15 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
             return ERROR;
         }
 
-        // Armazenar dados como arquivo local
+        // Store the information on a local file
         if (store_file_local(Fname, Fdata) == ERROR) {
             free(Fname);
+            free(Fsize_char);
             free(Fdata);
             return ERROR;
         }
 
-        // Exibir conteúdo
+        // Show content
         show_show_trials_content(Fdata);
 
         free(Fname);
@@ -346,31 +410,33 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
 */
 int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
 
-    // Validar comando
+    // Validate command syntax
     if (validate_scoreboard_command(cmd, PLAYER_SIDE) == ERROR) {
         return ERROR;
     }
 
-    // Criar mensagem para enviar (exemplo: "SSB\n")
+    // Create message to send
+    // Example: SSB\n\0
     const char *components[] = {SSB_CMD, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
+    if (msg == NULL) return ERROR;
 
-    // Criar socket TCP e configurar timeout
+    // Create the TCP socket and configure the timeout
     int tcp_fd;
     if (create_tcp_socket(&tcp_fd) == ERROR) {
-        fprintf(stderr, "Failed to create TCP socket.\n");
+        fprintf(stderr, "Error: Failed to create TCP socket.\n");
         return ERROR;
     }
 
-    // Estabelecer conexão com o servidor
+    // Establish the server connection
     if (connect_to_server(tcp_fd, tcp_res) == ERROR) {
-        fprintf(stderr, "Failed to connect to the server.\n");
+        fprintf(stderr, "Error: Failed to connect to the server.\n");
         close(tcp_fd);
         return ERROR;
     }
 
-    // Enviar mensagem ao servidor
+    // Send message
     if (send_message(tcp_fd, msg) == ERROR) {
         close(tcp_fd);
         free(msg);
@@ -378,25 +444,32 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
     }
     free(msg);
 
-    // Receber primeira parte da resposta
+    // Receive response
     char *response = NULL;
     if (receive_response(tcp_fd, &response) == ERROR) {
-        fprintf(stderr, "Failed to receive response.\n");
+        fprintf(stderr, "Error: Failed to receive response.\n");
         close(tcp_fd);
         return ERROR;
     }
 
     if (!strcmp(response, "ERR\n")) {
         fprintf(stderr, "Error: Command not recognized\n");
+        close(tcp_fd);
         return ERROR;
     }
 
-    // Processar a resposta
     char response_status[RESPONSE_LEN + 1];
-    sscanf(response, "RSS %s", response_status);
+    int result = sscanf(response, "RSS %s", response_status);
+    
+    if (result != 1) {
+        printf("Error: Failed to parse the response string.\n");
+        free(response);
+        close(tcp_fd);
+        return ERROR;
+    }
     free(response);
 
-    // Evaluate responses
+    // Deal with response
     if (!strcmp(response_status, "EMPTY")) {
         printf("The scoreboard is still empty.\n");
         close(tcp_fd);
@@ -405,7 +478,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
 
         char *Fname = NULL, *Fsize_char = NULL, *Fdata = NULL;
 
-        // Usando a subfunção para ler até o delimitador
+        // Read the complete response
         if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1) ||
             tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1) ||
             tcp_read(tcp_fd, &Fdata, atoi(Fsize_char)) == ERROR) {
@@ -415,13 +488,15 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
             return ERROR;
         }
 
-        // Armazenar dados como arquivo local
+        // Store the information on a local file
         if (store_file_local(Fname, Fdata) == ERROR) {
             free(Fname);
+            free(Fsize_char);
             free(Fdata);
             return ERROR;
         }
 
+        // Show the content
         show_scoreboard_content(Fdata);
 
         free(Fname);
