@@ -709,6 +709,7 @@ void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *clie
 }
 
 
+// FUNCTIONS GIVEN BY THE UC ---------------------------------------------------
 
 int FindLastGame(const char *PLID, char *fname) {
     struct dirent **filelist;
@@ -745,3 +746,46 @@ int FindLastGame(const char *PLID, char *fname) {
 
     return found;
 }
+
+int FindTopScores(SCORELIST *list) {
+    struct dirent **filelist;
+    int nentries, ifile;
+    char fname[300];
+    FILE *fp;
+    char mode[8];
+
+    nentries = scandir("SCORES/", &filelist, 0, alphasort);
+    if (nentries <= 0)
+        return (0);
+    else {
+        ifile = 0;
+        while (nentries--) {
+            if (filelist[nentries]->d_name[0] != '.' && ifile < 10) {
+                sprintf(fname, "SCORES/%s", filelist[nentries]->d_name);
+                fp = fopen(fname, "r");
+                if (fp != NULL) {
+                    fscanf(fp, "%d %s %s %d %s",
+                           &list->score[ifile],
+                           list->PLID[ifile],
+                           list->colcode[ifile],
+                           &list->notries[ifile],
+                           mode);
+
+                    if (!strcmp(mode, "PLAY"))
+                        list->mode[ifile] = PLAY_MODE;
+                    if (!strcmp(mode, "DEBUG"))
+                        list->mode[ifile] = DEBUG_MODE;
+
+                    fclose(fp);
+                    ++ifile;
+                }
+            }
+            free(filelist[nentries]);
+        }
+        free(filelist);
+    }
+    list->nscores = ifile;
+    return (ifile);
+}
+
+// -----------------------------------------------------------------------------

@@ -26,4 +26,5 @@ int receive_response(int tcp_fd, char **response);
 void show_show_trials_content(char *Fdata);
 void show_scoreboard_content(char *Fdata);
 int store_file_local(char *Fname, char *Fdata);
+
 #endif

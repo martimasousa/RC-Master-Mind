@@ -354,7 +354,6 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
         close(tcp_fd);
         return ERROR;
     }
-
     free(response);
 
     // Deal with response
