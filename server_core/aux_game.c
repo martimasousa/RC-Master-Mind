@@ -638,3 +638,55 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
 
     tcp_write(client_fd, message);
 }
+
+char *build_scoreboard_response(SCORELIST *files) {
+
+    char *Fdata = malloc(sizeof(char) * MAX_FSIZE);
+    if (Fdata == NULL) return NULL;
+    Fdata[0] = '\0';
+
+    size_t count;
+    size_t Fsize = 0;
+
+    for (int i = 0; i < files->nscores; i++) {
+        char *PLID = files->PLID[i];
+        char *colcode = files->colcode[i];
+        int notries = files->notries[i];
+
+        // Build line
+        const char *components[] = {int_to_string(i + 1), ":", SPACE, PLID, SPACE, colcode, SPACE, int_to_string(notries), NEWLINE};
+        count = sizeof(components) / sizeof(components[0]);
+        char *line = create_string(components, count);
+
+        if (line == NULL) {
+            free(Fdata);
+            return NULL;
+        }
+
+        if (Fsize + strlen(line) >= MAX_FSIZE) {
+            free(Fdata);
+            free(line);
+            return NULL;
+        }
+
+        strcpy(Fdata + Fsize, line);
+        Fsize += strlen(line);
+
+        free(line);
+    }
+    Fdata[Fsize] = '\0';
+
+    // Build filename string
+    time_t now = time(NULL);
+    const char *Fname_components[] = {"SCOREBOARD_", int_to_string((int)now)};
+    count = sizeof(Fname_components) / sizeof(Fname_components[0]);
+    char *filename = create_string(Fname_components, count);
+    if (filename == NULL) return NULL;
+
+    // Built Final String
+    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), SPACE, Fdata};
+    count = sizeof(msg_components) / sizeof(msg_components[0]);
+    char *response = create_string(msg_components, count);
+
+    return response;
+}

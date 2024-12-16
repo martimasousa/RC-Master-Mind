@@ -1,5 +1,4 @@
 TODO:
 - [SERVER] Testar a fundo o INV
-- [ALL] Substituir os snprintf for memcpy porque dá merda com o tejo! (FALTA NOS COMANDOS TCP)
 - [ALL] Rever constantes, organizar código e adicionar verificações em funções que podem falhar tipo sscanf, etc etc
 - [ALL] Verificar se todos os comandos acabam com '\n'

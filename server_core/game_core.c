@@ -236,49 +236,13 @@ void process_ssb_command(int client_fd, const char *command) {
         return;
     }
 
-    // Create a string (Fdata) containing all the scores returned
-    char *Fdata = malloc(1);
-    Fdata[0] = '\0';
-    size_t Fsize = 0;
-    for (int i = 0; i < files->nscores; i++) {
-        char *PLID = files->PLID[i];
-        char *colcode = files->colcode[i];
-        int notries = files->notries[i];
+    response = build_scoreboard_response(files);
 
-        // Build line
-        const char *components[] = {int_to_string(i+1), ":", SPACE, PLID, SPACE, colcode, SPACE, int_to_string(notries), NEWLINE};
-        char *line = create_string(components, 9);
-        if (line == NULL) return;
+    if (response == NULL) return;
 
-        Fsize += strlen(line);
-        Fdata = realloc(Fdata, Fsize);
-        strcat(Fdata, line); // Append line to the end of Fdata
-    }
+    tcp_write(client_fd, response);
 
-    // Create filename
-    time_t now = time(NULL);
-
-    // Build filename string
-    const char *Fname_components[] = {"SCOREBOARD_", int_to_string((int)now)};
-    char *filename = create_string(Fname_components, 2);
-    if (filename == NULL) return;
-
-    // Write Fname and Fsize
-    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), NEWLINE};
-    char *res_init = create_string(msg_components, 6);
-    if (res_init == NULL) return;
-    if (tcp_write(client_fd, res_init)) {
-        free(Fdata);
-        return;
-    }
-
-    // Write Fdata
-    if (tcp_write(client_fd, Fdata)) {
-        free(Fdata);
-        return;
-    }
-
-    free(Fdata);
+    free(response);
     return;
 }
 

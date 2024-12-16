@@ -449,6 +449,7 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
 
     char response_status[RESPONSE_LEN + 1];
     int result = sscanf(response, "RSS %s", response_status);
+    printf("%s\n", response);
     
     if (result != 1) {
         fprintf(stderr, "Error: Failed to parse the response string.\n");

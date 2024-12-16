@@ -121,4 +121,5 @@ int calculate_score(const char *PLID, const int turnsPlayed);
 // Executes the functionality of the show_trials
 void execute_show_trials(const int client_fd, const char* filepath, char* PLID);
 
+char *build_scoreboard_response(SCORELIST *files);
 #endif
