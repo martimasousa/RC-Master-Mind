@@ -120,8 +120,12 @@ ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct so
 // Função que envia uma resposta UDP para o cliente especificado.
 void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr);
 
+// FUNCTIONS GIVEN BY THE UC ---------------------------------------------------
+
 int FindLastGame(const char *PLID, char *fname);
 
 int FindTopScores(SCORELIST *list);
+
+// -----------------------------------------------------------------------------
 
 #endif

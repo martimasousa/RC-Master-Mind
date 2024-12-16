@@ -33,10 +33,10 @@ int is_valid_hostname(const char *hostname) {
     int status = getaddrinfo(hostname, NULL, &hints, &res);
     if (status == 0) {
         freeaddrinfo(res); // Free the linked list
-        return 1;          // Valid hostname
+        return TRUE;          // Valid hostname
     }
 
-    return 0; // Invalid hostname
+    return FALSE; // Invalid hostname
 }
 
 int is_valid_ip(const char *ip) {
