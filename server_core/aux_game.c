@@ -166,8 +166,8 @@ char* get_completed_game_name(char const type) {
     time_t now = time(NULL);
     struct tm *current_time = gmtime(&now);
 
-    char *message = malloc(sizeof(char) * GAME_COMPLETED_FILE_NAME_LEN + 1);
-    snprintf(message, GAME_COMPLETED_FILE_NAME_LEN + 1, "%4d%02d%02d_%02d%02d%02d_%c",
+    char *message = malloc(sizeof(char) * GAME_COMPLETED_FILE_NAME_LEN + 1 + 20);
+    snprintf(message, strlen(message), "%4d%02d%02d_%02d%02d%02d_%c",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
                                         current_time->tm_mday,
@@ -347,7 +347,7 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
     }
 
     // Creates the Date string
-    char timestr[GAME_INFO_DATE_LEN + 1]; // + '\0'
+    char timestr[GAME_INFO_DATE_LEN + 1 + 20]; // + '\0'
     snprintf(timestr, sizeof(timestr), "%4d-%02d-%02d %02d:%02d:%02d",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
@@ -477,7 +477,7 @@ int relocate_completed_game(const char *PLID, const char endGameType) {
     snprintf(destination_path, destination_path_length, "%s/%s", destinationDirectoryPath, destinationFileName);
 
     size_t message_len = YEAR_LEN + 1 + MONTH_LEN + 1 + DAY_LEN + 1 + HOUR_LEN + 1 +
-                         MINUTES_LEN + 1 + SECONDS_LEN + 1 + ELAPSED_TIME_LEN + 2;
+                         MINUTES_LEN + 1 + SECONDS_LEN + 1 + ELAPSED_TIME_LEN + 2 + 20;
     char *message = malloc(sizeof(char) * message_len);
 
     // Creates the end game string
@@ -512,7 +512,7 @@ int create_score_file(const char *PLID, const int number_tries) {
 
     size_t file_path_len = strlen("./SCORES/") + SCORE_MAX_LEN + 1 + PLID_DIGITS +
                            DAY_LEN + MONTH_LEN + YEAR_LEN + 1 + HOUR_LEN + MINUTES_LEN +
-                           SECONDS_LEN + strlen(".txt") + 1;
+                           SECONDS_LEN + strlen(".txt") + 1 + 20;
     char *file_path = malloc(sizeof(char) * file_path_len);
 
     // Builds the path string
