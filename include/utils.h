@@ -14,6 +14,22 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+// FUNCTIONS GIVEN BY THE UC ---------------------------------------------------
+
+#define CODE_DIGITS 4 + 1   // '\0'
+#define SSB_SIZE    10
+
+typedef struct {
+    int score[SSB_SIZE];                    // Array to store scores
+    char PLID[SSB_SIZE][PLID_DIGITS + 1];   // Array of strings for Player IDs
+    char colcode[SSB_SIZE][CODE_DIGITS];    // Array of strings for color codes
+    int notries[SSB_SIZE];                  // Array to store number of tries
+    char mode[SSB_SIZE];                    // Array to store the mode for each entry
+    int nscores;                            // Number of scores currently stored
+} SCORELIST;
+
+// -----------------------------------------------------------------------------
+
 /*
     STATUS VERIFICATION auxiliar functions 
 */
@@ -105,5 +121,7 @@ ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct so
 void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr);
 
 int FindLastGame(const char *PLID, char *fname);
+
+int FindTopScores(SCORELIST *list);
 
 #endif

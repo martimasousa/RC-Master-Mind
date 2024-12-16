@@ -5,32 +5,18 @@
 */
 
 int has_ongoing_game(const char *PLID) {
-    size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
 
-    char *file_path = malloc(sizeof(char) * BUFFER_SIZE);
-    if (file_path == NULL) {
-        perror("Error allocating memory for the path!\n");
-        return NOT_FOUND;
-    }
-    snprintf(file_path, path_length, "./GAMES/GAME_%s", PLID);
+    char *file_path = get_game_folder_path(PLID);
 
     if (access(file_path, F_OK) == 0) {
-        return FOUND;
+       return FOUND;
     } else {
-        return NOT_FOUND;
+       return NOT_FOUND;
     }
-
-    //char *file_path = get_game_folder_path(PLID);
-
-    //if (access(file_path, F_OK) == 0) {
-    //    return FOUND;
-    //} else {
-    //    return NOT_FOUND;
-    //}
 }
 
-int has_exceeded_max_turn(const char trial_number) {
-    return (trial_number - '0' > MAX_ALLOWED_PLAYS);
+int has_reached_max_turn(const char trial_number) {
+    return (trial_number - '0' > MAX_ALLOWED_PLAYS - 1);
 }
 
 int has_exceeded_time(const char *PLID) {
@@ -90,8 +76,6 @@ int is_duplicated(const char *PLID, GameTry *game_try) {
 int get_expected_nt(const char *PLID) {
     // Count the PLID's file number of lines (to get the expected nt)
     char *file_path = special_inv_function(PLID);
-
-    printf("file_path_nt: %s\n", file_path);
 
     FILE *file = fopen(file_path, "r"); // Open file for reading
     if (file == NULL) {
@@ -257,8 +241,6 @@ GameTry* extract_last_colour(const char *PLID) {
 
     // Read the file and populate the lines array
     char *file_path = special_inv_function(PLID);
-
-    printf("file_path_last_color: %s\n", file_path);
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {

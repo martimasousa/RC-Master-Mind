@@ -17,21 +17,6 @@
     Structures
 */
 
-// FUNCTIONS GIVEN BY THE UC ---------------------------------------------------
-
-#define CODE_DIGITS 4 + 1   // '\0'
-#define SSB_SIZE    10
-
-typedef struct {
-    int score[SSB_SIZE];                    // Array to store scores
-    char PLID[SSB_SIZE][PLID_DIGITS + 1];   // Array of strings for Player IDs
-    char colcode[SSB_SIZE][CODE_DIGITS];    // Array of strings for color codes
-    int notries[SSB_SIZE];                  // Array to store number of tries
-    char mode[SSB_SIZE];                    // Array to store the mode for each entry
-    int nscores;                            // Number of scores currently stored
-} SCORELIST;
-
-// -----------------------------------------------------------------------------
 
 typedef struct GameTry {
     char colours[4];
@@ -43,7 +28,7 @@ typedef struct GameTry {
 */
 
 int has_ongoing_game(const char *PLID);
-int has_exceeded_max_turn(const char trial_number);
+int has_reached_max_turn(const char trial_number);
 int has_exceeded_time(const char *PLID);
 int is_duplicated(const char *PLID, GameTry *game_try);
 // Get's expected PLID's game number of trials
@@ -132,13 +117,6 @@ int calculate_score(const char *PLID, const int turnsPlayed);
     SHOW_TRIALS and SCOREBOARD auxiliar functions
 */
 
-// FUNCTIONS GIVEN BY THE UC ---------------------------------------------------
-
-int FindTopScores(SCORELIST *list);
-
-//int FindLastGame(const char *PLID, char *fname);
-
-// -----------------------------------------------------------------------------
 
 // Executes the functionality of the show_trials
 void execute_show_trials(const int client_fd, const char* filepath, char* PLID);

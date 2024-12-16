@@ -97,18 +97,17 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     } 
     
-    if (has_exceeded_max_turn(nt)) {
-        char *response = build_end_game_response(PLID, "RTR", "ENT");
-        end_game(PLID, END_FAIL, NOT_NEEDED);
-        send_udp_response(udp_fd, response, client_addr);
-        return;
-    }
 
     int* player_try_res = make_try(PLID, player_try);
     char *response = generate_try_result_message(PLID, player_try_res, nt);
 
     if (has_won(player_try_res)) {
         end_game(PLID, END_WIN, convert_char_to_int(nt));
+    } else if (has_reached_max_turn(nt)) {
+            char *response = build_end_game_response(PLID, "RTR", "ENT");
+            end_game(PLID, END_FAIL, NOT_NEEDED);
+            send_udp_response(udp_fd, response, client_addr);
+            return;
     }
 
     send_udp_response(udp_fd, response, client_addr);
