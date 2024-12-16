@@ -148,8 +148,8 @@ char* get_completed_game_name(char const type) {
     time_t now = time(NULL);
     struct tm *current_time = gmtime(&now);
 
-    char *message = malloc(sizeof(char) * GAME_COMPLETED_FILE_NAME_LEN + 1 + 20);
-    snprintf(message, strlen(message), "%4d%02d%02d_%02d%02d%02d_%c",
+    char *message = malloc(sizeof(char) * BUFFER_SIZE);
+    sprintf(message, "%4d%02d%02d_%02d%02d%02d_%c",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
                                         current_time->tm_mday,

@@ -113,8 +113,6 @@ int tcp_write(int fd, char* to_write);
  */
 int tcp_read(int fd, char **buffer, size_t n);
 
-char *read_until_null(int fd);
-
 // Função que recebe uma mensagem UDP e retorna o número de bytes lidos.
 // Modifica o buffer com os dados recebidos.
 ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr);

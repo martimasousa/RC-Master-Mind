@@ -25,6 +25,7 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     // Example: SNG ERR\n\0
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + 1;
     char response[resp_len];
+    memset(response, 0, resp_len);
 
     if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
         return ERROR;
@@ -89,6 +90,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
     // Example: RTR ENT C1 C2 C3 C4\n\0 
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*2 + 1 + 1;
     char response[resp_len];
+    memset(response, 0, resp_len);
 
     if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
         return ERROR;
@@ -191,6 +193,7 @@ int exit_quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID
     // Example: RQT OK C1 C2 C3 C4\n\0
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 4*COLOR_LEN*2 + 1 + 1;
     char response[resp_len];
+    memset(response, 0, resp_len);
     
     if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
         return ERROR;
@@ -256,6 +259,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     // Example: SNG ERR\n\0
     size_t resp_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + 1;
     char response[resp_len];
+    memset(response, 0, resp_len);
 
     if (send_receive_udp(udp_fd, udp_res, msg, strlen(msg), response, resp_len) == ERROR) {
         return ERROR;

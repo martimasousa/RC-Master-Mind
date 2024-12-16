@@ -593,13 +593,10 @@ int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
     while (1) {
         ssize_t n = read(fd, &c, 1);  // Read one byte at a time
         if (n == -1) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                fprintf(stderr, "Read operation timed out.\n");
-            } else {
-                fprintf(stderr, "Error while reading from TCP socket.\n");
-            }
+            fprintf(stderr, "Error while reading from TCP socket.\n");
             return 1;
         }
+
         if (n == 0) {  // End of stream (either due to EOF or socket closed by other peer)
             // Return content read until this point
             break;
@@ -692,49 +689,6 @@ int tcp_read(int fd, char **buffer, size_t n) {
     return OK; // Sucesso
 }
 
-char *read_until_null(int fd) {
-    char buffer[BUFFER_SIZE];
-    size_t length = 0; // Comprimento atual da string
-
-    while (1) {
-        char c;
-        ssize_t bytes_read = read(fd, &c, 1);
-
-        if (bytes_read < 0) {
-            // Erro na leitura
-            return NULL;
-        }
-
-        if (bytes_read == 0) {
-            // Socket fechado antes de encontrar '\0'
-            errno = EPIPE;
-            return NULL;
-        }
-
-        if (length >= BUFFER_SIZE - 1) {
-            // O buffer é limitado, estourou o tamanho permitido
-            errno = ENOMEM;
-            return NULL;
-        }
-
-        buffer[length++] = c;
-
-        // Verifica se encontrou o caractere '\0'
-        if (c == '\0') {
-            break;
-        }
-    }
-
-    // Cria uma string com tamanho exato
-    char *result = malloc(length);
-    if (!result) {
-        errno = ENOMEM;
-        return NULL;
-    }
-
-    memcpy(result, buffer, length);
-    return result;
-}
 
 ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr) {
     socklen_t client_len = sizeof(*client_addr);
