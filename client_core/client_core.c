@@ -48,12 +48,13 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
 
     // Deal with response
     if (!strcmp(response_status, "OK")) {
+        printf("Game Started!\n");
         return PLID;
     } else if (!strcmp(response_status, "NOK")) {
         fprintf(stderr, "Error: You cannot start a new game while playing another.\n");
         return ERROR;
     } else if (!strcmp(response_status, "ERR")) {
-        fprintf(stderr, "Error: Incorrect request syntax.\n");
+        fprintf(stderr, "Error: Incorrect syntax, invalid PLID or invalid time.\n");
         return ERROR;
     } else {
         fprintf(stderr, "Error: Response format/status not known.\n");
@@ -224,7 +225,7 @@ int exit_quit_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID
         fprintf(stderr, "Error: PLID does not have an ongoing game.\n");
         return ERROR;
     } else if (!strcmp(response_status, "ERR")) {
-        fprintf(stderr, "Error: Incorrect request syntax.\n");
+        fprintf(stderr, "Error: Incorrect request syntax or invalid PLID.\n");
         return ERROR;
     }
 
@@ -282,7 +283,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
         fprintf(stderr, "Error: You cannot start a new game while playing another.\n");
         return ERROR;
     } else if (!strcmp(response_status, "ERR")) {
-        fprintf(stderr, "Error: Incorrect request syntax.\n");
+        fprintf(stderr, "Error: Incorrect syntax, invalid PLID, invalid time or invalid color.\n");
         return ERROR;
     } else {
         fprintf(stderr, "Error: Response format/status not known.\n");
@@ -358,6 +359,7 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
 
     // Deal with response
     if (!strcmp(response_status, "NOK")) {
+        fprintf(stderr, "Error: Incorrect request syntax or invalid PLID.\n");
         return ERROR;
     } else if (!strcmp(response_status, "ACT") || !strcmp(response_status, "FIN")) {
 

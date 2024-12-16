@@ -553,7 +553,6 @@ int create_score_file(const char *PLID, const int number_tries) {
     return 0;
 }
 
-
 int calculate_score(const char *PLID, const int turns_played) {
 
     int elapsed_time = get_elapsed_time(PLID);

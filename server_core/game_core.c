@@ -255,7 +255,7 @@ void process_tcp_uknown_command(int client_fd) {
 }
 
 void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
-    char type[3];
+    char type[COMMAND_LEN + 1 + 1];
     sscanf(command, "%s", type);
 
     if (!strcmp(SNG_CMD, type)) {
@@ -280,8 +280,8 @@ void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char
 }
 
 void process_command_tcp(int client_fd, const char *command) {
-    char type[3];
-    sscanf(command, "%s", type);
+    char type[COMMAND_LEN + 1];
+    sscanf(command, "%s\n", type);
 
     if (!strcmp(STR_CMD, type)) {
         process_str_command(client_fd, command);

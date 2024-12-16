@@ -118,7 +118,7 @@ int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_a
     // Verificar se há argumentos extras
     const char *remaining = cmd + strlen(input_command) + 1 + strlen(temp_PLID) + 1 + strlen(temp_time);
     while (*remaining == ' ') remaining++;
-    if (*remaining != '\0' && *remaining != '\n') {
+    if (*remaining != '\n') {
         fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
         return ERROR;
     }
@@ -209,7 +209,51 @@ int validate_try_command(const char *cmd, char *PLID_arg, char *C1, char *C2, ch
     }
 
     while (*remaining == ' ') remaining++;
-    if (*remaining != '\0' && *remaining != '\n') {
+    if (*remaining != '\n') {
+        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
+        return ERROR;
+    }
+
+    return OK;
+}
+
+int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_side, const int context_flag) {
+    char input_command[INPUT_ARGUMENT_LEN], temp_PLID[INPUT_ARGUMENT_LEN];
+    const char *expected_end;
+
+    if (sscanf(cmd, "%s", input_command) != 1) {
+        fprintf(stderr, "Error: Command is empty or malformed.\n");
+        return ERROR;
+    }
+
+    if (execution_side == SERVER_SIDE) {
+        // Validação no servidor
+        if (strcmp(input_command, "QUT") != 0) {
+            fprintf(stderr, "Error: Command should start with 'QUT'.\n");
+            return ERROR;
+        }
+        if (sscanf(cmd, "QUT %s", temp_PLID) != 1 || strlen(temp_PLID) != PLID_DIGITS || !is_integer(temp_PLID)) {
+            fprintf(stderr, "Error: PLID must be an integer with 6 digits.\n");
+            return ERROR;
+        }
+        strcpy(PLID_arg, temp_PLID);
+        expected_end = cmd + strlen("QUT") + 1 + strlen(temp_PLID);
+    } else if (execution_side == PLAYER_SIDE) {
+        // Validação no cliente
+        const char *valid_command = (context_flag == QUIT_CONTEXT) ? "quit" : "exit";
+        if (strcmp(input_command, valid_command) != 0) {
+            fprintf(stderr, "Error: Command should be '%s'.\n", valid_command);
+            return ERROR;
+        }
+        expected_end = cmd + strlen(valid_command);
+    } else {
+        fprintf(stderr, "Error: Invalid execution side.\n");
+        return ERROR;
+    }
+
+    // Verifica espaços extras e final do comando
+    while (*expected_end == ' ') expected_end++;
+    if (*expected_end != '\n') {
         fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
         return ERROR;
     }
@@ -276,7 +320,7 @@ int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_a
     const char *remaining = cmd + strlen(input_command) + 1 + strlen(temp_PLID) + 1 +
                             strlen(temp_max_playtime) + 4*COLOR_LEN*2;
     while (*remaining == ' ') remaining++;
-    if (*remaining != '\0' && *remaining != '\n') {
+    if (*remaining != '\n') {
         fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
         return ERROR;
     }
@@ -322,12 +366,13 @@ int validate_showtrials_command(const char *cmd, char *PLID, const int execution
     }
 
     // Verificar se há argumentos extras
-    const char *remaining = cmd + strlen(input_command) + 1;
+    const char *remaining = cmd + strlen(input_command);
     if (execution_side == SERVER_SIDE) {
-        remaining += strlen(temp_PLID) + 1;
+        remaining += 1 + strlen(temp_PLID);
     }
+
     while (*remaining == ' ') remaining++;
-    if (*remaining != '\0' && *remaining != '\n') {
+    if (*remaining != '\n' && *remaining != '\0') {
         fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
         return ERROR;
     }
@@ -369,51 +414,6 @@ int validate_scoreboard_command(const char *cmd, const int execution_side) {
 
     return OK;
 }
-
-int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_side, const int context_flag) {
-    char input_command[INPUT_ARGUMENT_LEN], temp_PLID[INPUT_ARGUMENT_LEN];
-    const char *expected_end;
-
-    if (sscanf(cmd, "%s", input_command) != 1) {
-        fprintf(stderr, "Error: Command is empty or malformed.\n");
-        return ERROR;
-    }
-
-    if (execution_side == SERVER_SIDE) {
-        // Validação no servidor
-        if (strcmp(input_command, "QUT") != 0) {
-            fprintf(stderr, "Error: Command should start with 'QUT'.\n");
-            return ERROR;
-        }
-        if (sscanf(cmd, "QUT %s", temp_PLID) != 1 || strlen(temp_PLID) != PLID_DIGITS || !is_integer(temp_PLID)) {
-            fprintf(stderr, "Error: PLID must be an integer with 6 digits.\n");
-            return ERROR;
-        }
-        strcpy(PLID_arg, temp_PLID);
-        expected_end = cmd + strlen("QUT") + 1 + strlen(temp_PLID);
-    } else if (execution_side == PLAYER_SIDE) {
-        // Validação no cliente
-        const char *valid_command = (context_flag == QUIT_CONTEXT) ? "quit" : "exit";
-        if (strcmp(input_command, valid_command) != 0) {
-            fprintf(stderr, "Error: Command should be '%s'.\n", valid_command);
-            return ERROR;
-        }
-        expected_end = cmd + strlen(valid_command);
-    } else {
-        fprintf(stderr, "Error: Invalid execution side.\n");
-        return ERROR;
-    }
-
-    // Verifica espaços extras e final do comando
-    while (*expected_end == ' ') expected_end++;
-    if (*expected_end != '\n' && *expected_end != '\0') {
-        fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
-        return ERROR;
-    }
-
-    return OK;
-}
-
 
 /*
     GENERAL auxiliar functions
@@ -690,6 +690,50 @@ int tcp_read(int fd, char **buffer, size_t n) {
     (*buffer)[n] = '\0';
 
     return OK; // Sucesso
+}
+
+char *read_until_null(int fd) {
+    char buffer[BUFFER_SIZE];
+    size_t length = 0; // Comprimento atual da string
+
+    while (1) {
+        char c;
+        ssize_t bytes_read = read(fd, &c, 1);
+
+        if (bytes_read < 0) {
+            // Erro na leitura
+            return NULL;
+        }
+
+        if (bytes_read == 0) {
+            // Socket fechado antes de encontrar '\0'
+            errno = EPIPE;
+            return NULL;
+        }
+
+        if (length >= BUFFER_SIZE - 1) {
+            // O buffer é limitado, estourou o tamanho permitido
+            errno = ENOMEM;
+            return NULL;
+        }
+
+        buffer[length++] = c;
+
+        // Verifica se encontrou o caractere '\0'
+        if (c == '\0') {
+            break;
+        }
+    }
+
+    // Cria uma string com tamanho exato
+    char *result = malloc(length);
+    if (!result) {
+        errno = ENOMEM;
+        return NULL;
+    }
+
+    memcpy(result, buffer, length);
+    return result;
 }
 
 ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr) {

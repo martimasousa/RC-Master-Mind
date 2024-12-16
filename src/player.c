@@ -78,9 +78,6 @@ void handleClient(char *GSIP, char *GSport) {
         char cmd[MAX_PLAYER_COMMAND];
         fgets(cmd, MAX_PLAYER_COMMAND, stdin);
 
-        // Remove the trailing newline character
-        cmd[strcspn(cmd, "\n")] = '\0';
-
         // Get command type
         char type[MAX_PLAYER_COMMAND];
         int result = sscanf(cmd, "%s", type);
