@@ -138,28 +138,10 @@ char* build_end_game_response(const char* PLID, const char* Command, const char*
 
     GameTry *game_solution = extract_game_colour(PLID);
 
-     // Buffer para converter cada cor em uma string
-    char colour_0[COLOR_LEN + 1] = {game_solution->colours[0], '\0'};
-    char colour_1[COLOR_LEN + 1] = {game_solution->colours[1], '\0'};
-    char colour_2[COLOR_LEN + 1] = {game_solution->colours[2], '\0'};
-    char colour_3[COLOR_LEN + 1] = {game_solution->colours[3], '\0'};
+    char *res = malloc(sizeof(char) * BUFFER_SIZE);
+    sprintf(res, "%s %s %c %c %c %c\n", Command, Status, game_solution->colours[0], game_solution->colours[1], game_solution->colours[2], game_solution->colours[3]);
 
-    // Componentes da mensagem
-    const char *components[] = {
-        Command, SPACE, 
-        Status, SPACE, 
-        colour_0, SPACE, 
-        colour_1, SPACE, 
-        colour_2, SPACE, 
-        colour_3, NEWLINE
-    };
-
-    size_t count = sizeof(components) / sizeof(components[0]);
-
-    // Criar a mensagem final
-    char *msg = create_string(components, count);
-
-    return msg;
+    return res;
 }
 
 char* get_completed_game_name(char const type) {
@@ -631,7 +613,7 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
         filename++;
     }
 
-    const char *components[] = {"RST ACT ", filename, SPACE, int_to_string(file_data_size), SPACE, filedata, NEWLINE};
+    const char *components[] = {"RST ACT ", filename, SPACE, int_to_string(file_data_size), SPACE, NEWLINE, filedata, NEWLINE};
     char *message = create_string(components, 7);
     if (message == NULL) return;
 
@@ -683,7 +665,7 @@ char *build_scoreboard_response(SCORELIST *files) {
     if (filename == NULL) return NULL;
 
     // Built Final String
-    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), SPACE, Fdata};
+    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), SPACE, NEWLINE, Fdata};
     count = sizeof(msg_components) / sizeof(msg_components[0]);
     char *response = create_string(msg_components, count);
 
