@@ -132,12 +132,18 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
     }
 
     /* Get the solution and send the message */
-    char *response = build_end_game_response(PLID, "RQT", "OK");
+    char *response;
 
-    if (has_exceeded_time(PLID)) end_type = END_TIMEOUT;
-    else end_type = END_QUIT;
+    if (has_exceeded_time(PLID)) {
+        end_type = END_TIMEOUT;
+        response = "RQT NOK\n";
+    } else {
+        end_type = END_QUIT;
+        response = build_end_game_response(PLID, "RQT", "OK");
+    }
 
     end_game(PLID, end_type, NOT_NEEDED);
+
     send_udp_response(udp_fd, response, client_addr);
 }
 

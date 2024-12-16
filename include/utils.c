@@ -749,7 +749,7 @@ ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct so
 
 void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *client_addr) {
     socklen_t client_len = sizeof(*client_addr);
-    sendto(udp_fd, message, strlen(message) + 1, 0, (struct sockaddr *)client_addr, client_len);
+    sendto(udp_fd, message, strlen(message) /*+ 1*/, 0, (struct sockaddr *)client_addr, client_len);
 }
 
 
