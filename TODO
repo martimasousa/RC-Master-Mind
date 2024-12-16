@@ -2,4 +2,3 @@ TODO:
 - [SERVER] Testar a fundo o INV
 - [ALL] Substituir os snprintf for memcpy porque dá merda com o tejo! (FALTA NOS COMANDOS TCP)
 - [ALL] Rever constantes, organizar código e adicionar verificações em funções que podem falhar tipo sscanf, etc etc
-- [SERVER] Alterar para terminar logo o jogo após a 8ª Guess e não esperar para verificar isso depois na 9ª Guess
