@@ -470,7 +470,8 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
         // Read the complete response
         if (tcp_read_until_delimiter(tcp_fd, &Fname, ' ', 1) ||
             tcp_read_until_delimiter(tcp_fd, &Fsize_char, ' ', 1) ||
-            tcp_read(tcp_fd, &Fdata, atoi(Fsize_char)) == ERROR) {
+            tcp_read_until_delimiter(tcp_fd, &Fdata, '\0', 1)) {
+            //tcp_read(tcp_fd, &Fdata, atoi(Fsize_char)-3) == ERROR) {
             free(Fname);
             free(Fsize_char);
             free(Fdata);

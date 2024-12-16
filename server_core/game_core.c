@@ -241,13 +241,14 @@ void process_ssb_command(int client_fd, const char *command) {
     Fdata[0] = '\0';
     size_t Fsize = 0;
     for (int i = 0; i < files->nscores; i++) {
-        char line[6 + 1 + 4 + 1 + 1 + 1 + 1]; // PLID + SPACE + CODE + SPACE + N_PLAYS + \n
-
         char *PLID = files->PLID[i];
         char *colcode = files->colcode[i];
         int notries = files->notries[i];
 
-        sprintf(line, "%d: %s %s %d\n", i+1, PLID, colcode, notries);
+        // Build line
+        const char *components[] = {int_to_string(i+1), ":", SPACE, PLID, SPACE, colcode, SPACE, int_to_string(notries), NEWLINE};
+        char *line = create_string(components, 9);
+        if (line == NULL) return;
 
         Fsize += strlen(line);
         Fdata = realloc(Fdata, Fsize);
@@ -255,13 +256,17 @@ void process_ssb_command(int client_fd, const char *command) {
     }
 
     // Create filename
-    char filename[MAX_FNAME];
     time_t now = time(NULL);
-    sprintf(filename, "SCOREBOARD_%ld", now);
+
+    // Build filename string
+    const char *Fname_components[] = {"SCOREBOARD_", int_to_string((int)now)};
+    char *filename = create_string(Fname_components, 2);
+    if (filename == NULL) return;
 
     // Write Fname and Fsize
-    char res_init[20];
-    sprintf(res_init, "RSS OK %s %ld ", filename, Fsize);
+    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), NEWLINE};
+    char *res_init = create_string(msg_components, 6);
+    if (res_init == NULL) return;
     if (tcp_write(client_fd, res_init)) {
         free(Fdata);
         return;

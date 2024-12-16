@@ -609,9 +609,12 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
         time_t remaining_time = time_limit - time(NULL);
 
         // Add remaining time at the end of the file
-        sprintf(line, "Remaining time: %ld seconds\n", remaining_time);
-        size_t len = strlen(line);
-        memcpy(filedata + total_size, line, len);
+        const char *components[] = {"Remaining time: ", int_to_string((int)remaining_time), SPACE, "seconds", NEWLINE};
+        char *line_to_write = create_string(components, 5);
+        if (line_to_write == NULL) return;
+
+        size_t len = strlen(line_to_write);
+        memcpy(filedata + total_size, line_to_write, len);
         total_size += len;
         file_data_size += len;
     }
@@ -629,9 +632,9 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
         filename++;
     }
 
-    size_t message_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + MAX_FNAME + 1 + MAX_FILESIZE_DIGITS + 1 + file_data_size + 2;
-    char message[message_len];
-    sprintf(message, "RST ACT %s %d %s", filename, file_data_size, filedata);
+    const char *components[] = {"RST ACT ", filename, SPACE, int_to_string(file_data_size), SPACE, filedata, NEWLINE};
+    char *message = create_string(components, 7);
+    if (message == NULL) return;
 
     tcp_write(client_fd, message);
 }
