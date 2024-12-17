@@ -6,7 +6,7 @@
 
 int has_ongoing_game(const char *PLID) {
 
-    char *file_path = get_game_folder_path(PLID);
+    char *file_path = get_game_file_path(PLID);
 
     if (access(file_path, F_OK) == 0) {
        return FOUND;
@@ -27,7 +27,7 @@ int has_exceeded_time(const char *PLID) {
 
 int is_duplicated(const char *PLID, GameTry *game_try) {
     
-    char *file_path = get_game_folder_path(PLID);
+    char *file_path = get_game_file_path(PLID);
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {
@@ -75,7 +75,7 @@ int is_duplicated(const char *PLID, GameTry *game_try) {
 
 int get_expected_nt(const char *PLID) {
     // Count the PLID's file number of lines (to get the expected nt)
-    char *file_path = special_inv_function(PLID);
+    char *file_path = get_last_used_game_file(PLID);
 
     FILE *file = fopen(file_path, "r"); // Open file for reading
     if (file == NULL) {
@@ -131,7 +131,7 @@ void write_line(const char *file_path, const char *message) {
 
 void write_game_line(const char *PLID, const char *message) {
     
-    write_line(get_game_folder_path(PLID), message);
+    write_line(get_game_file_path(PLID), message);
 }
 
 char* build_end_game_response(const char* PLID, const char* Command, const char* Status) {
@@ -163,7 +163,7 @@ char* get_completed_game_name(char const type) {
 
 char* extract_game_info(const char *PLID, const char arg_type) {
 
-    char *file_path = special_inv_function(PLID);
+    char *file_path = get_last_used_game_file(PLID);
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {
@@ -222,7 +222,7 @@ GameTry* extract_last_colour(const char *PLID) {
 
 
     // Read the file and populate the lines array
-    char *file_path = special_inv_function(PLID);
+    char *file_path = get_last_used_game_file(PLID);
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {
@@ -443,7 +443,7 @@ int end_game(const char *PLID, const char end_game_type, const int number_tries)
 
 int relocate_completed_game(const char *PLID, const char endGameType) {
     char *destinationDirectoryPath = get_player_folder_path(PLID);
-    char *sourceFilePath = get_game_folder_path(PLID);
+    char *sourceFilePath = get_game_file_path(PLID);
     char *destinationFileName = get_completed_game_name(endGameType);
 
     time_t now = time(NULL);

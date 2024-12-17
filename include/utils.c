@@ -5,6 +5,7 @@
 */
 
 int is_integer(const char *str) {
+    // Iterate through the string and evaluate if each character is a digit.
     while (*str) {
         if (!isdigit(*str)) return FALSE;
         str++;
@@ -19,7 +20,7 @@ int is_valid_port(const char *str) {
 
     int port = atoi(str);
 
-    return port >= 0 && port <= 65535;
+    return port >= 0 && port <= 65535; // Port range
 }
 
 int is_valid_hostname(const char *hostname) {
@@ -33,10 +34,10 @@ int is_valid_hostname(const char *hostname) {
     int status = getaddrinfo(hostname, NULL, &hints, &res);
     if (status == 0) {
         freeaddrinfo(res); // Free the linked list
-        return TRUE;          // Valid hostname
+        return TRUE;
     }
 
-    return FALSE; // Invalid hostname
+    return FALSE;
 }
 
 int is_valid_ip(const char *ip) {
@@ -46,12 +47,12 @@ int is_valid_ip(const char *ip) {
 
 int is_valid_address(const char *input) {
     if (is_valid_ip(input)) {
-        return 1; // It's a valid IP address
+        return TRUE; // It's a valid IP address
     }
     if (is_valid_hostname(input)) {
-        return 1; // It's a valid hostname
+        return TRUE; // It's a valid hostname
     }
-    return 0; // Neither valid IP nor hostname
+    return FALSE; // Neither valid IP nor hostname
 }
 
 int is_valid_color(char C) {
@@ -68,6 +69,7 @@ int file_exists(const char *path) {
         fclose(file);
         return TRUE;
     }
+
     return FALSE;
 }
 
@@ -77,6 +79,7 @@ int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_a
     char temp_PLID[INPUT_ARGUMENT_LEN];
     char temp_time[INPUT_ARGUMENT_LEN];
 
+    // Determine the expected command based on the execution side
     if (execution_side == SERVER_SIDE) expected_command_name = "SNG"; 
     else if (execution_side == PLAYER_SIDE) expected_command_name = "start";
     else {
@@ -84,38 +87,37 @@ int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_a
         return ERROR;
     }
 
-    // Usar sscanf para ler os valores da string cmd
+    // Using sscanf to extract the values from the cmd string
     int items_read = sscanf(cmd, "%s %s %s", input_command, temp_PLID, temp_time);
     if (items_read < 3) {
         fprintf(stderr, "Error: Command is malformed or missing arguments.\n");
         return ERROR;
     }
 
-    // Verificar se o comando corresponde ao esperado
+    // Check if the command corresponds to what is supposed
     if (strcmp(input_command, expected_command_name) != 0) {
         fprintf(stderr, "Error: Command is malformed. It should start with '%s'.\n", expected_command_name);
         return ERROR;
     }
 
-    // Validar PLID
+    // Validate PLID
     if (strlen(temp_PLID) != PLID_DIGITS || !is_integer(temp_PLID)) {
         fprintf(stderr, "Error: PLID must be an integer with 6 digits.\n");
         return ERROR;
     }
 
-    // Validar max_playtime
+    // Validate max_playtime
     if (strlen(temp_time) > TIME_DIGITS || !is_integer(temp_time)) {
         fprintf(stderr, "Error: Time must be an integer with less or equal than 3 digits.\n");
         return ERROR;
     }
-
     int max_playtime = atoi(temp_time);
     if (max_playtime > 600 || max_playtime <= 0) {
         fprintf(stderr, "Error: max_playtime must be a value between 1 and 600 seconds.\n");
         return ERROR;
     }
 
-    // Verificar se há argumentos extras
+    // Check if there is extra arguments
     const char *remaining = cmd + strlen(input_command) + 1 + strlen(temp_PLID) + 1 + strlen(temp_time);
     while (*remaining == ' ') remaining++;
     if (*remaining != '\n') {
@@ -123,7 +125,7 @@ int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_a
         return ERROR;
     }
 
-    // Copiar valores para as variáveis de saída
+    // Copy values to the given pointers
     strcpy(PLID_arg, temp_PLID);
     strcpy(max_playtime_arg, temp_time);
 
@@ -131,12 +133,11 @@ int validate_start_command(const char *cmd, char *PLID_arg, char *max_playtime_a
 }
 
 int validate_try_command(const char *cmd, char *PLID_arg, char *C1, char *C2, char *C3, char *C4, char *nT, const int execution_side) {
-    
     char *expected_command_name;
     char input_command[INPUT_ARGUMENT_LEN];
     char temp_PLID[INPUT_ARGUMENT_LEN];
 
-    // Determinar o comando esperado com base no lado de execução
+    // Determine the expected command based on the execution side.
     if (execution_side == SERVER_SIDE) expected_command_name = "TRY";
     else if (execution_side == PLAYER_SIDE) expected_command_name = "try";
     else {
@@ -144,59 +145,63 @@ int validate_try_command(const char *cmd, char *PLID_arg, char *C1, char *C2, ch
         return ERROR;
     }
 
-    // Verificar os comandos do cliente e do servidor
+    // Verify client-side or server-side commands
     if (execution_side == SERVER_SIDE) {
-        // Para o lado do servidor, o comando esperado é "TRY PLID C1 C2 C3 C4 nT"
+        // For the server-side, the expected command is: "TRY PLID C1 C2 C3 C4 nT"
         int items_read = sscanf(cmd, "%s %s %s %s %s %s %s",
                                 input_command, temp_PLID, C1, C2, C3, C4, nT);
 
+        // Validate the number of read arguments
         if (items_read != 7) {
             fprintf(stderr, "Error: Command format should be '%s PLID C1 C2 C3 C4 nT'.\n", expected_command_name);
             return ERROR;
         }
 
+        // Validate the command
         if (strcmp(input_command, expected_command_name) != 0) {
             fprintf(stderr, "Error: Command is malformed. It should start with '%s'.\n", expected_command_name);
             return ERROR;
         }
 
-        // Validar o PLID
+        // Validate PLID
         if (strlen(temp_PLID) != PLID_DIGITS || !is_integer(temp_PLID)) {
             fprintf(stderr, "Error: PLID must be an integer with 6 digits.\n");
             return ERROR;
         }
 
-        // Validar nT
+        // Validate nT
         if (*nT <= '0' || *nT >= '9') {
             fprintf(stderr, "Error: nT must be a positive integer.\n");
             return ERROR;
         }
 
-        // Copiar PLID para a variável de saída
+        // Copy PLID to the given pointer
         strcpy(PLID_arg, temp_PLID);
 
     } else if (execution_side == PLAYER_SIDE) {
-        // Para o lado do cliente, o comando esperado é "try C1 C2 C3 C4"
+        // For the client-side, the expected command is: "try C1 C2 C3 C4"
         int items_read = sscanf(cmd, "%s %s %s %s %s", input_command, C1, C2, C3, C4);
 
+        // Validate the number of read arguments
         if (items_read != 5) {
             fprintf(stderr, "Error: Command format should be '%s C1 C2 C3 C4'.\n", expected_command_name);
             return ERROR;
         }
 
+        // Validate the command
         if (strcmp(input_command, expected_command_name) != 0) {
             fprintf(stderr, "Error: Command is malformed. It should start with '%s'.\n", expected_command_name);
             return ERROR;
         }
     }
 
-    // Validar as cores
+    // Validate colors
     if (!is_valid_color(*C1) || !is_valid_color(*C2) || !is_valid_color(*C3) || !is_valid_color(*C4)) {
         fprintf(stderr, "Error: The valid colors are: red (R), green (G), blue (B), yellow (Y), orange (O), purple (P).\n");
         return ERROR;
     }
 
-    // Verificar se há argumentos extras
+    // Check for extra arguments
     int total = 0;
     total += strlen(input_command) + 1;
 
@@ -221,13 +226,14 @@ int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_s
     char input_command[INPUT_ARGUMENT_LEN], temp_PLID[INPUT_ARGUMENT_LEN];
     const char *expected_end;
 
+    // Using sscanf to extract the values from the cmd string
     if (sscanf(cmd, "%s", input_command) != 1) {
         fprintf(stderr, "Error: Command is empty or malformed.\n");
         return ERROR;
     }
 
     if (execution_side == SERVER_SIDE) {
-        // Validação no servidor
+        // Server validation
         if (strcmp(input_command, "QUT") != 0) {
             fprintf(stderr, "Error: Command should start with 'QUT'.\n");
             return ERROR;
@@ -239,7 +245,7 @@ int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_s
         strcpy(PLID_arg, temp_PLID);
         expected_end = cmd + strlen("QUT") + 1 + strlen(temp_PLID);
     } else if (execution_side == PLAYER_SIDE) {
-        // Validação no cliente
+        // Client validation
         const char *valid_command = (context_flag == QUIT_CONTEXT) ? "quit" : "exit";
         if (strcmp(input_command, valid_command) != 0) {
             fprintf(stderr, "Error: Command should be '%s'.\n", valid_command);
@@ -251,7 +257,7 @@ int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_s
         return ERROR;
     }
 
-    // Verifica espaços extras e final do comando
+    // Check for extra spaces (at the end of the command)
     while (*expected_end == ' ') expected_end++;
     if (*expected_end != '\n') {
         fprintf(stderr, "Error: Command contains extra arguments or is malformed.\n");
@@ -262,13 +268,12 @@ int validate_quit_command(const char *cmd, char *PLID_arg, const int execution_s
 }
 
 int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_arg, char *C1, char *C2, char *C3, char *C4, const int execution_side) {
-    
     char *expected_command_name;
     char input_command[INPUT_ARGUMENT_LEN];
     char temp_PLID[INPUT_ARGUMENT_LEN];
     char temp_max_playtime[INPUT_ARGUMENT_LEN];
 
-    // Determinar o comando esperado com base no lado de execução
+    // Determine the expected command based on the execution-side
     if (execution_side == SERVER_SIDE) expected_command_name = "DBG";
     else if (execution_side == PLAYER_SIDE) expected_command_name = "debug";
     else {
@@ -276,47 +281,46 @@ int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_a
         return ERROR;
     }
 
-    // Usar sscanf para extrair os valores da string cmd
+    // Using sscanf to extract the values from the cmd string
     int items_read = sscanf(cmd, "%s %s %s %s %s %s %s",
                             input_command, temp_PLID, temp_max_playtime, C1, C2, C3, C4);
 
-    // Verificar se os argumentos foram lidos corretamente
+    // Check the number of arguments read
     if (items_read != 7) {
         fprintf(stderr, "Error: Command format should be '%s PLID max_playtime C1 C2 C3 C4'.\n", expected_command_name);
         return ERROR;
     }
 
-    // Verificar se o comando inicial corresponde ao esperado
+    // Verify command
     if (strcmp(input_command, expected_command_name) != 0) {
         fprintf(stderr, "Error: Command is malformed. It should start with '%s'.\n", expected_command_name);
         return ERROR;
     }
 
-    // Verificar se PLID é válido
+    // Verify PLID
     if (strlen(temp_PLID) != PLID_DIGITS || !is_integer(temp_PLID)) {
         fprintf(stderr, "Error: PLID must be an integer with 6 digits.\n");
         return ERROR;
     }
 
-    // Verificar se max_playtime é válido
+    // Verify max_playtime
     if (strlen(temp_max_playtime) > TIME_DIGITS || !is_integer(temp_max_playtime)) {
         fprintf(stderr, "Error: max_playtime must be an integer with less or equal than 3 digits.\n");
         return ERROR;
     }
-
     int max_playtime = atoi(temp_max_playtime);
     if (max_playtime > 600 || max_playtime <= 0) {
         fprintf(stderr, "Error: max_playtime must be a value between 1 and 600 seconds.\n");
         return ERROR;
     }
 
-    // Verificar se as cores são válidas
+    // Verify the colors
     if (!is_valid_color(*C1) || !is_valid_color(*C2) || !is_valid_color(*C3) || !is_valid_color(*C4)) {
         fprintf(stderr, "Error: The valid colors are: {red (R), green (G), blue (B), yellow (Y), orange (O), purple (P)}.\n");
         return ERROR;
     }
 
-    // Verificar se há argumentos extras
+    // Check for extra arguments
     const char *remaining = cmd + strlen(input_command) + 1 + strlen(temp_PLID) + 1 +
                             strlen(temp_max_playtime) + 4*COLOR_LEN*2;
     while (*remaining == ' ') remaining++;
@@ -325,7 +329,7 @@ int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_a
         return ERROR;
     }
 
-    // Copiar valores para as variáveis de saída
+    // Copy values for the given pointers
     strcpy(PLID_arg, temp_PLID);
     strcpy(max_playtime_arg, temp_max_playtime);
 
@@ -333,19 +337,17 @@ int validate_debug_command(const char *cmd, char *PLID_arg, char *max_playtime_a
 }
 
 int validate_showtrials_command(const char *cmd, char *PLID, const int execution_side) {
-    
     char input_command[INPUT_ARGUMENT_LEN];
     char temp_PLID[INPUT_ARGUMENT_LEN];
 
-
-    // Usar sscanf para ler os valores da string cmd
+    // Using sscanf to extract the values from the cmd string
     int items_read = sscanf(cmd, "%s %s", input_command, temp_PLID);
     if (items_read < 1) {
         fprintf(stderr, "Error: Command is malformed or missing arguments.\n");
         return ERROR;
     }
 
-    // Verificar se o comando corresponde ao esperado
+    // Verify command
     if (execution_side == SERVER_SIDE) {
         if (strcmp(input_command, "STR") != 0) {
             fprintf(stderr, "Error: Command should start with 'STR'.\n");
@@ -365,7 +367,7 @@ int validate_showtrials_command(const char *cmd, char *PLID, const int execution
         }
     }
 
-    // Verificar se há argumentos extras
+    // Check for extra arguments
     const char *remaining = cmd + strlen(input_command);
     if (execution_side == SERVER_SIDE) {
         remaining += 1 + strlen(temp_PLID);
@@ -381,17 +383,16 @@ int validate_showtrials_command(const char *cmd, char *PLID, const int execution
 }
 
 int validate_scoreboard_command(const char *cmd, const int execution_side) {
-
     char input_command[INPUT_ARGUMENT_LEN];
 
-    // Usar sscanf para ler o comando
+    // Using sscanf to extract the values from the cmd string
     int items_read = sscanf(cmd, "%s", input_command);
     if (items_read < 1) {
         fprintf(stderr, "Error: Command is malformed or missing.\n");
         return ERROR;
     }
 
-    // Verificar se o comando corresponde ao esperado
+    // Verify command
     if (execution_side == SERVER_SIDE) {
         if (strcmp(input_command, "SSB") != 0) {
             fprintf(stderr, "Error: Command should start with 'SSB'.\n");
@@ -404,7 +405,7 @@ int validate_scoreboard_command(const char *cmd, const int execution_side) {
         }
     }
 
-    // Verificar se há argumentos extras
+    // Check for extra arguments
     const char *remaining = cmd + strlen(input_command);
     while (*remaining == ' ') remaining++;
     if (*remaining != '\0' && *remaining != '\n') {
@@ -415,22 +416,27 @@ int validate_scoreboard_command(const char *cmd, const int execution_side) {
     return OK;
 }
 
+
 /*
     GENERAL auxiliar functions
 */
-char *special_inv_function(const char *PLID) {
-    char *file_path = get_game_folder_path(PLID);
 
+char* get_last_used_game_file(const char *PLID) {
+    // Get the file path (will only work if the game is active)
+    char *file_path = get_game_file_path(PLID);
+
+    // Try to access the file
     if (access(file_path, F_OK) == 0) {
         return file_path;
     }
     
+    // Only reach this point if the game is not active -> return the last player's game
     file_path = realloc(file_path, sizeof(char) * BUFFER_SIZE);
     FindLastGame(PLID, file_path);
     return file_path;
 }
 
-char* get_game_folder_path(const char *PLID) {
+char* get_game_file_path(const char *PLID) {
     size_t path_length = strlen("./GAMES/GAME_") + strlen(PLID) + 1;
 
     char *file_path = malloc(sizeof(char) * path_length);
@@ -459,17 +465,16 @@ int create_directory(const char *directory) {
     int result = mkdir(directory, 0777);
 
     if (result == 0) {
-        // printf("Diretoria '%s' criada com sucesso.\n", directory);
-        return 0; // Sucesso
+        return 0;
     }
 
-    // Se houver erro, verifica o valor de errno
+    // If an error occurred, check the errno value
     if (errno == EEXIST) {
         fprintf(stderr, "Diretoria '%s' já existe.\n", directory);
-        return 0; // Não tratamos como erro, pois o diretório já existe
+        return 0; // Not treated as an error because the directory already exists
     } else {
-        fprintf(stderr, "Erro ao criar diretoria"); // Mostra o erro apropriado
-        return -1; // Falha
+        fprintf(stderr, "Erro ao criar diretoria");
+        return -1;
     }
 }
 
@@ -494,7 +499,7 @@ int write_to_file(const char *Fname, const char *Fdata) {
         return -1;
     }
 
-    return 0; // Success
+    return 0;
 }
 
 int convert_char_to_int(const char number) {
@@ -504,40 +509,40 @@ int convert_char_to_int(const char number) {
 char *int_to_string(int number) {
     int len = 0, temp = number, is_negative = 0;
 
-    // Tratar o número zero como caso especial
+    // 0 is a special case
     if (number == 0) {
-        char *result = malloc(2); // Um dígito + '\0'
-        if (!result) return NULL; // Verificar alocação
+        char *result = malloc(2); // Digit + '\0'
+        if (!result) return NULL;
         result[0] = '0';
         result[1] = '\0';
         return result;
     }
 
-    // Lidar com números negativos
+    // Negative numbers handling
     if (number < 0) {
         is_negative = 1;
         number = -number;
     }
 
-    // Contar o número de dígitos no número
+    // Number length
     while (temp != 0) {
         len++;
         temp /= 10;
     }
 
-    // Alocar memória para os dígitos e o terminador nulo
-    char *result = malloc(len + is_negative + 1); // +1 para sinal e +1 para '\0'
-    if (!result) return NULL; // Verificar alocação
+    // Allocate memory for the necessary digits + '\0' + '-' (for negative numbers)
+    char *result = malloc(len + is_negative + 1);
+    if (!result) return NULL;
 
-    result[len + is_negative] = '\0'; // Terminar a string
+    result[len + is_negative] = '\0';
 
-    // Converter os dígitos para caracteres
+    // Converting the digits to characters
     for (int i = len + is_negative - 1; i >= is_negative; i--) {
         result[i] = (number % 10) + '0';
         number /= 10;
     }
 
-    // Adicionar o sinal negativo, se necessário
+    // Appending the '-' character at the beginning of the string
     if (is_negative) {
         result[0] = '-';
     }
@@ -546,13 +551,12 @@ char *int_to_string(int number) {
 }
 
 char *create_string(const char *components[], size_t count) {
-
-    // Calcular o tamanho total da string
+    // Calculate the string total length
     size_t total_length = 0;
     for (size_t i = 0; i < count; i++) {
         total_length += strlen(components[i]);
     }
-    // Alocar memória para a string resultante
+    // Allocate memory for the string
     char *result = (char *)malloc(total_length + 1); // +1 para o terminador nulo
     if (!result) {
         perror("Erro ao alocar memória");
@@ -561,14 +565,12 @@ char *create_string(const char *components[], size_t count) {
 
     size_t offset = 0;
 
-    // Construir a string usando memcpy
+    // Build string using memcopy
     for (size_t i = 0; i < count; i++) {
         size_t len = strlen(components[i]);
         memcpy(result + offset, components[i], len);
         offset += len;
     }
-
-    // Adicionar terminador nulo
     result[offset] = '\0';
 
     return result;
@@ -581,9 +583,9 @@ char *create_string(const char *components[], size_t count) {
 
 int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
     char c;
-    size_t i = 0;  // Keep track of the current position in the word
+    size_t i = 0; // Keep track of the current position in the word
 
-    size_t capacity = 5;  // Initialize word capacity
+    size_t capacity = 5; // Initialize word capacity
     *word = malloc(capacity * sizeof(char));
     if (*word == NULL) {
         fprintf(stderr, "Memory allocation failed");
@@ -591,31 +593,28 @@ int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
     }
     
     while (1) {
-        ssize_t n = read(fd, &c, 1);  // Read one byte at a time
+        ssize_t n = read(fd, &c, 1); // Read one byte at a time
         if (n == -1) {
             fprintf(stderr, "Error while reading from TCP socket.\n");
             return 1;
         }
 
-        if (n == 0) {  // End of stream (either due to EOF or socket closed by other peer)
+        if (n == 0) { // End of stream (either due to EOF or socket closed by other peer)
             // Return content read until this point
             break;
-
-            // fprintf(stderr, "Unexpected end of stream while reading word.\n");
-            // return 1;
         }
 
         // If the buffer is full, reallocate more memory
-        if (i >= capacity - 1) {  // We reserve the last byte for the null-terminator
-            capacity *= 2;  // Double the capacity
-            *word = realloc(*word, capacity * sizeof(char));  // Reallocate memory
+        if (i >= capacity - 1) { // We reserve the last byte for the null-terminator
+            capacity *= 2; // Double the capacity
+            *word = realloc(*word, capacity * sizeof(char)); // Reallocate memory
             if (*word == NULL) {
                 fprintf(stderr, "Memory reallocation failed");
                 return 1;
             }
         }
 
-        // If we encounter a space or null character, stop reading
+        // If we encounter the pretended nth character, stop reading
         if (c == separator) {
             n_times--;
 
@@ -651,8 +650,8 @@ int tcp_read(int fd, char **buffer, size_t n) {
         return ERROR;
     }
 
-    // Alocar memória para o buffer
-    *buffer = (char *)malloc(n + 1); // +1 para potencial terminador nulo
+    // Allocate memory for buffer (including '\0')
+    *buffer = (char *)malloc(n + 1);
     if (!(*buffer)) {
         perror("Failed to allocate memory for buffer");
         return ERROR;
@@ -661,19 +660,19 @@ int tcp_read(int fd, char **buffer, size_t n) {
     size_t total_read = 0;
     ssize_t bytes_read;
 
-    // Loop para ler até `n` bytes ou erro
+    // Read n bytes or error
     while (total_read < n) {
         bytes_read = read(fd, *buffer + total_read, n - total_read);
 
         if (bytes_read < 0) {
             perror("Error reading from file descriptor");
-            free(*buffer); // Liberar memória em caso de erro
-            *buffer = NULL; // Prevenir dangling pointers
+            free(*buffer);
+            *buffer = NULL; // Prevent dangling pointers
             return ERROR;
         }
 
         if (bytes_read == 0) {
-            // EOF encontrado antes de ler `n` bytes
+            // EOF found before reading 'n' bytes
             fprintf(stderr, "Unexpected EOF encountered.\n");
             free(*buffer);
             *buffer = NULL;
@@ -683,12 +682,11 @@ int tcp_read(int fd, char **buffer, size_t n) {
         total_read += bytes_read;
     }
 
-    // Garantir que o buffer seja nulo-terminado, caso seja usado como string
+    // Terminate with '\0'
     (*buffer)[n] = '\0';
 
-    return OK; // Sucesso
+    return OK;
 }
-
 
 ssize_t recv_udp_message(int udp_fd, char *buffer, size_t buffer_size, struct sockaddr_in *client_addr) {
     socklen_t client_len = sizeof(*client_addr);
@@ -708,7 +706,6 @@ void send_udp_response(int udp_fd, const char *message, struct sockaddr_in *clie
 
 
 // FUNCTIONS GIVEN BY THE UC ---------------------------------------------------
-
 int FindLastGame(const char *PLID, char *fname) {
     struct dirent **filelist;
     int nentries, found;
@@ -785,5 +782,4 @@ int FindTopScores(SCORELIST *list) {
     list->nscores = ifile;
     return (ifile);
 }
-
 // -----------------------------------------------------------------------------
