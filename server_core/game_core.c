@@ -34,77 +34,47 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     GameTry player_try;
     char PLID[PLID_DIGITS + 1], nt;
+    char *response;
 
     if (validate_try_command(command, PLID, &player_try.colours[0], &player_try.colours[1], 
                                             &player_try.colours[2], &player_try.colours[3], 
                                             &nt, SERVER_SIDE)) {
-        char *response = "RTR ERR\n";
+        response = "RTR ERR\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
 
-    sscanf(command, "TRY %s %c %c %c %c %c\n", PLID, &player_try.colours[0], &player_try.colours[1], 
-                                                   &player_try.colours[2], &player_try.colours[3], &nt);
+    response = check_inv_status(PLID, nt, player_try);
+    if (response != NULL) send_udp_response(udp_fd, response, client_addr);
 
-    // Check if nt is as expected
-    int nt_int = convert_char_to_int(nt);
-    int expected_nt = get_expected_nt(PLID);
-    if (expected_nt != nt_int) {
-        if (expected_nt == nt_int + 1) {
-            // Get last play's code
-            GameTry *last_player_try = extract_last_colour(PLID);
-
-            if (last_player_try->colours[0] == player_try.colours[0] &&
-                last_player_try->colours[1] == player_try.colours[1] &&
-                last_player_try->colours[2] == player_try.colours[2] &&
-                last_player_try->colours[3] == player_try.colours[3])
-            {
-                // Treat as a new message (but don't add a new line)
-                int *player_try_res = get_try_results(PLID, player_try);
-                char *response = generate_try_result_message(PLID, player_try_res, nt);
-                send_udp_response(udp_fd, response, client_addr);
-                free(last_player_try);
-                return;
-            } else {
-                char *response =  "RTR INV\n";
-                send_udp_response(udp_fd, response, client_addr);
-                free(last_player_try);
-                return;
-            }
-        } else {
-            char *response =  "RTR NOK\n";
-            send_udp_response(udp_fd, response, client_addr);
-            return;
-        }
-    }
 
     if (!has_ongoing_game(PLID)) {
-        char *response =  "RTR NOK\n";
+        response =  "RTR NOK\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
     
     if (has_exceeded_time(PLID)) {
-        char *response = build_end_game_response(PLID, "RTR", "ETM");
+        response = build_end_game_response(PLID, "RTR", "ETM");
         end_game(PLID, END_TIMEOUT, NOT_NEEDED);
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
     
     if (is_duplicated(PLID, &player_try)) {
-        char *response = "RTR DUP\n";
+        response = "RTR DUP\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     } 
     
 
     int* player_try_res = make_try(PLID, player_try);
-    char *response = generate_try_result_message(PLID, player_try_res, nt);
+    response = generate_try_result_message(player_try_res, nt);
 
     if (has_won(player_try_res)) {
         end_game(PLID, END_WIN, convert_char_to_int(nt));
     } else if (has_reached_max_turn(nt)) {
-            char *response = build_end_game_response(PLID, "RTR", "ENT");
+            response = build_end_game_response(PLID, "RTR", "ENT");
             end_game(PLID, END_FAIL, NOT_NEEDED);
             send_udp_response(udp_fd, response, client_addr);
             return;

@@ -356,15 +356,12 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
 /*
     TRY and QUIT auxiliar functions
 */
-char *generate_try_result_message(char *PLID, int *player_try_res, int nt) {
+char *generate_try_result_message(int *player_try_res, int nt) {
 
-    char number_tries[TRIAL_MAX_LEN + 1] = {nt, '\0'};
-    char *nB = int_to_string(player_try_res[0]);
-    char *nW = int_to_string(player_try_res[1]);
 
-    const char *components[] = {"RTR", SPACE, "OK", SPACE, number_tries, SPACE, nB, SPACE, nW, NEWLINE};
-    size_t count = sizeof(components) / sizeof(components[0]);
-    char *response = create_string(components, count);
+    size_t response_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + TRIAL_MAX_LEN + 2*2 + 2;
+    char *response = malloc(sizeof(char) * response_len);
+    sprintf(response, "RTR OK %d %d %d\n", nt, player_try_res[0], player_try_res[1]);
 
     return response;
 }
@@ -551,6 +548,36 @@ int calculate_score(const char *PLID, const int turns_played) {
     return score;
 }
 
+char *check_inv_status(const char *PLID, char sent_nt, GameTry player_try) {
+
+
+    char *response = NULL;
+
+    int nt_int = convert_char_to_int(sent_nt);
+    int expected_nt = get_expected_nt(PLID);
+
+    if (expected_nt != nt_int) {
+        if (expected_nt - 1 == nt_int) {
+
+            // Get last play's code
+            GameTry *last_player_try = extract_last_colour(PLID);
+
+            // Treat as a new message (but don't add a new line)
+            if (are_equal_game_tries(last_player_try, &player_try)) {
+                int *player_try_res = get_try_results(PLID, player_try);
+                response = generate_try_result_message(player_try_res, nt_int);
+
+            } else response =  "RTR INV\n";
+            
+            free(last_player_try);
+            return response;
+        } else {
+            response =  "RTR NOK\n";
+            return response;
+        }
+    }
+    return response;
+}
 
 /*
     SHOW_TRIALS and SCOREBOARD auxiliar functions

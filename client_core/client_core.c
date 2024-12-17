@@ -81,7 +81,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
 
     // Create message to send
     // Example: TRY 106324 Y Y Y Y 1\n\0
-    const char *components[] = {TRY_CMD, SPACE, PLID_arg, SPACE, C1, SPACE, C2, SPACE, C3, SPACE, C4, SPACE, number_tries, NEWLINE};
+ const char *components[] = {TRY_CMD, SPACE, PLID_arg, SPACE, C1, SPACE, C2, SPACE, C3, SPACE, C4, SPACE, number_tries, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *msg = create_string(components, count);
     if (msg == NULL) return ERROR;
@@ -131,7 +131,7 @@ int try_function(int udp_fd, struct addrinfo *udp_res, char *cmd, int PLID, int 
         fprintf(stderr, "Error: Your secret key guess repeats a previous trial's guess.\n");
         return ERROR;
     } else if (!strcmp(response_status, "INV")) {
-        fprintf(stderr, "Error: Invalid nT value.\n");
+        fprintf(stderr, "Error: Invalid nT value or invalid guess (repeat the last guess).\n");
         return ERROR;
     } else if (!strcmp(response_status, "NOK")) {
         fprintf(stderr, "Error: Out of context trial.\n");
@@ -282,6 +282,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
 
     // Deal with response
     if (!strcmp(response_status, "OK")) {
+        printf("Game Started!\n");
         return PLID;
     } else if (!strcmp(response_status, "NOK")) {
         fprintf(stderr, "Error: You cannot start a new game while playing another.\n");
