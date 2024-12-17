@@ -15,14 +15,20 @@
 #include <netinet/in.h>
 #include "constants.h"
 
+// Processes commands received via UDP or TCP
+
 void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 void process_command_tcp(int client_fd, const char *command);
+
+// Specific handlers for known UDP commands
 
 void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char *command);
 void process_udp_uknown_command(int udp_fd, struct sockaddr_in *client_addr);
+
+// Specific handlers for known TCP commands
 
 void process_str_command(int client_fd, const char *command);
 void process_ssb_command(int client_fd, const char *command);

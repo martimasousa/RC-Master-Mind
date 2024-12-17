@@ -1,4 +1,51 @@
 #include "game_core.h"
+// Processes commands received via UDP or TCP
+
+void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
+    char type[COMMAND_LEN + 1 + 1];
+    sscanf(command, "%s", type);
+
+    if (!strcmp(SNG_CMD, type)) {
+        process_sng_command(udp_fd, client_addr, command);
+        return;
+
+    } else if (!strcmp(TRY_CMD, type)) {
+        process_try_command(udp_fd, client_addr, command);
+        return;
+
+    } else if (!strcmp(QUT_CMD, type)) {
+        process_qut_command(udp_fd, client_addr, command);
+        return;
+
+    } else if (!strcmp(DBG_CMD, type)) {
+        process_dbg_command(udp_fd, client_addr, command);
+        return;
+    } else {
+        process_udp_uknown_command(udp_fd, client_addr);
+        return;
+    }
+}
+
+void process_command_tcp(int client_fd, const char *command) {
+    char type[COMMAND_LEN + 1];
+    sscanf(command, "%s\n", type);
+
+    if (!strcmp(STR_CMD, type)) {
+        process_str_command(client_fd, command);
+        return;
+
+    } else if (!strcmp(SSB_CMD, type)) {
+        process_ssb_command(client_fd, command);
+        return;
+
+    } else {
+        process_tcp_uknown_command(client_fd);
+        return;
+    }
+}
+
+
+// Specific handlers for known UDP commands
 
 void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
 
@@ -8,12 +55,13 @@ void process_sng_command(int udp_fd, struct sockaddr_in *client_addr, const char
     char *response;
 
     if (validate_start_command(command, PLID, time, SERVER_SIDE) == ERROR) {
-        char *response = "RSG ERR\n";
+        response = "RSG ERR\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
 
-    /* If there is an ongoing game, respond with "RSG NOK" */
+    // If the player had an ongoing game but the request was made after the game
+    // max time, end the other game and start the new one
     if (has_ongoing_game(PLID)) {
         if (!has_exceeded_time(PLID)) {
             response = "RSG NOK\n";
@@ -90,23 +138,23 @@ void process_qut_command(int udp_fd, struct sockaddr_in *client_addr, const char
 
     char PLID[PLID_DIGITS + 1];
     int end_type;
+    char *response;
     
     if (validate_quit_command(command, PLID, SERVER_SIDE, NONE) == ERROR) {
-        char *response = "RQT ERR\n";
+        response = "RQT ERR\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
 
-    /* If there is an ongoing game, respond with "RQT NOK" */
+    /* If there is not an ongoing game, respond with "RQT NOK" */
     if (!has_ongoing_game(PLID)) {
-        char *response = "RQT NOK\n";
+        response = "RQT NOK\n";
         send_udp_response(udp_fd, response, client_addr);
         return;
     }
 
-    /* Get the solution and send the message */
-    char *response;
-
+    // If the player had an ongoing game but the request was made after the game
+    // max time, end the other game and send RQT NOK
     if (has_exceeded_time(PLID)) {
         end_type = END_TIMEOUT;
         response = "RQT NOK\n";
@@ -138,7 +186,8 @@ void process_dbg_command(int udp_fd, struct sockaddr_in *client_addr, const char
         return;
     }
 
-    /* If there is an ongoing game, respond with "RSG NOK" */
+    // If the player had an ongoing game but the request was made after the game
+    // max time, end the other game and send RDB NOK
     if (has_ongoing_game(PLID)) {
         if (!has_exceeded_time(PLID)) {
             response = "RDB NOK\n";
@@ -162,6 +211,9 @@ void process_udp_uknown_command(int udp_fd, struct sockaddr_in *client_addr) {
     return;
 }
 
+
+// Specific handlers for known TCP commands
+
 void process_str_command(int client_fd, const char *command) {
 
     char PLID[PLID_DIGITS + 1];
@@ -174,6 +226,8 @@ void process_str_command(int client_fd, const char *command) {
         return;
     }
 
+    // If the player had an ongoing game that exceeded the maximum allowed time, 
+    // terminate the game and send the trial results from the ended game.
     int game_ended = TRUE;
     if (has_ongoing_game(PLID)) {
         if (has_exceeded_time(PLID)) {
@@ -206,17 +260,18 @@ void process_ssb_command(int client_fd, const char *command) {
     if (FindTopScores(files) <= 0) {
         response = "RSS EMPTY\n";
         if (tcp_write(client_fd, response)) {
-            // Error handling
+            fprintf(stderr, "Error: Error while writing to TCP socket.\n");
             return;
         }
         return;
     }
 
     response = build_scoreboard_response(files);
-
     if (response == NULL) return;
 
-    tcp_write(client_fd, response);
+    if(tcp_write(client_fd, response)) {
+        fprintf(stderr, "Error: Error while writing to TCP socket.\n");
+    }
 
     free(response);
     return;
@@ -225,50 +280,9 @@ void process_ssb_command(int client_fd, const char *command) {
 void process_tcp_uknown_command(int client_fd) {
 
     char *response = "ERR\n";
-    tcp_write(client_fd, response);
+    if(tcp_write(client_fd, response)) {
+        fprintf(stderr, "Error: Error while writing to TCP socket.\n");
+    }
 
     return;
-}
-
-void process_command_udp(int udp_fd, struct sockaddr_in *client_addr, const char *command) {
-    char type[COMMAND_LEN + 1 + 1];
-    sscanf(command, "%s", type);
-
-    if (!strcmp(SNG_CMD, type)) {
-        process_sng_command(udp_fd, client_addr, command);
-        return;
-
-    } else if (!strcmp(TRY_CMD, type)) {
-        process_try_command(udp_fd, client_addr, command);
-        return;
-
-    } else if (!strcmp(QUT_CMD, type)) {
-        process_qut_command(udp_fd, client_addr, command);
-        return;
-
-    } else if (!strcmp(DBG_CMD, type)) {
-        process_dbg_command(udp_fd, client_addr, command);
-        return;
-    } else {
-        process_udp_uknown_command(udp_fd, client_addr);
-        return;
-    }
-}
-
-void process_command_tcp(int client_fd, const char *command) {
-    char type[COMMAND_LEN + 1];
-    sscanf(command, "%s\n", type);
-
-    if (!strcmp(STR_CMD, type)) {
-        process_str_command(client_fd, command);
-        return;
-
-    } else if (!strcmp(SSB_CMD, type)) {
-        process_ssb_command(client_fd, command);
-        return;
-
-    } else {
-        process_tcp_uknown_command(client_fd);
-        return;
-    }
 }
