@@ -234,7 +234,7 @@ void process_str_command(int client_fd, const char *command) {
             end_game(PLID, END_TIMEOUT, NOT_NEEDED);
         } else {
             game_ended = FALSE;
-            filepath = get_game_folder_path(PLID);
+            filepath = get_game_file_path(PLID);
         }
     }
     
