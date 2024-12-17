@@ -380,6 +380,15 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
             return ERROR;
         }
 
+        if (!strcmp(response_status, "ACT")) {
+            printf("Current Game Trials History\n");
+        } else if (!strcmp(response_status, "FIN")) {
+            printf("Last Game Trials History\n");
+        }
+        
+        // Show content
+        show_show_trials_content(Fdata);
+
         // Store the information on a local file
         if (store_file_local(Fname, Fdata) == ERROR) {
             free(Fname);
@@ -388,12 +397,10 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
             return ERROR;
         }
 
-        // Show content
-        show_show_trials_content(Fdata);
-
         free(Fname);
         free(Fsize_char);
         free(Fdata);
+        close(tcp_fd);
         return OK;
     }
 
@@ -485,6 +492,9 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
             return ERROR;
         }
 
+        // Show the content
+        show_scoreboard_content(Fdata);
+
         // Store the information on a local file
         if (store_file_local(Fname, Fdata) == ERROR) {
             free(Fname);
@@ -493,12 +503,10 @@ int scoreboard_function(struct addrinfo *tcp_res, char *cmd) {
             return ERROR;
         }
 
-        // Show the content
-        show_scoreboard_content(Fdata);
-
         free(Fname);
         free(Fsize_char);
         free(Fdata);
+        close(tcp_fd);
         return OK;
     } 
 

@@ -17,9 +17,8 @@ int nT = 1;
 
 void signal_handler(int signum) {
     if (udp_fd != NOT_PLAYING && udp_res != NULL && PLID != NOT_PLAYING) {
-        exit_quit_function(udp_fd, udp_res, "quit\n", PLID, QUIT_CONTEXT);
+        exit_quit_function(udp_fd, udp_res, "exit\n", PLID, QUIT_CONTEXT);
     }
-
     exit(0);
 }
 
@@ -100,7 +99,7 @@ void handleClient(char *GSIP, char *GSport) {
                 fprintf(stderr, "Error: Please start a game before making a try.\n");
             } else {
                 int try_res = try_function(udp_fd, udp_res, cmd, PLID, nT);
-                 
+
                 if (try_res == OK) {
                     nT += 1;
                 } else if (try_res == GAME_ENDED) {

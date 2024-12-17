@@ -100,6 +100,8 @@ int store_file_local(char *Fname, char *Fdata) {
         return ERROR;
     }
 
+    printf("Local copy stored at: %s\n", file_path);
+
     return OK;
 }
 

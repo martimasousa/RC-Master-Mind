@@ -586,6 +586,8 @@ char *check_inv_status(const char *PLID, char sent_nt, GameTry player_try) {
 
 void execute_show_trials(const int client_fd, const char* filepath, char* PLID) {
 
+    char *response = "FIN";
+    
     FILE* file = fopen(filepath, "r");
     if (!file) {
         perror("Error opening file");
@@ -594,7 +596,6 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
 
     // Gets the data_size and adjust the file pointer to the start of the second line
     int file_data_size = get_data_size(file);
-
     int total_size = 0;
 
     char line[GAME_INFO_MAX_LEN];
@@ -606,7 +607,7 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
     }
 
     // If game is active, send remaining time
-    if (PLID != NULL) {
+    if (has_ongoing_game(PLID)) {
         // Get remaining time
         char *time_start_char = extract_game_info(PLID, ARG_ELAPSED_TIME);
         char *time_max_char = extract_game_info(PLID, ARG_MAXTIME);
@@ -625,6 +626,8 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
         memcpy(filedata + total_size, line_to_write, len);
         total_size += len;
         file_data_size += len;
+
+        response = "ACT";
     }
 
     filedata[total_size] = '\0';
@@ -640,8 +643,13 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
         filename++;
     }
 
-    const char *components[] = {"RST ACT ", filename, SPACE, int_to_string(file_data_size), SPACE, NEWLINE, filedata, NEWLINE};
-    char *message = create_string(components, 7);
+    // Add the new line at the end
+    file_data_size++;
+    
+    const char *components[] = {"RST", SPACE, response, SPACE, filename, SPACE, int_to_string(file_data_size), SPACE, NEWLINE, filedata, NEWLINE};
+    size_t count = sizeof(components) / sizeof(components[0]);
+    char *message = create_string(components, count);
+
     if (message == NULL) return;
 
     tcp_write(client_fd, message);

@@ -167,7 +167,6 @@ void process_str_command(int client_fd, const char *command) {
     char PLID[PLID_DIGITS + 1];
     char *response;
     char *filepath;
-    char *PLID_to_send = NULL;
 
     if (validate_showtrials_command(command, PLID, SERVER_SIDE) == ERROR) {
         response = "RST NOK\n";
@@ -177,13 +176,11 @@ void process_str_command(int client_fd, const char *command) {
 
     int game_ended = TRUE;
     if (has_ongoing_game(PLID)) {
-        if (has_exceeded_time(PLID))
-        {
+        if (has_exceeded_time(PLID)) {
             end_game(PLID, END_TIMEOUT, NOT_NEEDED);
         } else {
             game_ended = FALSE;
             filepath = get_game_folder_path(PLID);
-            PLID_to_send = PLID;
         }
     }
     
@@ -192,7 +189,7 @@ void process_str_command(int client_fd, const char *command) {
         FindLastGame(PLID, filepath);
     }
     
-    execute_show_trials(client_fd, filepath, PLID_to_send);
+    execute_show_trials(client_fd, filepath, PLID);
 }
 
 void process_ssb_command(int client_fd, const char *command) {
