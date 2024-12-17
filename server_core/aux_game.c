@@ -99,7 +99,7 @@ void write_line(const char *file_path, const char *message) {
 
     FILE *file = fopen(file_path, "a");
     if (file == NULL) {
-        perror("Erro ao abrir o ficheiro");
+        perror("Error oppening the file.\n");
         return;
     }
     fprintf(file, "%s", message);
@@ -145,29 +145,28 @@ char* extract_game_info(const char *PLID, const char arg_type) {
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {
-        perror("Error openning the file");
+        perror("Error openning the file.\n");
         return NULL;
     }
 
     char line[GAME_INFO_MAX_LEN + 1];
     if (fgets(line, sizeof(line), file) == NULL) {
-        perror("Erro ao ler a linha do ficheiro");
+        perror("Error reading file line.\n");
         fclose(file);
         return NULL;
     }
 
-    // Extrair o token correspondente
+    // Extract the token corresponding to the 'arg_type' index
     char *token = strtok(line, " ");
     int i = 0;
     while (token != NULL) {
         if (i == arg_type) {
-            // Alocar dinamicamente a string para retornar
             char *res = malloc(strlen(token) + 1);
             if (res != NULL) {
                 strcpy(res, token);
             }
             fclose(file);
-            return res; // Retorna a string alocada dinamicamente
+            return res;
         }
         token = strtok(NULL, " ");
         i++;
@@ -196,7 +195,7 @@ GameTry* extract_last_colour(const char *PLID) {
 
     lines = malloc(sizeof(char*) * last_line_n);
 
-    for (size_t i = 0; i <= last_line_n; i++) lines[i] = malloc(1024);
+    for (size_t i = 0; i <= last_line_n; i++) lines[i] = malloc(sizeof(char) * BUFFER_SIZE);
 
 
     // Read the file and populate the lines array
@@ -204,11 +203,11 @@ GameTry* extract_last_colour(const char *PLID) {
 
     FILE *file = fopen(file_path, "r");
     if (file == NULL) {
-        fprintf(stderr, "Error openning the file");
+        fprintf(stderr, "Error openning the file.\n");
         return NULL;
     }
 
-    char line_temp[1024];
+    char line_temp[BUFFER_SIZE];
     while (fgets(line_temp, sizeof(line_temp), file)) {
         if (last_line_n == 1) strcpy(lines[0], lines[1]); // 1 -> 0
         strcpy(lines[last_line_n], line_temp); // read -> last_line_n
@@ -265,7 +264,7 @@ int get_expected_nt(const char *PLID) {
 
     FILE *file = fopen(file_path, "r"); // Open file for reading
     if (file == NULL) {
-        fprintf(stderr, "Error opening file");
+        fprintf(stderr, "Error opening file.\n");
         return -1;
     }
 
@@ -328,8 +327,8 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
     }
 
     // Creates the Date string
-    char timestr[GAME_INFO_DATE_LEN + 1 + 20]; // + '\0'
-    snprintf(timestr, sizeof(timestr), "%4d-%02d-%02d %02d:%02d:%02d",
+    char timestr[BUFFER_SIZE/2];
+    sprintf(timestr, "%4d-%02d-%02d %02d:%02d:%02d",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
                                         current_time->tm_mday,
@@ -338,8 +337,8 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
                                         current_time->tm_sec);
 
     // Creates the first line complete string
-    char fullstr[GAME_INFO_MAX_LEN + 1]; // + '\0'
-    snprintf(fullstr, sizeof(fullstr), "%s %c %c%c%c%c %s %s %ld\n", 
+    char fullstr[BUFFER_SIZE];
+    sprintf(fullstr, "%s %c %c%c%c%c %s %s %ld\n", 
                                         PLID, mode, 
                                         game_solution->colours[0],
                                         game_solution->colours[1],
@@ -454,12 +453,10 @@ int relocate_completed_game(const char *PLID, const char endGameType) {
     // Buils the path to the new file
     snprintf(destination_path, destination_path_length, "%s/%s", destinationDirectoryPath, destinationFileName);
 
-    size_t message_len = YEAR_LEN + 1 + MONTH_LEN + 1 + DAY_LEN + 1 + HOUR_LEN + 1 +
-                         MINUTES_LEN + 1 + SECONDS_LEN + 1 + ELAPSED_TIME_LEN + 2 + 20;
-    char *message = malloc(sizeof(char) * message_len);
+    char *message = malloc(sizeof(char) * BUFFER_SIZE);
 
     // Creates the end game string
-    snprintf(message, message_len, "%4d-%02d-%02d %02d:%02d:%02d %d\n",
+    sprintf(message, "%4d-%02d-%02d %02d:%02d:%02d %d\n",
                                         current_time->tm_year + 1900,
                                         current_time->tm_mon + 1,
                                         current_time->tm_mday,
@@ -474,7 +471,7 @@ int relocate_completed_game(const char *PLID, const char endGameType) {
     if (rename(sourceFilePath, destination_path) == 0) {
         return OK;
     } else {
-        perror("Error relocating the file!");
+        perror("Error relocating the file!.\n");
         return ERROR;
     }
 }
@@ -486,15 +483,12 @@ int create_score_file(const char *PLID, const int number_tries) {
 
     char *mode = extract_game_info(PLID, ARG_MODE);
     GameTry *solution = extract_game_colour(PLID);
-    int score = calculate_score(PLID, 1);
+    int score = calculate_score(PLID, number_tries);
 
-    size_t file_path_len = strlen("./SCORES/") + SCORE_MAX_LEN + 1 + PLID_DIGITS +
-                           DAY_LEN + MONTH_LEN + YEAR_LEN + 1 + HOUR_LEN + MINUTES_LEN +
-                           SECONDS_LEN + strlen(".txt") + 1 + 20;
-    char *file_path = malloc(sizeof(char) * file_path_len);
+    char *file_path = malloc(sizeof(char) * BUFFER_SIZE);
 
     // Builds the path string
-    snprintf(file_path, file_path_len, "./SCORES/%d_%s_%02d%02d%4d_%02d%02d%02d.txt",
+    sprintf(file_path, "./SCORES/%d_%s_%02d%02d%4d_%02d%02d%02d.txt",
                                         score,
                                         PLID,
                                         current_time->tm_mday,
@@ -589,7 +583,7 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
     
     FILE* file = fopen(filepath, "r");
     if (!file) {
-        perror("Error opening file");
+        perror("Error opening file.\n");
         return;
     }
 

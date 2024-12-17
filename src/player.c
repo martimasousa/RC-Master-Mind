@@ -17,7 +17,7 @@ int nT = 1;
 
 void signal_handler(int signum) {
     if (udp_fd != NOT_PLAYING && udp_res != NULL && PLID != NOT_PLAYING) {
-        exit_quit_function(udp_fd, udp_res, "exit\n", PLID, QUIT_CONTEXT);
+        exit_quit_function(udp_fd, udp_res, "exit\n", PLID, EXIT_CONTEXT);
     }
     exit(0);
 }
