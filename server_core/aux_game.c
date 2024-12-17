@@ -356,12 +356,12 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
 /*
     TRY and QUIT auxiliar functions
 */
-char *generate_try_result_message(int *player_try_res, int nt) {
+char *generate_try_result_message(int *player_try_res, char nt) {
 
 
     size_t response_len = COMMAND_LEN + 1 + RESPONSE_LEN + 1 + TRIAL_MAX_LEN + 2*2 + 2;
     char *response = malloc(sizeof(char) * response_len);
-    sprintf(response, "RTR OK %d %d %d\n", nt, player_try_res[0], player_try_res[1]);
+    sprintf(response, "RTR OK %c %d %d\n", nt, player_try_res[0], player_try_res[1]);
 
     return response;
 }
@@ -565,7 +565,7 @@ char *check_inv_status(const char *PLID, char sent_nt, GameTry player_try) {
             // Treat as a new message (but don't add a new line)
             if (are_equal_game_tries(last_player_try, &player_try)) {
                 int *player_try_res = get_try_results(PLID, player_try);
-                response = generate_try_result_message(player_try_res, nt_int);
+                response = generate_try_result_message(player_try_res, sent_nt);
 
             } else response =  "RTR INV\n";
             

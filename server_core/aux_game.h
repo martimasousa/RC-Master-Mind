@@ -87,7 +87,7 @@ void create_game_log(const char *PLID, GameTry *game_solution, const char *time_
 */
 char *check_inv_status(const char *PLID, char sent_nt, GameTry player_try);
 
-char *generate_try_result_message(int *player_try_res, int nt);
+char *generate_try_result_message(int *player_try_res, char nt);
 
 // Executes the try logic and returns the result
 int* make_try(const char *PLID, const GameTry player_try);

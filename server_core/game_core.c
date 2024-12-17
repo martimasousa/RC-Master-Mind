@@ -45,7 +45,10 @@ void process_try_command(int udp_fd, struct sockaddr_in *client_addr, const char
     }
 
     response = check_inv_status(PLID, nt, player_try);
-    if (response != NULL) send_udp_response(udp_fd, response, client_addr);
+    if (response != NULL) {
+        send_udp_response(udp_fd, response, client_addr);
+        return;
+    }
 
 
     if (!has_ongoing_game(PLID)) {
