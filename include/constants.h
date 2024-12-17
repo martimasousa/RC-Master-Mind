@@ -5,9 +5,6 @@
 #define FALSE               0
 #define TRUE                1
 
-#define FOUND 1
-#define NOT_FOUND 0
-
 #define ERROR -1
 #define GAME_ENDED 1
 #define OK 0

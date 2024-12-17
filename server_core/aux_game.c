@@ -9,9 +9,9 @@ int has_ongoing_game(const char *PLID) {
     char *file_path = get_game_file_path(PLID);
 
     if (access(file_path, F_OK) == 0) {
-       return FOUND;
+       return TRUE;
     } else {
-       return NOT_FOUND;
+       return FALSE;
     }
 }
 
@@ -71,28 +71,6 @@ int is_duplicated(const char *PLID, GameTry *game_try) {
     }
     fclose(file);
     return FALSE;
-}
-
-int get_expected_nt(const char *PLID) {
-    // Count the PLID's file number of lines (to get the expected nt)
-    char *file_path = get_last_used_game_file(PLID);
-
-    FILE *file = fopen(file_path, "r"); // Open file for reading
-    if (file == NULL) {
-        fprintf(stderr, "Error opening file");
-        return -1;
-    }
-
-    int line_count = 0;
-    char ch;
-    
-    // Read file character by character
-    while ((ch = fgetc(file)) != EOF) if (ch == '\n') line_count++;
-
-    free(file_path);
-    fclose(file); // Close the file
-
-    return (has_ongoing_game(PLID)) ? line_count : line_count - 1;
 }
 
 int has_won(const int *player_try_res) {
@@ -281,6 +259,27 @@ int get_line_size(FILE *file) {
     return res;
 }
 
+int get_expected_nt(const char *PLID) {
+    // Count the PLID's file number of lines (to get the expected nt)
+    char *file_path = get_last_used_game_file(PLID);
+
+    FILE *file = fopen(file_path, "r"); // Open file for reading
+    if (file == NULL) {
+        fprintf(stderr, "Error opening file");
+        return -1;
+    }
+
+    int line_count = 0;
+    char ch;
+    
+    // Read file character by character
+    while ((ch = fgetc(file)) != EOF) if (ch == '\n') line_count++;
+
+    free(file_path);
+    fclose(file); // Close the file
+
+    return (has_ongoing_game(PLID)) ? line_count : line_count - 1;
+}
 
 /*
     START and DEBUG auxiliar functions
