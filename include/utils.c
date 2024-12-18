@@ -473,7 +473,7 @@ int create_directory(const char *directory) {
         fprintf(stderr, "Diretoria '%s' já existe.\n", directory);
         return 0; // Not treated as an error because the directory already exists
     } else {
-        fprintf(stderr, "Erro ao criar diretoria");
+        fprintf(stderr, "Error creating the directory.\n");
         return -1;
     }
 }

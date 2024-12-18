@@ -1,6 +1,4 @@
 *.o
 .vscode
 /tests
-/GAMES
-/SCORES
 /CLIENT_CACHE
