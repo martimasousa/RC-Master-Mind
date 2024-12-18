@@ -149,7 +149,7 @@ char* extract_game_info(const char *PLID, const char arg_type) {
         return NULL;
     }
 
-    char line[GAME_INFO_MAX_LEN + 1];
+    char line[BUFFER_SIZE];
     if (fgets(line, sizeof(line), file) == NULL) {
         perror("Error reading file line.\n");
         fclose(file);
@@ -591,7 +591,7 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
     int file_data_size = get_data_size(file);
     int total_size = 0;
 
-    char line[GAME_INFO_MAX_LEN];
+    char line[BUFFER_SIZE];
     char filedata[MAX_FSIZE];
     while (fgets(line, sizeof(line), file)) {
         size_t len = strlen(line);

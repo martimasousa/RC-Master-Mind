@@ -1,4 +1,1 @@
-TODO:
-- [SERVER] Testar a fundo o INV
-- [ALL] Rever constantes, organizar código e adicionar verificações em funções que podem falhar tipo sscanf, etc etc
-- [ALL] Verificar se todos os comandos acabam com '\n'
+[ALL] - Zip and send.

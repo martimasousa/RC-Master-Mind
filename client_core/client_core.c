@@ -288,7 +288,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     // Deal with response
     if (!strcmp(response_status, "OK")) {
         printf("\n==============================\n");
-        printf("           GAME STARTED!      \n");
+        printf("          GAME STARTED!      \n");
         printf("==============================\n\n");
         return PLID;
     } else if (!strcmp(response_status, "NOK")) {

@@ -452,7 +452,7 @@ char* get_game_file_path(const char *PLID) {
 char* get_player_folder_path(const char *PLID) {
     size_t path_length = strlen("./GAMES/") + strlen(PLID) + 1;
 
-    char *file_path = malloc(path_length);
+    char *file_path = malloc(sizeof(char) * path_length);
     if (file_path == NULL) {
         perror("Error allocating memory for the path!\n");
         return NULL;

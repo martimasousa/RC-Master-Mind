@@ -2,8 +2,8 @@
 #define CONSTANTS_H
 
 // Booleans and Function Return Valuess
-#define FALSE               0
-#define TRUE                1
+#define FALSE 0
+#define TRUE 1
 
 #define ERROR -1
 #define GAME_ENDED 1
@@ -19,15 +19,6 @@
 #define BUFFER_SIZE 1024
 #define MAX_PLAYER_COMMAND  128
 #define INPUT_ARGUMENT_LEN 32 
-
-// YYYYMMDD_HHMMSS_M
-#define GAME_COMPLETED_FILE_NAME_LEN (YEAR_LEN + MONTH_LEN + DAY_LEN + 1 + HOUR_LEN + MINUTES_LEN + SECONDS_LEN + 1 + MODE_LEN)
-
-// YYYY-MM-DD HH:MM:SS
-#define GAME_INFO_DATE_LEN (YEAR_LEN + 1 + MONTH_LEN + 1 + DAY_LEN + 1 + HOUR_LEN + 1 + MINUTES_LEN + 1 + SECONDS_LEN)
-
-// PPPPPP M CCCC T GAME_INFO_DATE_LEN s
-#define GAME_INFO_MAX_LEN (PLID_DIGITS + 1 + MODE_LEN + 1 + 4*COLOR_LEN + 1 + TIME_DIGITS + 1 + GAME_INFO_DATE_LEN + 1 + NOW_TIME_LEN)
 
 #define PLID_DIGITS 6
 #define TIME_DIGITS 3
