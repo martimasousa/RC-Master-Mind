@@ -83,7 +83,6 @@ void handleClient(char *GSIP, char *GSport) {
 
         if (result != 1) {
             fprintf(stderr, "Error: Failed to parse the response string.\n");
-            return;
         }
         
         // Execute respective function
@@ -141,7 +140,7 @@ void handleClient(char *GSIP, char *GSport) {
         } else if (!strcmp(type, "scoreboard") || !strcmp(type, "sb")) {
             scoreboard_function(tcp_res, cmd);
         } else {
-            fprintf(stderr, "Error: Please provide a valid command.\n");
+            printf("Please provide a valid command.\n");
         }
     }
 

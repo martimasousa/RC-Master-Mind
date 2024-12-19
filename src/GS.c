@@ -146,11 +146,25 @@ void handleServer(char *GSport, int is_verbose) {
                     // If verbose option set, print request details
                     if (is_verbose) {
                         // Get values from command
-                        char req_type[COMMAND_LEN + 1];
-                        char req_PLID[PLID_DIGITS + 1];
-                        sscanf(command, "%s %s", req_type, req_PLID);
+                        char *req_type = malloc(sizeof(char) * (COMMAND_LEN + 1));
+                        char *req_PLID = malloc(sizeof(char) * (PLID_DIGITS + 1));
+                        if (!req_type || !req_PLID) fprintf(stderr, "Memory allocation failed.\n");
+
+
+                        int res = sscanf(command, "%s %s", req_type, req_PLID);
+                        
+                        if (res == 1) {
+                            strncpy(req_PLID, "NONE", PLID_DIGITS);
+                            req_PLID[PLID_DIGITS] = '\0';
+                        } else if (res < 1) fprintf(stderr, "Error: Failed to parse the response string.\n");
+
+
+                        
 
                         printf("[NEW REQUEST] PLID: %s | TYPE: %s | SENDER: %s:%d\n", req_PLID, req_type, sender_info.ipv4, sender_info.port);
+
+                        free(req_type);
+                        free(req_PLID);
                     }
 
                     // Handle client messages
@@ -185,11 +199,18 @@ void handleServer(char *GSport, int is_verbose) {
             // If verbose option set, print request details
             if (is_verbose) {
                 // Get values from command
-                char req_type[COMMAND_LEN + 1];
-                char req_PLID[PLID_DIGITS + 1];
-                sscanf(command, "%s %s", req_type, req_PLID);
+                char *req_type = malloc(sizeof(char) * (COMMAND_LEN + 1));
+                char *req_PLID = malloc(sizeof(char) * (PLID_DIGITS + 1));
+                if (!req_type || !req_PLID) fprintf(stderr, "Memory allocation failed.\n");
+
+                int res = sscanf(command, "%s %s", req_type, req_PLID);
+                if (res < 2) fprintf(stderr, "Error: Failed to parse the response string.\n");
 
                 printf("[NEW REQUEST] PLID: %s | TYPE: %s | SENDER: %s:%d\n", req_PLID, req_type, sender_info.ipv4, sender_info.port);
+
+                
+                free(req_type);
+                free(req_PLID);
             }
 
             process_command_udp(udp_fd, client_addr, command);
