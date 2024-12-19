@@ -44,20 +44,20 @@ IP_INFO get_sender_info(int sock_fd, int is_udp) {
                 // No data available, return default "unknown"
                 return result;
             }
-            fprintf(stderr, "recvfrom failed");
+            fprintf(stderr, "recvfrom failed.\n");
             return result;
         }
     } else {
         // For TCP, use getpeername to get the peer's address
         if (getpeername(sock_fd, (struct sockaddr *)&addr, &addr_len) == -1) {
-            fprintf(stderr, "getpeername failed");
+            fprintf(stderr, "getpeername failed.\n");
             return result;
         }
     }
 
     // Convert the IP address to a human-readable string
     if (inet_ntop(AF_INET, &addr.sin_addr, result.ipv4, sizeof(result.ipv4)) == NULL) {
-        fprintf(stderr, "inet_ntop failed");
+        fprintf(stderr, "inet_ntop failed.\n");
         return result;
     }
 
@@ -68,7 +68,7 @@ IP_INFO get_sender_info(int sock_fd, int is_udp) {
 }
 
 
-int handleServer(char *GSport, int is_verbose) {
+void handleServer(char *GSport, int is_verbose) {
     int tcp_fd, udp_fd, client_fd, maxfd;
     struct sockaddr_in tcp_addr, udp_addr; //, client_addr;
     fd_set rfds, allfds;
@@ -78,15 +78,15 @@ int handleServer(char *GSport, int is_verbose) {
     // ### TCP ####################################################################################
     tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_fd < 0) {
-        perror("Error creating TCP socket");
-        exit(1);
+        perror("Error creating TCP socket.");
+        return;
     }
     tcp_addr.sin_family = AF_INET;
     tcp_addr.sin_addr.s_addr = INADDR_ANY;
     tcp_addr.sin_port = htons(atoi(GSport));
     if (bind(tcp_fd, (struct sockaddr *)&tcp_addr, sizeof(tcp_addr)) < 0) {
-        perror("Error binding TCP socket");
-        exit(1);
+        perror("Error binding TCP socket.");
+        return;
     }
     listen(tcp_fd, SOMAXCONN);
 
@@ -95,15 +95,15 @@ int handleServer(char *GSport, int is_verbose) {
     // ### UDP ####################################################################################
     udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd < 0) {
-        perror("Erro ao criar socket UDP");
-        exit(1);
+        perror("Error creating UDP socket.");
+        return;
     }
     udp_addr.sin_family = AF_INET;
     udp_addr.sin_addr.s_addr = INADDR_ANY;
     udp_addr.sin_port = htons(atoi(GSport));
     if (bind(udp_fd, (struct sockaddr *)&udp_addr, sizeof(udp_addr)) < 0) {
-        perror("Erro ao associar socket UDP");
-        exit(1);
+        perror("Error binding UDP socket.");
+        return;
     }
 
 
@@ -118,8 +118,7 @@ int handleServer(char *GSport, int is_verbose) {
         rfds = allfds;
         int ready = select(maxfd + 1, &rfds, NULL, NULL, NULL); // TODO: Verify the arguments of this function
         if (ready < 0) {
-            fprintf(stderr, "Error during select execution...");
-            exit(1); // TODO: ???
+            fprintf(stderr, "Error during select execution....\n");
         }
 
         // Verify new TCP connections
@@ -163,11 +162,11 @@ int handleServer(char *GSport, int is_verbose) {
                 } else if (pid > 0) { // Parent process
                     close(client_fd); // Close client socket in parent
                 } else {
-                    fprintf(stderr, "Error during fork execution...");
+                    fprintf(stderr, "Error during fork execution....\n");
                     close(client_fd); // Clean up on fork failure
                 }
             } else {
-                fprintf(stderr, "Error during accept execution...");
+                fprintf(stderr, "Error during accept execution....\n");
             }
         }
 
@@ -180,8 +179,7 @@ int handleServer(char *GSport, int is_verbose) {
             IP_INFO sender_info = get_sender_info(udp_fd, TRUE);
 
             if (recv_udp_message(udp_fd, command, BUFFER_SIZE, client_addr) == -1) {
-                perror("Error reading command");
-                exit(1);
+                perror("Error reading command.\n");
             }
 
             // If verbose option set, print request details
@@ -203,7 +201,7 @@ int handleServer(char *GSport, int is_verbose) {
     }
     close(tcp_fd);
     close(udp_fd);
-    return 0;
+    return;
 }
 
 
@@ -230,6 +228,5 @@ int main(int argc, char* argv[]) {
 
     handleServer(GSport, is_verbose);
 
-    // printf("[Arguments]\nGSport: %s\nIs verbose: %d\n", GSport, is_verbose);
     return 0;
 }

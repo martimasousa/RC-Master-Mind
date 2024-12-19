@@ -660,10 +660,11 @@ char *build_scoreboard_response(SCORELIST *files) {
     for (int i = 0; i < files->nscores; i++) {
         char *PLID = files->PLID[i];
         char *colcode = files->colcode[i];
+        int score = files->score[i];
         int notries = files->notries[i];
 
         // Build line
-        const char *components[] = {int_to_string(i + 1), ":", SPACE, PLID, SPACE, colcode, SPACE, int_to_string(notries), NEWLINE};
+        const char *components[] = {int_to_string(i + 1), ":", SPACE, int_to_string(score), SPACE, PLID, SPACE, colcode, SPACE, int_to_string(notries), NEWLINE};
         count = sizeof(components) / sizeof(components[0]);
         char *line = create_string(components, count);
 

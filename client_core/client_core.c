@@ -50,8 +50,8 @@ int start_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     // Deal with response
     if (!strcmp(response_status, "OK")) {
         printf("\n==============================\n");
-        printf("           GAME STARTED!      \n");
-        printf("==============================\n\n");
+        printf("          GAME STARTED!      \n");
+        printf("==============================\n");
         return PLID;
     } else if (!strcmp(response_status, "NOK")) {
         fprintf(stderr, "Error: You cannot start a new game while playing another.\n");
@@ -289,7 +289,7 @@ int debug_function(int udp_fd, struct addrinfo *udp_res, char *cmd) {
     if (!strcmp(response_status, "OK")) {
         printf("\n==============================\n");
         printf("          GAME STARTED!      \n");
-        printf("==============================\n\n");
+        printf("==============================\n");
         return PLID;
     } else if (!strcmp(response_status, "NOK")) {
         fprintf(stderr, "Error: You cannot start a new game while playing another.\n");
@@ -388,9 +388,9 @@ int show_trials_function(struct addrinfo *tcp_res, char *cmd, int PLID) {
         }
 
         if (!strcmp(response_status, "ACT")) {
-            printf("Current Game Trials History:\n");
+            printf("\nCurrent Game Trials History:\n");
         } else if (!strcmp(response_status, "FIN")) {
-            printf("Last Game Trials History:\n");
+            printf("\nLast Game Trials History:\n");
         }
         
         // Show content

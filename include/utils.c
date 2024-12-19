@@ -588,7 +588,7 @@ int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
     size_t capacity = 5; // Initialize word capacity
     *word = malloc(capacity * sizeof(char));
     if (*word == NULL) {
-        fprintf(stderr, "Memory allocation failed");
+        fprintf(stderr, "Memory allocation failed.\n");
         return 1;
     }
     
@@ -609,7 +609,7 @@ int tcp_read_until_delimiter(int fd, char** word, char separator, int n_times) {
             capacity *= 2; // Double the capacity
             *word = realloc(*word, capacity * sizeof(char)); // Reallocate memory
             if (*word == NULL) {
-                fprintf(stderr, "Memory reallocation failed");
+                fprintf(stderr, "Memory reallocation failed.\n");
                 return 1;
             }
         }
@@ -635,7 +635,7 @@ int tcp_write(int fd, char* to_write) {
     while (total < len) {
         int n = write(fd, to_write + total, len - total);
         if (n < 0) {
-            fprintf(stderr, "Error while writing to tcp fd");
+            fprintf(stderr, "Error while writing to tcp fd.\n");
             return ERROR;
         }
         total += n;  // Increment total by the number of bytes written
@@ -653,7 +653,7 @@ int tcp_read(int fd, char **buffer, size_t n) {
     // Allocate memory for buffer (including '\0')
     *buffer = (char *)malloc(n + 1);
     if (!(*buffer)) {
-        perror("Failed to allocate memory for buffer");
+        perror("Failed to allocate memory for buffer.\n");
         return ERROR;
     }
 
@@ -665,7 +665,7 @@ int tcp_read(int fd, char **buffer, size_t n) {
         bytes_read = read(fd, *buffer + total_read, n - total_read);
 
         if (bytes_read < 0) {
-            perror("Error reading from file descriptor");
+            perror("Error reading from file descriptor.\n");
             free(*buffer);
             *buffer = NULL; // Prevent dangling pointers
             return ERROR;
