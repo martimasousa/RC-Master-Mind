@@ -639,7 +639,7 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
     // Add the new line at the end
     file_data_size++;
     
-    const char *components[] = {"RST", SPACE, response, SPACE, filename, SPACE, int_to_string(file_data_size), SPACE, NEWLINE, filedata, NEWLINE};
+    const char *components[] = {"RST", SPACE, response, SPACE, filename, SPACE, int_to_string(file_data_size), SPACE, filedata};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *message = create_string(components, count);
 
@@ -694,7 +694,7 @@ char *build_scoreboard_response(SCORELIST *files) {
     if (filename == NULL) return NULL;
 
     // Built Final String
-    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), SPACE, NEWLINE, Fdata};
+    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), SPACE, Fdata};
     count = sizeof(msg_components) / sizeof(msg_components[0]);
     char *response = create_string(msg_components, count);
 
