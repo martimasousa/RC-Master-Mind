@@ -636,7 +636,8 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
         filename++;
     }
     
-    const char *components[] = {"RST", SPACE, response, SPACE, filename, SPACE, int_to_string(file_data_size), SPACE, filedata};
+
+    const char *components[] = {"RST", SPACE, response, SPACE, filename, SPACE, int_to_string(file_data_size), SPACE, filedata, NEWLINE};
     size_t count = sizeof(components) / sizeof(components[0]);
     char *message = create_string(components, count);
 
@@ -691,7 +692,7 @@ char *build_scoreboard_response(SCORELIST *files) {
     if (filename == NULL) return NULL;
 
     // Built Final String
-    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), SPACE, Fdata};
+    const char *msg_components[] = {"RSS OK", SPACE, filename, SPACE, int_to_string(Fsize), SPACE, Fdata, NEWLINE};
     count = sizeof(msg_components) / sizeof(msg_components[0]);
     char *response = create_string(msg_components, count);
 
