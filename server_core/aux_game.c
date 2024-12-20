@@ -488,7 +488,7 @@ int create_score_file(const char *PLID, const int number_tries) {
     char *file_path = malloc(sizeof(char) * BUFFER_SIZE);
 
     // Builds the path string
-    sprintf(file_path, "./SCORES/%d_%s_%02d%02d%4d_%02d%02d%02d.txt",
+    sprintf(file_path, "./SCORES/%03d_%s_%02d%02d%4d_%02d%02d%02d.txt",
                                         score,
                                         PLID,
                                         current_time->tm_mday,
@@ -507,7 +507,7 @@ int create_score_file(const char *PLID, const int number_tries) {
     // Debug is the largest mode string
     size_t message_len = SCORE_MAX_LEN + 1 + PLID_DIGITS + 1 + 4*COLOR_LEN + 1 + TRIAL_MAX_LEN + 1 + strlen("DEBUG") + 1;
     char *message = malloc(sizeof(char) * message_len);
-    snprintf(message, message_len, "%d %s %c%c%c%c %d %s", score, PLID, solution->colours[0],
+    snprintf(message, message_len, "%03d %s %c%c%c%c %d %s", score, PLID, solution->colours[0],
                                                                solution->colours[1],
                                                                solution->colours[2],
                                                                solution->colours[3],
