@@ -62,8 +62,7 @@
 
 // Connection Related Variables
 #define localhost           "127.0.0.1"
-#define GSPORT              "58000"
-#define GROUP_NUMBER        28
+#define GSPORT              "58028"
 
 
 // Player Loop Logic
