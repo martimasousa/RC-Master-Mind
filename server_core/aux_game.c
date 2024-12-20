@@ -635,9 +635,6 @@ void execute_show_trials(const int client_fd, const char* filepath, char* PLID) 
         // Move past the last '/'
         filename++;
     }
-
-    // Add the new line at the end
-    file_data_size++;
     
     const char *components[] = {"RST", SPACE, response, SPACE, filename, SPACE, int_to_string(file_data_size), SPACE, filedata};
     size_t count = sizeof(components) / sizeof(components[0]);
